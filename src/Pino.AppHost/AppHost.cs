@@ -3,10 +3,15 @@ var builder = DistributedApplication.CreateBuilder(args);
 var postgres = builder.AddPostgres("postgres")
     .WithDataVolume();
 var database = postgres.AddDatabase("pinodb", "pino");
+var storage = builder.AddAzureStorage("profilestorage")
+    .RunAsEmulator(emulator => emulator.WithDataVolume());
+var blobs = storage.AddBlobs("profileblobs");
 
 var web = builder.AddProject<Projects.Pino>("pino")
     .WithReference(database)
+    .WithReference(blobs)
     .WaitFor(database)
+    .WaitFor(blobs)
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health");
 
@@ -15,6 +20,7 @@ var web = builder.AddProject<Projects.Pino>("pino")
 var migrations = web.AddEFMigrations("pino-migrations", "Pino.Data.ApplicationDbContext",
         tool => tool.WithToolVersion("10.0.12"))
     .WithReference(database)
+    .WithReference(blobs)
     .WaitFor(database)
     // EF constructs the web host at design time but does not serve HTTP. Avoid inherited DCP endpoint tokens.
     .WithEnvironment("ASPNETCORE_URLS", "http://127.0.0.1:0")

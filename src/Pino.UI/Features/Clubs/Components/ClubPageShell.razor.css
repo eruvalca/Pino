@@ -1,0 +1,13 @@
+.club-shell { min-height: 100vh; background: var(--canvas); }
+.skip-link { position: absolute; top: -5rem; left: 1rem; z-index: 10; padding: 0.75rem 1rem; background: var(--surface); }
+.skip-link:focus { top: 0.5rem; }
+.access-masthead { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1rem; padding: 1.25rem 2rem; background: var(--navy); color: white; }
+.masthead-identity { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1.5rem; }
+.active-club { width: fit-content; max-width: 40ch; font-weight: 650; overflow-wrap: anywhere; text-underline-offset: 0.2em; }
+.access-wordmark { font-size: 2rem; line-height: 1.2; font-weight: 800; letter-spacing: -0.035em; text-decoration: none; }
+.access-wordmark span { color: #a6c6ff; }
+.access-masthead a { color: white; }
+.access-masthead nav { display: grid; grid-template-columns: auto auto; gap: 1.5rem; }
+.access-masthead a:focus-visible { outline-color: #a6c6ff; }
+main { padding: 2.5rem 1.5rem 4rem; }
+@media (max-width: 40rem) { .access-masthead { padding: 1rem; align-items: start; } .masthead-identity { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; } .active-club { font-size: 0.875rem; } .access-masthead nav { gap: 1rem; padding-top: 0.375rem; font-size: 0.875rem; } main { padding: 1rem 0.75rem 3rem; } }

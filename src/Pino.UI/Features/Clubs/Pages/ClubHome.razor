@@ -1,0 +1,30 @@
+@page "/clubs/{ClubId:guid}"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+
+<PageTitle>Club workspace · Pino</PageTitle>
+<ClubPageShell Club="_membership?.Club">
+<article class="club-home">
+    @if (_membership is { } member)
+    {
+        <h1>@member.Club.Name</h1>
+        <p class="muted">@member.Club.Sport · @member.Club.City, @UsStates.All[member.Club.State]</p>
+        <p>Your role: <strong>@member.Role</strong></p>
+        <section class="club-start"><h2>Your club is ready</h2><p>This workspace has no player or season workflows yet. Club access and member management are available now.</p>
+            <div class="actions">
+                @if (member.Role == ClubRole.Administrator) { <a class="primary-action" href="@($"/clubs/{ClubId}/people")">Manage people</a> }
+                <a class="secondary-action" href="/club/access">Your club access</a>
+            </div>
+        </section>
+        <p class="muted">You can explore the <a href="/tryouts/spring-2027">fictional tryout demonstration</a>. It is separate from your club's records.</p>
+    }
+    else
+    {
+        <h1>Club workspace</h1><p>@(_unavailable ? "This club isn't available to your account. Check your current access." : "Checking your membership…")</p>
+        <a href="/club/access">Your club access</a>
+        @if (_unavailable) { <button class="secondary-action" @onclick="LoadAsync">Check again</button> }
+    }
+</article>
+<AccessWatch Tick="LoadAsync" />
+</ClubPageShell>

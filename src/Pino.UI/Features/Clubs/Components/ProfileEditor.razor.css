@@ -1,0 +1,8 @@
+.profile-fields { display: grid; gap: 1.5rem; border: 0; padding: 0; margin: 0; min-width: 0; }
+.name-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.crop-stage { max-width: 32rem; height: 20rem; background: var(--subtle); overflow: hidden; }
+.crop-stage ::deep .profile-cropper { display: block; max-width: 100%; max-height: 20rem; }
+.crop-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 0.5rem; }
+.photo-preview { border-radius: 50%; object-fit: cover; }
+.muted { font-size: 0.875rem; }
+@media (max-width: 40rem) { .name-fields { grid-template-columns: 1fr; } .crop-stage { height: 17rem; } }

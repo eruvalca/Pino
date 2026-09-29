@@ -1,0 +1,31 @@
+.access-sheet { max-width: 66rem; margin-inline: auto; padding: 2.5rem 3rem; background: var(--surface); border: 1px solid var(--line); }
+h1 { font-size: 2.75rem; letter-spacing: -0.035em; margin-bottom: 2rem; }
+h2 { font-size: 2rem; letter-spacing: -0.025em; }
+.profile-strip { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1.5rem; padding-bottom: 2rem; border-bottom: 1px solid var(--line); }
+.profile-strip img { border-radius: 50%; object-fit: cover; }
+.profile-strip strong { font-size: 1.375rem; }
+.profile-strip p { color: var(--success); margin: 0.3rem 0 0; }
+.access-task { padding-top: 2rem; }
+.search-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; align-items: end; margin-block: 1.5rem; }
+.club-results { list-style: none; padding: 0; margin: 0; }
+.club-results li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1.5rem; align-items: center; border-top: 1px solid var(--line); padding-block: 1.5rem; }
+.club-results h3 { font-size: 1.25rem; margin-bottom: 0.25rem; }
+.club-results p { color: var(--muted); margin: 0; }
+.create-alternative { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1.5rem; padding-top: 1.5rem; margin-top: 0.5rem; border-top: 1px solid var(--line); }
+.club-form { display: grid; gap: 1.5rem; border: 0; padding: 0; margin: 0; min-width: 0; }
+.location-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.access-confirm { padding: 1.5rem; margin-top: 2rem; background: var(--subtle); border: 1px solid var(--line); }
+.leave-action { margin-top: 2rem; }
+.empty-message { padding-block: 1.5rem; }
+.actions { align-items: center; margin-block: 1rem; }
+.actions a { text-align: center; text-decoration: none; }
+@media (max-width: 45rem) {
+    .access-sheet { padding: 1.5rem 1.25rem; }
+    h1 { font-size: 2rem; margin-bottom: 1.5rem; } h2 { font-size: 1.5rem; }
+    .profile-strip { grid-template-columns: auto minmax(0, 1fr); gap: 1rem; padding-bottom: 1.5rem; }
+    .profile-strip img { width: 64px; height: 64px; }
+    .profile-strip button { grid-column: 2; justify-self: start; }
+    .club-results li, .create-alternative, .location-fields { grid-template-columns: minmax(0, 1fr); gap: 0.75rem; }
+    .club-results button { width: 100%; }
+    .search-form { grid-template-columns: minmax(0, 1fr); }
+}

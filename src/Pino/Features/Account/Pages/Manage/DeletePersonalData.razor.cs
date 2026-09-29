@@ -47,6 +47,11 @@ public sealed partial class DeletePersonalData
         var result = await UserManager.DeleteAsync(_user);
         if (!result.Succeeded)
         {
+            if (result.Errors.Any(error => string.Equals(error.Code, "ClubMembership", StringComparison.Ordinal)))
+            {
+                _message = "Error: " + string.Join(" ", result.Errors.Select(error => error.Description));
+                return;
+            }
             throw new InvalidOperationException("Unexpected error occurred deleting user.");
         }
 

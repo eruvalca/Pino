@@ -12,6 +12,7 @@
     <ProjectReference Include="..\Pino\Pino.csproj" />
     <PackageReference Include="Aspire.Hosting.EntityFrameworkCore" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" />
   </ItemGroup>
 
 </Project>

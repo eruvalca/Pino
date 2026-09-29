@@ -50,9 +50,10 @@ typical roster sizes have not been established.
 ## Capabilities and Constraints
 
 These are confirmed product requirements. The repository provides account
-infrastructure and an interactive, fictional tryout evaluation and team placement
-workspace. The workspace uses page-session sample data; it does not persist club
-records or implement club authorization. The broader capabilities below remain
+infrastructure, persisted club onboarding and membership management, and an
+interactive, fictional tryout evaluation and team placement workspace. The
+tryout demonstration uses page-session sample data and is separate from real
+club records. The broader player and season capabilities below remain
 requirements, not claims of completed server integration. See the
 [tryout feature documentation](docs/features/tryout-evaluation.md) for its scope.
 
@@ -62,13 +63,32 @@ requirements, not claims of completed server integration. See the
   as the tenant for its associated data and user memberships.
 - Club data and access must respect that tenant boundary. Administrators and
   coaches are members of the clubs they work with.
-- New user onboarding requires a profile image upload and the ability to crop
-  that image.
+- New user onboarding requires first and last names, a profile image upload,
+  and the ability to crop that image.
 - Newly registered users can create their own club or search for an existing
   club and request to join it.
-- Club administrators can view membership requests and approve or deny them.
-- Whether users can belong to multiple clubs, and the exact role and permission
-  model within each club, remain open decisions.
+- A club's initial details are its name, free-text sport and city, and a selected
+  US state. Club search
+  shows those details without exposing members or players.
+- A person can belong to only one club in the first version. There is no
+  multi-club membership or club switcher.
+- Creating a club makes its creator an administrator. Approved join requests
+  become coach memberships. Administrators manage club access; coaches do club
+  work. Detailed permissions for other operations remain undecided.
+- Club administrators can view membership requests and approve or deny them,
+  change member roles between administrator and coach, and remove members.
+- A person can have only one pending join request at a time and can cancel it
+  to choose another club. Denied applicants and removed members may reapply.
+- Members can leave their club themselves. The last administrator must promote
+  another member before leaving or losing administrator access; removal or
+  demotion must never leave a club without an administrator.
+- Profile photos are private: visible to the person, their current club's staff,
+  and administrators reviewing their pending request. Store only the saved
+  square crop and delete replaced photos.
+- Request status is available in the app; approval emails are outside v1.
+
+The implemented flow and remaining product boundaries are recorded in the
+[club onboarding and access brief](docs/features/club-onboarding-access.md).
 
 ### Players
 
@@ -128,8 +148,7 @@ requirements, not claims of completed server integration. See the
 - Use **CsvHelper** for player CSV import.
 - Use **Aspire.Azure.Storage.Blobs** and **Azure.Storage.Blobs** for the required
   user profile image storage integration, and **Cropper.Blazor** for cropping.
-  Package selection is part of the brief; installation and exact versions are
-  deferred to implementation.
+  Exact installed versions are centralized in `Directory.Packages.props`.
 - User profile images are required during new user onboarding. Player photos
   are optional. These are distinct requirements.
 

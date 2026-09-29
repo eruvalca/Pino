@@ -7,7 +7,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Pino.Migrations;
 
 /// <inheritdoc />
-internal sealed partial class InitialIdentitySchema : Migration
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments", Justification = "Generated schema operations run once per database migration; keep the generated column lists readable.")]
+internal sealed partial class InitialCreate : Migration
 {
     /// <inheritdoc />
     protected override void Up(MigrationBuilder migrationBuilder)
@@ -49,6 +50,35 @@ internal sealed partial class InitialIdentitySchema : Migration
             constraints: table =>
             {
                 table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Clubs",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                Sport = table.Column<string>(type: "character varying(60)", maxLength: 60, nullable: false),
+                City = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                State = table.Column<string>(type: "character varying(2)", maxLength: 2, nullable: false),
+                CreatedBy = table.Column<string>(type: "character varying(450)", maxLength: 450, nullable: false),
+                OperationId = table.Column<Guid>(type: "uuid", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_Clubs", x => x.Id);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "PhotoDeletions",
+            columns: table => new
+            {
+                PhotoKey = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                NotBefore = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_PhotoDeletions", x => x.PhotoKey);
             });
 
         migrationBuilder.CreateTable(
@@ -176,6 +206,82 @@ internal sealed partial class InitialIdentitySchema : Migration
                     onDelete: ReferentialAction.Cascade);
             });
 
+        migrationBuilder.CreateTable(
+            name: "ClubProfiles",
+            columns: table => new
+            {
+                UserId = table.Column<string>(type: "text", nullable: false),
+                FirstName = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                LastName = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                PhotoKey = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_ClubProfiles", x => x.UserId);
+                table.ForeignKey(
+                    name: "FK_ClubProfiles_AspNetUsers_UserId",
+                    column: x => x.UserId,
+                    principalTable: "AspNetUsers",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "ClubJoinRequests",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                UserId = table.Column<string>(type: "text", nullable: false),
+                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
+                Status = table.Column<int>(type: "integer", nullable: false),
+                CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                DecidedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_ClubJoinRequests", x => x.Id);
+                table.CheckConstraint("CK_ClubJoinRequest_Status", "\"Status\" IN (0, 1, 2, 3)");
+                table.ForeignKey(
+                    name: "FK_ClubJoinRequests_AspNetUsers_UserId",
+                    column: x => x.UserId,
+                    principalTable: "AspNetUsers",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+                table.ForeignKey(
+                    name: "FK_ClubJoinRequests_Clubs_ClubId",
+                    column: x => x.ClubId,
+                    principalTable: "Clubs",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "ClubMemberships",
+            columns: table => new
+            {
+                UserId = table.Column<string>(type: "text", nullable: false),
+                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
+                Role = table.Column<int>(type: "integer", nullable: false),
+                JoinedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_ClubMemberships", x => x.UserId);
+                table.CheckConstraint("CK_ClubMembership_Role", "\"Role\" IN (0, 1)");
+                table.ForeignKey(
+                    name: "FK_ClubMemberships_AspNetUsers_UserId",
+                    column: x => x.UserId,
+                    principalTable: "AspNetUsers",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_ClubMemberships_Clubs_ClubId",
+                    column: x => x.ClubId,
+                    principalTable: "Clubs",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
         migrationBuilder.CreateIndex(
             name: "IX_AspNetRoleClaims_RoleId",
             table: "AspNetRoleClaims",
@@ -217,6 +323,29 @@ internal sealed partial class InitialIdentitySchema : Migration
             table: "AspNetUsers",
             column: "NormalizedUserName",
             unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_ClubJoinRequests_ClubId_Status_CreatedAt",
+            table: "ClubJoinRequests",
+            columns: new[] { "ClubId", "Status", "CreatedAt" });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_ClubJoinRequests_UserId",
+            table: "ClubJoinRequests",
+            column: "UserId",
+            unique: true,
+            filter: "\"Status\" = 0");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_ClubMemberships_ClubId_Role",
+            table: "ClubMemberships",
+            columns: new[] { "ClubId", "Role" });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Clubs_CreatedBy_OperationId",
+            table: "Clubs",
+            columns: new[] { "CreatedBy", "OperationId" },
+            unique: true);
     }
 
     /// <inheritdoc />
@@ -241,7 +370,22 @@ internal sealed partial class InitialIdentitySchema : Migration
             name: "AspNetUserTokens");
 
         migrationBuilder.DropTable(
+            name: "ClubJoinRequests");
+
+        migrationBuilder.DropTable(
+            name: "ClubMemberships");
+
+        migrationBuilder.DropTable(
+            name: "ClubProfiles");
+
+        migrationBuilder.DropTable(
+            name: "PhotoDeletions");
+
+        migrationBuilder.DropTable(
             name: "AspNetRoles");
+
+        migrationBuilder.DropTable(
+            name: "Clubs");
 
         migrationBuilder.DropTable(
             name: "AspNetUsers");

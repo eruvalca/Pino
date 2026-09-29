@@ -6,8 +6,8 @@ the CLI and editor find `global.json` and `Pino.slnx`.
 
 | Project | Scope |
 | --- | --- |
-| `Pino.UnitTests` | Account services and extensions, outcome decoding, redirects, authentication-state revalidation, Identity endpoint behavior, and service defaults. |
-| `Pino.ComponentTests` | Account sign-in and management workflows, validation, shared account components, navigation, error request IDs, the shared UI's `Counter`, and tryout sample notes, filters, decisions, eligibility, completion, and history, using bUnit. |
+| `Pino.UnitTests` | Account services and extensions, outcome decoding, redirects, authentication-state revalidation, Identity endpoint behavior, club field/role rules, profile-image validation, photo-cleanup recovery, and service defaults. |
+| `Pino.ComponentTests` | Account sign-in and management workflows, club onboarding and administrator actions, validation, shared account components, navigation, error request IDs, the shared UI's `Counter`, and tryout sample notes, filters, decisions, eligibility, completion, and history, using bUnit. |
 
 ## Supported stack
 
@@ -63,6 +63,11 @@ HTTP context and Identity dependencies. `ComponentFormExtensions` supplies
 `LoggerTestExtensions.GetLoggedEventIds()` inspects captured logging calls. Keep
 these receiver-focused helpers in the account test namespace and use a fresh,
 asynchronously disposed `BunitContext` for every test.
+
+For components that inspect `RendererInfo`, set the test renderer explicitly
+after registering services, for example `context.SetRendererInfo(new("Server",
+isInteractive: true))`. Use `isInteractive: false` when checking prerendered
+controls; this prevents tests from overlooking input lost during hydration.
 
 ## Build and run
 
@@ -189,6 +194,12 @@ repository's matching code-behind policy.
 bUnit tests run in process without starting Aspire, a web server, or a browser.
 They verify component behavior, not browser layout, real JavaScript execution, or
 server/WebAssembly render-mode transitions; those need browser-level tests.
+
+Club persistence also requires integration checks through Aspire: concurrent
+requests/approvals and last-administrator changes, cross-club authorization,
+antiforgery, private photo access and replacement cleanup. Use disposable users,
+and wait for interactive controls and server-confirmed notices before asserting
+results. Static prerendered content is not evidence that a browser event ran.
 
 ## Visual Studio Code
 

@@ -14,6 +14,19 @@ namespace Pino.ComponentTests.Features.Account;
     Justification = "xUnit requires public test classes for discovery.")]
 public sealed class DeletePersonalDataTests
 {
+    [Fact]
+    public async Task ClubMembershipConflictKeepsAccountSignedInAndExplainsLeavingAsync()
+    {
+        await using var context = new BunitContext();
+        var account = context.ConfigureAccount();
+        var user = account.Authenticate();
+        account.Users.DeleteAsync(user).Returns(IdentityResult.Failed(new IdentityError { Code = "ClubMembership", Description = "Leave your club before deleting your account." }));
+        var component = account.Render<DeletePersonalData>(context);
+        await component.Find("form").SubmitAsync();
+        component.Find(".notice[data-kind='error']").TextContent.ShouldContain("Leave your club");
+        await account.SignIn.DidNotReceive().SignOutAsync();
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
