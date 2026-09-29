@@ -1,0 +1,370 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-29T14:45:09.9532202Z",
+  "title": "Design System: Pino",
+  "extensions": {
+    "colorMeta": {
+      "navy": {
+        "role": "neutral",
+        "displayName": "Deep navy",
+        "tonalRamp": [
+          "oklch(15.00% 0.0437 262.05)",
+          "oklch(26.43% 0.0437 262.05)",
+          "oklch(37.86% 0.0437 262.05)",
+          "oklch(49.29% 0.0437 262.05)",
+          "oklch(60.71% 0.0437 262.05)",
+          "oklch(72.14% 0.0437 262.05)",
+          "oklch(83.57% 0.0437 262.05)",
+          "oklch(95.00% 0.0437 262.05)"
+        ]
+      },
+      "blue": {
+        "role": "primary",
+        "displayName": "Cobalt blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.1399 262.13)",
+          "oklch(26.43% 0.1399 262.13)",
+          "oklch(37.86% 0.1399 262.13)",
+          "oklch(49.29% 0.1399 262.13)",
+          "oklch(60.71% 0.1399 262.13)",
+          "oklch(72.14% 0.1399 262.13)",
+          "oklch(83.57% 0.1399 262.13)",
+          "oklch(95.00% 0.1399 262.13)"
+        ]
+      },
+      "blue-hover": {
+        "role": "primary",
+        "displayName": "Deep cobalt",
+        "tonalRamp": [
+          "oklch(15.00% 0.1187 262.28)",
+          "oklch(26.43% 0.1187 262.28)",
+          "oklch(37.86% 0.1187 262.28)",
+          "oklch(49.29% 0.1187 262.28)",
+          "oklch(60.71% 0.1187 262.28)",
+          "oklch(72.14% 0.1187 262.28)",
+          "oklch(83.57% 0.1187 262.28)",
+          "oklch(95.00% 0.1187 262.28)"
+        ]
+      },
+      "blue-soft": {
+        "role": "primary",
+        "displayName": "Pale blue",
+        "tonalRamp": [
+          "oklch(15.00% 0.0137 258.35)",
+          "oklch(26.43% 0.0137 258.35)",
+          "oklch(37.86% 0.0137 258.35)",
+          "oklch(49.29% 0.0137 258.35)",
+          "oklch(60.71% 0.0137 258.35)",
+          "oklch(72.14% 0.0137 258.35)",
+          "oklch(83.57% 0.0137 258.35)",
+          "oklch(95.00% 0.0137 258.35)"
+        ]
+      },
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Cool canvas",
+        "tonalRamp": [
+          "oklch(15.00% 0.0045 258.32)",
+          "oklch(26.43% 0.0045 258.32)",
+          "oklch(37.86% 0.0045 258.32)",
+          "oklch(49.29% 0.0045 258.32)",
+          "oklch(60.71% 0.0045 258.32)",
+          "oklch(72.14% 0.0045 258.32)",
+          "oklch(83.57% 0.0045 258.32)",
+          "oklch(95.00% 0.0045 258.32)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Writing white",
+        "tonalRamp": [
+          "oklch(15.00% 0.0000 0.00)",
+          "oklch(26.43% 0.0000 0.00)",
+          "oklch(37.86% 0.0000 0.00)",
+          "oklch(49.29% 0.0000 0.00)",
+          "oklch(60.71% 0.0000 0.00)",
+          "oklch(72.14% 0.0000 0.00)",
+          "oklch(83.57% 0.0000 0.00)",
+          "oklch(95.00% 0.0000 0.00)"
+        ]
+      },
+      "subtle": {
+        "role": "neutral",
+        "displayName": "Subtle paper",
+        "tonalRamp": [
+          "oklch(15.00% 0.0029 264.54)",
+          "oklch(26.43% 0.0029 264.54)",
+          "oklch(37.86% 0.0029 264.54)",
+          "oklch(49.29% 0.0029 264.54)",
+          "oklch(60.71% 0.0029 264.54)",
+          "oklch(72.14% 0.0029 264.54)",
+          "oklch(83.57% 0.0029 264.54)",
+          "oklch(95.00% 0.0029 264.54)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted slate",
+        "tonalRamp": [
+          "oklch(15.00% 0.0390 259.36)",
+          "oklch(26.43% 0.0390 259.36)",
+          "oklch(37.86% 0.0390 259.36)",
+          "oklch(49.29% 0.0390 259.36)",
+          "oklch(60.71% 0.0390 259.36)",
+          "oklch(72.14% 0.0390 259.36)",
+          "oklch(83.57% 0.0390 259.36)",
+          "oklch(95.00% 0.0390 259.36)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Fine rule",
+        "tonalRamp": [
+          "oklch(15.00% 0.0151 260.73)",
+          "oklch(26.43% 0.0151 260.73)",
+          "oklch(37.86% 0.0151 260.73)",
+          "oklch(49.29% 0.0151 260.73)",
+          "oklch(60.71% 0.0151 260.73)",
+          "oklch(72.14% 0.0151 260.73)",
+          "oklch(83.57% 0.0151 260.73)",
+          "oklch(95.00% 0.0151 260.73)"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Control boundary",
+        "tonalRamp": [
+          "oklch(15.00% 0.0291 258.37)",
+          "oklch(26.43% 0.0291 258.37)",
+          "oklch(37.86% 0.0291 258.37)",
+          "oklch(49.29% 0.0291 258.37)",
+          "oklch(60.71% 0.0291 258.37)",
+          "oklch(72.14% 0.0291 258.37)",
+          "oklch(83.57% 0.0291 258.37)",
+          "oklch(95.00% 0.0291 258.37)"
+        ]
+      },
+      "success": {
+        "displayName": "Success green",
+        "tonalRamp": [
+          "oklch(15.00% 0.0757 159.20)",
+          "oklch(26.43% 0.0757 159.20)",
+          "oklch(37.86% 0.0757 159.20)",
+          "oklch(49.29% 0.0757 159.20)",
+          "oklch(60.71% 0.0757 159.20)",
+          "oklch(72.14% 0.0757 159.20)",
+          "oklch(83.57% 0.0757 159.20)",
+          "oklch(95.00% 0.0757 159.20)"
+        ]
+      },
+      "success-surface": {
+        "displayName": "Success surface",
+        "tonalRamp": [
+          "oklch(15.00% 0.0107 158.85)",
+          "oklch(26.43% 0.0107 158.85)",
+          "oklch(37.86% 0.0107 158.85)",
+          "oklch(49.29% 0.0107 158.85)",
+          "oklch(60.71% 0.0107 158.85)",
+          "oklch(72.14% 0.0107 158.85)",
+          "oklch(83.57% 0.0107 158.85)",
+          "oklch(95.00% 0.0107 158.85)"
+        ]
+      },
+      "error": {
+        "displayName": "Error red",
+        "tonalRamp": [
+          "oklch(15.00% 0.1554 25.82)",
+          "oklch(26.43% 0.1554 25.82)",
+          "oklch(37.86% 0.1554 25.82)",
+          "oklch(49.29% 0.1554 25.82)",
+          "oklch(60.71% 0.1554 25.82)",
+          "oklch(72.14% 0.1554 25.82)",
+          "oklch(83.57% 0.1554 25.82)",
+          "oklch(95.00% 0.1554 25.82)"
+        ]
+      },
+      "error-surface": {
+        "displayName": "Error surface",
+        "tonalRamp": [
+          "oklch(15.00% 0.0140 17.40)",
+          "oklch(26.43% 0.0140 17.40)",
+          "oklch(37.86% 0.0140 17.40)",
+          "oklch(49.29% 0.0140 17.40)",
+          "oklch(60.71% 0.0140 17.40)",
+          "oklch(72.14% 0.0140 17.40)",
+          "oklch(83.57% 0.0140 17.40)",
+          "oklch(95.00% 0.0140 17.40)"
+        ]
+      },
+      "warning": {
+        "displayName": "Warning ochre",
+        "tonalRamp": [
+          "oklch(15.00% 0.1022 75.12)",
+          "oklch(26.43% 0.1022 75.12)",
+          "oklch(37.86% 0.1022 75.12)",
+          "oklch(49.29% 0.1022 75.12)",
+          "oklch(60.71% 0.1022 75.12)",
+          "oklch(72.14% 0.1022 75.12)",
+          "oklch(83.57% 0.1022 75.12)",
+          "oklch(95.00% 0.1022 75.12)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Selected player",
+        "purpose": "The strongest reading anchor; contracts to 1.75rem on phones."
+      },
+      "headline": {
+        "displayName": "Tryout context",
+        "purpose": "Page heading; contracts to 1.5rem on phones."
+      },
+      "title": {
+        "displayName": "Section heading",
+        "purpose": "Roster, composer and observation headings."
+      },
+      "body": {
+        "displayName": "Base body",
+        "purpose": "Shared document and control base."
+      },
+      "observation": {
+        "displayName": "Observation text",
+        "purpose": "Open line spacing, preserved line breaks and a 70ch maximum measure."
+      },
+      "label": {
+        "displayName": "Action label",
+        "purpose": "Primary, secondary and text actions."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "note-arrives",
+        "value": "650ms cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Fade the saved observation background from pale blue to transparent; remove the animation under prefers-reduced-motion: reduce."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compact-workspace",
+        "value": "60rem"
+      },
+      {
+        "name": "phone-workspace",
+        "value": "45rem"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary action",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Filled cobalt action for saving the current operation.",
+      "html": "<button type=\"button\" class=\"ds-primary\">Save note</button>",
+      "css": ".ds-primary { font-family: \"Segoe UI\", system-ui, sans-serif; min-height: 2.75rem; padding: 0.65rem 1rem; border: 1px solid var(--blue, #244d9e); border-radius: var(--radius, 0.375rem); font-size: 0.875rem; font-weight: 600; line-height: 1.4; cursor: pointer; } .ds-primary:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; } .ds-primary:disabled { opacity: 0.55; cursor: default; } .ds-primary { background: var(--blue, #244d9e); color: var(--surface, #ffffff); } .ds-primary:hover:not(:disabled) { background: var(--blue-hover, #1b3c7e); }"
+    },
+    {
+      "name": "Secondary action",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined action for entering the separate decision workflow.",
+      "html": "<button type=\"button\" class=\"ds-secondary\">Record decision</button>",
+      "css": ".ds-secondary { font-family: \"Segoe UI\", system-ui, sans-serif; min-height: 2.75rem; padding: 0.65rem 1rem; border: 1px solid var(--blue, #244d9e); border-radius: var(--radius, 0.375rem); font-size: 0.875rem; font-weight: 600; line-height: 1.4; cursor: pointer; } .ds-secondary:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; } .ds-secondary:disabled { opacity: 0.55; cursor: default; } .ds-secondary { background: var(--surface, #ffffff); color: var(--blue, #244d9e); } .ds-secondary:hover:not(:disabled) { background: var(--blue-soft, #e7edf6); }"
+    },
+    {
+      "name": "Text action",
+      "kind": "button",
+      "refersTo": "button-text",
+      "description": "Quiet supporting actions such as Cancel and Clear filters.",
+      "html": "<button type=\"button\" class=\"ds-text\">Clear filters</button>",
+      "css": ".ds-text { font-family: \"Segoe UI\", system-ui, sans-serif; min-height: 2.75rem; padding: 0.65rem 1rem; border: 1px solid var(--blue, #244d9e); border-radius: var(--radius, 0.375rem); font-size: 0.875rem; font-weight: 600; line-height: 1.4; cursor: pointer; } .ds-text:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; } .ds-text:disabled { opacity: 0.55; cursor: default; } .ds-text { background: transparent; border-color: transparent; color: var(--blue, #244d9e); padding-inline: 0.25rem; } .ds-text:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 0.2em; }"
+    },
+    {
+      "name": "Labeled search field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "Native roster search with a visible label and strong editable boundary.",
+      "html": "<div class=\"ds-search\"><label for=\"ds-player-search\">Find a player</label><input id=\"ds-player-search\" type=\"search\" placeholder=\"Search name or bib number\" /></div>",
+      "css": ".ds-search { display: grid; gap: 0.45rem; color: var(--navy, #202c42); font-family: \"Segoe UI\", system-ui, sans-serif; } .ds-search label { font-size: 0.75rem; font-weight: 600; } .ds-search input { font-family: \"Segoe UI\", system-ui, sans-serif; min-width: 0; min-height: 2.75rem; padding: 0.65rem 0.75rem; border: 1px solid var(--line-strong, #a5b1c3); border-radius: var(--radius, 0.375rem); background: var(--surface, #ffffff); color: var(--navy, #202c42); font-size: 0.8125rem; caret-color: var(--blue, #244d9e); } .ds-search input::placeholder { color: var(--muted, #59677d); opacity: 1; } .ds-search input:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; }"
+    },
+    {
+      "name": "Workspace navigation",
+      "kind": "nav",
+      "description": "Flat view buttons with a thin blue rule for the active view.",
+      "html": "<div class=\"ds-views\" aria-label=\"Tryout views\"><button class=\"ds-view\" type=\"button\" aria-pressed=\"true\">Evaluation</button><button class=\"ds-view\" type=\"button\" aria-pressed=\"false\">Team placements</button></div>",
+      "css": ".ds-views { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 1.5rem; border-bottom: 1px solid var(--line, #dce2ec); } .ds-view { font-family: \"Segoe UI\", system-ui, sans-serif; min-height: 3.25rem; padding: 0.5rem 0.15rem; background: transparent; color: var(--muted, #59677d); border: 0; border-bottom: 2px solid transparent; border-radius: 0; font-size: 0.875rem; font-weight: 650; cursor: pointer; } .ds-view[aria-pressed=\"true\"] { border-color: var(--blue, #244d9e); color: var(--blue, #244d9e); } .ds-view:hover { color: var(--blue, #244d9e); background: var(--blue-soft, #e7edf6); } .ds-view:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; } @media (max-width: 45rem) { .ds-views { grid-template-columns: auto auto; gap: 0 1rem; justify-content: start; } }"
+    },
+    {
+      "name": "Decision badges",
+      "kind": "chip",
+      "refersTo": "badge-awaiting",
+      "description": "Noninteractive status labels pair words with blue, green or neutral treatment.",
+      "html": "<span class=\"ds-badge\">Awaiting decision</span> <span class=\"ds-badge\" data-kind=\"placed\">Placed</span> <span class=\"ds-badge\" data-kind=\"withdrawn\">Withdrawn</span>",
+      "css": ".ds-badge { font-family: \"Segoe UI\", system-ui, sans-serif; display: inline-block; border-radius: var(--radius-small, 0.25rem); background: var(--blue-soft, #e7edf6); color: var(--blue, #244d9e); padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 650; line-height: 1.5; } .ds-badge[data-kind=\"placed\"] { background: var(--success-surface, #edf5f0); color: var(--success, #286044); } .ds-badge[data-kind=\"withdrawn\"], .ds-badge[data-kind=\"not-selected\"] { background: var(--canvas, #f5f7fa); color: var(--muted, #59677d); }"
+    },
+    {
+      "name": "Notebook surface",
+      "kind": "card",
+      "refersTo": "writing-surface",
+      "description": "The flat workspace frame and continuous writing area, composed from the existing container and notebook styles.",
+      "html": "<div class=\"ds-frame\"><article class=\"ds-notebook\"><h2>Avery Morgan</h2><p>Graduation year <strong>2031</strong> · Midfielder</p></article></div>",
+      "css": ".ds-frame { background: var(--surface, #ffffff); border: 1px solid var(--line, #dce2ec); color: var(--navy, #202c42); font-family: \"Segoe UI\", system-ui, sans-serif; } .ds-notebook { padding: 1.5rem 2.5rem 1rem; max-width: 58rem; margin-inline: auto; } .ds-notebook h2 { font-size: 2rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.035em; margin: 0 0 0.5rem; } .ds-notebook p { color: var(--muted, #59677d); font-size: 0.875rem; line-height: 1.5; margin: 0 0 0.875rem; } .ds-notebook strong { color: var(--navy, #202c42); font-weight: 600; } @media (max-width: 60rem) { .ds-notebook { padding: 1.25rem 1.5rem; } } @media (max-width: 45rem) { .ds-notebook { padding: 1rem; } .ds-notebook h2 { font-size: 1.75rem; } }"
+    },
+    {
+      "name": "Selected roster row",
+      "kind": "custom",
+      "refersTo": "roster-selected",
+      "description": "An entire player record is actionable; selection is a pale fill without an edge stripe.",
+      "html": "<button type=\"button\" class=\"ds-player\" aria-current=\"true\"><span class=\"ds-bib\">14</span><span class=\"ds-player-summary\"><strong>Avery Morgan</strong><span>2031 · Midfielder</span><span class=\"ds-roster-decision\">Awaiting decision</span></span><svg aria-hidden=\"true\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><path d=\"m9 5 7 7-7 7\" /></svg></button>",
+      "css": ".ds-player { font-family: \"Segoe UI\", system-ui, sans-serif; display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; width: 100%; gap: 0.75rem; align-items: center; border: 0; border-bottom: 1px solid var(--line, #dce2ec); border-radius: 0; background: transparent; padding: 1rem 1.25rem; text-align: left; color: var(--navy, #202c42); cursor: pointer; } .ds-player:hover, .ds-player[aria-current=\"true\"] { background: var(--blue-soft, #e7edf6); } .ds-player:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: -4px; } .ds-bib { font-variant-numeric: tabular-nums; color: var(--muted, #59677d); font-size: 0.875rem; } .ds-player-summary { display: grid; gap: 0.2rem; overflow-wrap: anywhere; line-height: 1.5; } .ds-player-summary strong { font-size: 0.875rem; font-weight: 650; } .ds-player-summary > span { color: var(--muted, #59677d); font-size: 0.75rem; } .ds-player-summary .ds-roster-decision { color: var(--blue, #244d9e); font-size: 0.6875rem; }"
+    },
+    {
+      "name": "Shared observation",
+      "kind": "custom",
+      "description": "Ruled note with an author, timestamp and a restrained arrival highlight.",
+      "html": "<article class=\"ds-observation\" data-new=\"true\"><div class=\"ds-observation-heading\"><span class=\"ds-author-mark\" aria-hidden=\"true\">CS</span><strong>Coach Sam</strong><time datetime=\"2027-04-17T10:42:00\">Apr 17 · 10:42 AM</time></div><p>Checks shoulder before receiving; confident turning into space.</p></article>",
+      "css": ".ds-observation { font-family: \"Segoe UI\", system-ui, sans-serif; color: var(--navy, #202c42); padding: 1.25rem 0; border-bottom: 1px solid var(--line, #dce2ec); } .ds-observation-heading { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.65rem; margin-bottom: 0.6rem; } .ds-author-mark { display: grid; place-items: center; width: 1.875rem; height: 1.875rem; border-radius: 50%; background: var(--blue-soft, #e7edf6); color: var(--blue, #244d9e); font-size: 0.625rem; font-weight: 700; } .ds-observation strong { font-size: 0.8125rem; font-weight: 650; } .ds-observation time { font-size: 0.6875rem; color: var(--muted, #59677d); font-variant-numeric: tabular-nums; } .ds-observation p { font-size: 0.9375rem; line-height: 1.65; margin: 0; max-width: 70ch; white-space: pre-wrap; overflow-wrap: anywhere; } .ds-observation[data-new=\"true\"] { animation: ds-note-arrives 650ms cubic-bezier(0.16, 1, 0.3, 1); } @keyframes ds-note-arrives { from { background: var(--blue-soft, #e7edf6); } to { background: transparent; } } @media (prefers-reduced-motion: reduce) { .ds-observation[data-new=\"true\"] { animation: none; } } @media (max-width: 45rem) { .ds-observation-heading { grid-template-columns: auto 1fr; gap: 0.2rem 0.65rem; } .ds-author-mark { grid-row: 1 / 3; } .ds-observation time { grid-column: 2; } }"
+    },
+    {
+      "name": "Decision choices",
+      "kind": "custom",
+      "description": "Native radio choices with a tonal selected state, stacking when space contracts.",
+      "html": "<fieldset class=\"ds-decisions\"><legend>Decision for Avery Morgan</legend><div class=\"ds-options\"><label class=\"ds-choice\"><input name=\"ds-decision\" type=\"radio\" checked /><span>Place on a team</span></label><label class=\"ds-choice\"><input name=\"ds-decision\" type=\"radio\" /><span>Withdrawn</span></label><label class=\"ds-choice\"><input name=\"ds-decision\" type=\"radio\" /><span>Not selected</span></label></div></fieldset>",
+      "css": ".ds-decisions { font-family: \"Segoe UI\", system-ui, sans-serif; color: var(--navy, #202c42); min-width: 0; padding: 0; border: 0; margin: 0; } .ds-decisions legend { font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.75rem; } .ds-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; } .ds-choice { display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center; padding: 0.75rem; border: 1px solid var(--line-strong, #a5b1c3); border-radius: var(--radius, 0.375rem); font-size: 0.8125rem; cursor: pointer; } .ds-choice:has(:checked) { background: var(--blue-soft, #e7edf6); border-color: var(--blue, #244d9e); color: var(--blue, #244d9e); } .ds-choice input { margin: 0; accent-color: var(--blue, #244d9e); } .ds-choice input:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; } @media (max-width: 60rem) { .ds-options { grid-template-columns: 1fr; } }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Sideline notebook",
+    "overview": "A calm working notebook for coaches: white writing space, compact navy navigation, clear blue actions and observations separated by fine rules. Its density supports repeated reading and input on a field-side phone or a review desktop. Readable system sans-serif type and restrained controls keep names, notes and decisions easy to scan.\n\nThis records the implemented tryout workspace, not a global redesign of the legacy sample and account layouts. Shared tokens and controls live in [app.css](src/Pino/wwwroot/app.css); the dedicated [TryoutLayout](src/Pino.UI/Layout/TryoutLayout.razor) and adjacent feature styles establish this visual world. Product facts and open decisions remain in [PRODUCT.md](PRODUCT.md); page composition, fictional content and session-only behavior are defined in the [feature brief](docs/features/tryout-evaluation.md).",
+    "keyCharacteristics": [
+      "White writing surfaces on a cool, quiet canvas.",
+      "Cobalt actions and pale-blue selection against navy text.",
+      "Ruled observations and rows, with compact status labels.",
+      "One sans-serif family, explicit focus and responsive working space."
+    ],
+    "rules": [
+      {
+        "name": "The State Has Words Rule",
+        "body": "Color accompanies a readable status, selection state or feedback message; it never carries the meaning alone.",
+        "section": "colors"
+      },
+      {
+        "name": "The Ruled Paper Rule",
+        "body": "Separate repeated observations and player records with fine rules and spacing; keep writing surfaces flat.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do use the shared action, field, status and notice patterns with visible keyboard focus and explicit labels.",
+      "Do let long names and observations wrap, retaining reading and focus order.",
+      "Do use fine rules and tonal surfaces to organize repeated records.",
+      "Do preserve reduced-motion behavior and textual save feedback."
+    ],
+    "donts": [
+      "Don't use color alone to distinguish outcomes or validation states.",
+      "Don't replace the notebook's reading surface with elevated cards or add a thick stripe to selected roster rows.",
+      "Don't treat the fictional club, sample roster sizes or account scaffold layout as approved product-wide identity or layout requirements."
+    ]
+  }
+}

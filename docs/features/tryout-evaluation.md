@@ -1,7 +1,7 @@
 # Tryout evaluation and team placement
 
-Status: shaping complete; **Sideline notebook** is the selected visual direction.
-This brief describes planned behavior, not an implemented feature. Confirmed
+Status: implemented with interactive fictional sample data;
+**Sideline notebook** is the selected visual direction. Confirmed
 product rules and unresolved business decisions live in [PRODUCT.md](../../PRODUCT.md).
 
 ## Job and audience
@@ -34,7 +34,34 @@ The [Player threads](../../.impeccable/mocks/decision/player-threads.png) and
 are retained as unselected alternatives. Each image has an adjacent JSON file
 with its original generation prompt and approval status.
 
-## Workflow and layout
+## Direction contract
+
+**THESIS:** A coach's working notebook: find a player, write an observation,
+then make a distinct placement decision. Notes lead; scoring dashboards do not.
+
+**OWN-WORLD:** White writing surfaces, deep navy navigation, cobalt actions,
+pale blue selection, restrained rounded controls and ruled observation lists.
+A readable sans-serif carries the entire operational interface.
+
+**STORY:** Staff see the club, season, remaining decisions and selected player;
+save shared observations, consult earlier input, and record or revise outcomes.
+Fictional data and its session-only lifetime remain explicit.
+
+**FIRST VIEWPORT:** On desktop a compact navy masthead sits above tryout context
+and whole-roster progress. A searchable roster occupies the left third; the
+selected player's identity, compact composer and recent notes fill the right.
+On phones the notebook fills the screen with an explicit return to the roster.
+Save note is the primary action. Decision controls expand inline below notes.
+
+**FORM:** Approved Sideline notebook, selected in the merged shaping brief;
+no new seed or direction round. The user delegates remaining layout variations.
+The approved image is a direction reference, explicitly not a pixel-exact spec.
+The signature interaction is a saved observation joining the ruled notebook
+with a brief restrained highlight, while the draft clears only on success.
+
+**FINISH:** unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+
+## Implemented workflow
 
 1. **At the field:** open the tryout, find a player, add a shared observation,
    save, and return to the roster. Show note authors and times. Keep recent
@@ -49,6 +76,44 @@ with its original generation prompt and approval status.
 4. **Track completion:** show remaining decisions for the entire tryout even
    when the roster is filtered. Completion requires no participants awaiting
    a decision; it does not require placing everyone on a team.
+
+## Running the sample
+
+Open `/` or `/tryouts/spring-2027` through the Aspire web endpoint. The feature
+uses `InteractiveAuto`, a dedicated tryout layout, and feature-local components
+in `src/Pino.UI/Features/Tryouts`. Its per-page `SampleTryoutSession` is shared
+through a notifying cascade so successful writes update notes, player status,
+roster rows, history, and whole-tryout progress together.
+
+The default roster contains 16 fictional players with eight awaiting decisions.
+Search accepts names or bib numbers, with or without the displayed leading zero;
+graduation, decision, and assigned-team filters combine. Selection and filters
+are retained while changing players,
+including when the selected player stops matching a filter after a decision.
+On narrow screens, Roster returns focus to search and opening a player focuses
+the notebook heading. Unsaved note drafts stay with each player while browsing.
+
+Use **Sample controls** to load one, 16, or 96 players or an empty roster. Reset
+clears all edits and drafts. The same controls simulate failed saves, lost
+connections, view-only access, and a concurrent decision by another coach.
+The concurrent-change simulation applies to the next valid decision save; saving
+a note leaves the player's decision and the pending simulation unchanged. It
+records Withdrawn, retains the user's inputs, and requires loading the latest
+decision before a decision retry. Note text is retained after unsuccessful saves;
+no offline storage or synchronization exists.
+The 2,000-character composer bound is provisional for this demo, not an approved
+product-wide note policy. Notes are append-only until editing rules are settled.
+
+Team placements shows the current sample assignments. Revisions replace the
+single current decision and append history; the sample includes an earlier-season
+entry for Avery. No sample player has a placement from another tryout in the same
+season, so the unresolved cross-tryout replacement policy is not fabricated.
+
+All changes last only while this page instance exists. Reloading, leaving the
+page, or losing the server circuit can discard them. No real club data, live
+permissions, server concurrency, or persistence is implemented. The sample's
+eligibility guard is illustrative and must also be enforced on the server when
+real write endpoints are introduced. No schema changes or migrations are needed.
 
 ## States and constraints
 
@@ -75,6 +140,5 @@ scores, approval workflows, and offline synchronization are outside this brief.
   in the same season while preserving history and one current team.
 - Realistic roster sizes and the corresponding navigation and loading needs.
 
-These questions remain explicit implementation decisions; the visual selection
-does not settle them. Record the established reusable visual system in DESIGN.md
-when implementation provides evidence for it.
+These questions remain open product decisions; the demo does not settle them.
+The established visual system is recorded in [DESIGN.md](../../DESIGN.md).

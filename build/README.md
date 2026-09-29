@@ -533,7 +533,7 @@ URI use the original value. The exception applies only to this method, not the
 other account helpers.
 
 Type/namespace naming overlaps are review guidance (`CA1724`, suggestion). Keep
-the current `Home` and `Counter` component names and the service-defaults
+the current `Tryout` and `Counter` component names and the service-defaults
 `Extensions` class. Review overlaps that make usage confusing; a match alone does
 not require a rename. Component renames must keep `.razor` and `.razor.cs` files,
 partial class names, and references aligned while preserving intended routes.

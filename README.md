@@ -11,12 +11,28 @@ See the [early-development migration workflow](#ef-migrations).
 ## Documentation
 
 - [Product context](PRODUCT.md): confirmed users, workflows, requirements, and open decisions.
-- [Tryout evaluation brief](docs/features/tryout-evaluation.md): selected design direction and planned evaluation and placement workflow.
+- [Tryout evaluation](docs/features/tryout-evaluation.md): interactive sample workspace, selected design direction, and remaining integration work.
+- [Design system](DESIGN.md): the implemented Sideline notebook visual system.
 - [Agent guidance](AGENTS.md): project boundaries, design process, and authoring rules.
 - [Build conventions](build/README.md): analyzers, formatting, and Razor policy.
 - [Testing](tests/README.md): routine commands, assertions, and test isolation.
 - [Service defaults options](build/service-defaults-options.md): optional discovery and telemetry configuration.
 - [Documentation hooks](build/agent-hooks.md): automatic agent review and hook maintenance.
+
+## Tryout sample workspace
+
+After starting through Aspire, open the web endpoint's root page or
+`/tryouts/spring-2027`. The fictional Northside FC workspace supports roster
+filters, shared notes, decision revisions, graduation-year eligibility, current
+team rosters, and decision history. It runs with `InteractiveAuto` and requires
+no account because it exposes only synthetic data.
+
+Changes and note drafts stay in the current page session and are lost when you
+leave or reload. **Sample controls** offers empty, single-player, 16-player,
+and 96-player rosters plus simulated connection, permission, save-failure, and
+concurrent-decision states. Resetting a roster clears the sample session.
+These simulations do not test real networking, authorization, or persistence.
+Account pages retain their existing static SSR and Identity behavior.
 
 ## Local prerequisites
 
@@ -154,17 +170,17 @@ See the [Aspire VS Code extension guide](https://aspire.dev/get-started/aspire-v
 ## Design and styling
 
 The application uses standard CSS with Grid as the default for structured layout
-and alignment. Its current system font, neutral palette, navigation layout, and
-control appearance are starter choices. The product's visual identity is open:
-typography, color, imagery, iconography, styled controls, and purposeful motion
-can evolve with the product's users and workflows.
+and alignment. The tryout workspace implements the approved **Sideline notebook**
+direction: white writing surfaces, navy navigation, cobalt actions, pale blue
+selection, and readable sans-serif typography. [DESIGN.md](DESIGN.md) records its
+tokens and component patterns. Account and remaining scaffold layouts have not
+been redesigned as part of this feature.
 
 Use the installed [Impeccable skill](.agents/skills/impeccable/SKILL.md) for design
 work. In Codex, `$impeccable init` captures confirmed product context in
 `PRODUCT.md`, and `$impeccable shape <feature>` develops a brief before coding.
-Record the visual system in `DESIGN.md` as it is established; do not treat the
-starter appearance as an approved design system. These records are created
-during product/design work, rather than inferred from the template.
+Keep established visual decisions in `DESIGN.md` and surface behavior in its
+feature brief. Do not infer new product requirements from the remaining scaffold.
 
 Shared tokens and styles live in `src/Pino/wwwroot/app.css`: sizing, typography,
 forms (`account-form`, `form-field`, `checkbox-field`), action groups (`actions`),

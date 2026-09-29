@@ -1,0 +1,11 @@
+h3 { font-size: 1rem; margin-bottom: 0.75rem; }
+textarea { display: block; width: 100%; resize: vertical; min-height: 6.5rem; padding: 0.875rem 1rem; font-size: 0.9375rem; line-height: 1.6; }
+.composer-actions { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; margin-top: 0.75rem; }
+.composer-actions span { font-size: 0.75rem; color: var(--muted); }
+.primary-action { display: grid; grid-template-columns: 1fr auto; gap: 1rem; align-items: center; }
+.notice { font-size: 0.8125rem; }
+@media (max-width: 45rem) {
+    .composer-actions { grid-template-columns: 1fr; gap: 0.5rem; }
+    .composer-actions button { grid-row: 1; }
+    .composer-actions span { text-align: center; }
+}

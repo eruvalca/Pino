@@ -1,0 +1,8 @@
+<section class="note-composer" aria-labelledby="note-title">
+    <h3 id="note-title"><label for="shared-note">Add shared note</label></h3>
+    <form @onsubmit="SaveAsync" @onsubmit:preventDefault>
+        <textarea id="shared-note" rows="3" maxlength="2000" placeholder="What stood out about this player?" aria-describedby="note-help note-feedback" @bind="Player.Draft" @bind:event="oninput" disabled="@_saving"></textarea>
+        <div class="composer-actions"><span id="note-help">Visible to coaches and administrators.</span><button type="submit" class="primary-action" disabled="@(Session.Busy || Session.Condition == SampleCondition.ReadOnly)">@(_saving ? "Saving note…" : "Save note")<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 12h15m-6-6 6 6-6 6" /></svg></button></div>
+    </form>
+    <div id="note-feedback" aria-live="polite">@if (_message is not null) { <div class="notice" data-kind="@_messageKind">@_message</div> }</div>
+</section>

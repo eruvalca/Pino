@@ -1,0 +1,19 @@
+<section class="observations" aria-labelledby="observations-title">
+    <div class="observations-title"><h3 id="observations-title">Shared observations</h3><span>@Player.Notes.Count</span></div>
+    @if (Player.Notes.Count == 0)
+    {
+        <p class="empty-notes">A fresh page for @Player.Name.Split(' ')[0]. Add the first observation to give other coaches a place to start.</p>
+    }
+    else
+    {
+        <ol>
+            @foreach (var note in Player.Notes)
+            {
+                <li @key="note" class="observation" data-new="@(note.Author == "Coach Sam (you)" ? "true" : null)">
+                    <div class="observation-heading"><span class="author-mark" aria-hidden="true">@(note.Author.Contains("Lee", StringComparison.Ordinal) ? "CL" : "CS")</span><strong>@note.Author</strong><time datetime="@note.CreatedAt.ToString("O", System.Globalization.CultureInfo.InvariantCulture)">@note.CreatedAt.ToString("MMM d · h:mm tt", System.Globalization.CultureInfo.InvariantCulture)</time></div>
+                    <p>@note.Text</p>
+                </li>
+            }
+        </ol>
+    }
+</section>

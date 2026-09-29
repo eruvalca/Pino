@@ -1,9 +1,26 @@
 :root {
+    --navy: #202c42;
+    --blue: #244d9e;
+    --blue-hover: #1b3c7e;
+    --blue-soft: #e7edf6;
+    --canvas: #f5f7fa;
+    --surface: #ffffff;
+    --subtle: #fafbfd;
+    --muted: #59677d;
+    --line: #dce2ec;
+    --line-strong: #a5b1c3;
+    --success: #286044;
+    --success-surface: #edf5f0;
+    --error: #9c2525;
+    --error-surface: #fff2f2;
+    --warning: #805500;
+    --radius: 0.375rem;
+    --radius-small: 0.25rem;
     color-scheme: light;
-    font-family: system-ui, sans-serif;
+    font-family: "Segoe UI", system-ui, sans-serif;
     line-height: 1.5;
     background: #fff;
-    color: #222;
+    color: var(--navy);
 }
 
 *,
@@ -34,7 +51,7 @@ a:hover {
 }
 
 :focus-visible {
-    outline: 2px solid #174c91;
+    outline: 2px solid var(--blue);
     outline-offset: 3px;
 }
 
@@ -51,6 +68,45 @@ button {
     padding: 0.4rem 0.75rem;
     cursor: pointer;
 }
+
+::selection { background: #c9daf8; color: var(--navy); }
+
+input, select, textarea {
+    min-width: 0;
+    max-width: 100%;
+    min-height: 2.75rem;
+    padding: 0.65rem 0.75rem;
+    background: var(--surface);
+    color: var(--navy);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    caret-color: var(--blue);
+}
+
+input[type="radio"], input[type="checkbox"] { min-height: auto; }
+textarea::placeholder, input::placeholder { color: var(--muted); opacity: 1; }
+button, summary, a { -webkit-tap-highlight-color: transparent; }
+summary { cursor: pointer; }
+.muted { color: var(--muted); }
+.primary-action, .secondary-action, .text-action {
+    min-height: 2.75rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--blue);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+.primary-action { background: var(--blue); color: white; }
+.primary-action:hover:not(:disabled) { background: var(--blue-hover); }
+.secondary-action { background: var(--surface); color: var(--blue); }
+.secondary-action:hover:not(:disabled) { background: var(--blue-soft); }
+.text-action { border-color: transparent; background: transparent; color: var(--blue); padding-inline: 0.25rem; }
+.text-action:hover:not(:disabled) { text-decoration: underline; text-underline-offset: 0.2em; }
+button:disabled, fieldset:disabled { opacity: 0.55; }
+.decision-badge { display: inline-block; border-radius: var(--radius-small); background: var(--blue-soft); color: var(--blue); padding: 0.3rem 0.6rem; font-size: 0.75rem; font-weight: 650; }
+.decision-badge[data-kind="placed"] { background: var(--success-surface); color: var(--success); }
+.decision-badge[data-kind="withdrawn"], .decision-badge[data-kind="not-selected"] { background: var(--canvas); color: var(--muted); }
 
 button:disabled {
     cursor: default;
@@ -127,7 +183,7 @@ hr {
     margin-block: 1rem;
     padding: 1rem;
     border: 1px solid #777;
-    border-inline-start-width: 0.25rem;
+    border-radius: var(--radius);
 }
 
 .notice > :last-child {
@@ -136,6 +192,7 @@ hr {
 
 .notice[data-kind="error"] {
     border-color: #9c2525;
+    background: var(--error-surface);
 }
 
 .notice[data-kind="warning"] {
@@ -144,6 +201,7 @@ hr {
 
 .notice[data-kind="success"] {
     border-color: #286437;
+    background: var(--success-surface);
 }
 
 .notice[data-kind="information"] {

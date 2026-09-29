@@ -483,8 +483,10 @@ $RECYCLE.BIN/
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
 
-# Local Impeccable decision-page sessions.
+# Local Impeccable sessions, review captures, and hook cache.
 .impeccable/questions/
+.impeccable/review/
+.impeccable/hook.cache.json
 
 # Aspire runtime state and local credentials; shared aspire.config.json stays tracked.
 .aspire/

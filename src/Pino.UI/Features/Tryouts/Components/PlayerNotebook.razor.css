@@ -1,0 +1,25 @@
+.player-notebook { padding: 1.5rem 2.5rem 1rem; max-width: 58rem; margin-inline: auto; }
+.notebook-toolbar { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.5rem; color: var(--muted); font-size: 0.75rem; margin-bottom: 1.5rem; }
+.roster-back { display: none; }
+.player-bib { grid-column: 2; }
+.player-heading { margin-bottom: 1.75rem; }
+h2 { font-size: 2rem; letter-spacing: -0.035em; margin-bottom: 0.5rem; }
+.player-heading p { font-size: 0.875rem; color: var(--muted); margin-bottom: 0.875rem; }
+.player-heading strong { color: var(--navy); font-weight: 600; }
+.assigned-team { margin-left: 0.75rem; font-size: 0.8125rem; color: var(--muted); }
+.placement-history { border-top: 1px solid var(--line); margin-top: 1.5rem; padding-block: 0.5rem; }
+summary { padding-block: 0.75rem; font-size: 0.8125rem; font-weight: 600; }
+summary span { margin-left: 0.5rem; color: var(--muted); font-weight: 400; }
+ol { list-style: none; padding: 0; }
+li { display: grid; gap: 0.25rem; padding: 0.75rem 0; border-top: 1px solid var(--line); font-size: 0.8125rem; }
+li span { color: var(--muted); font-size: 0.75rem; }
+.muted { font-size: 0.8125rem; }
+@media (max-width: 60rem) { .player-notebook { padding: 1.25rem 1.5rem; } }
+@media (max-width: 45rem) {
+    .player-notebook { padding: 1rem; }
+    .notebook-toolbar { margin-bottom: 0.5rem; }
+    .roster-back { display: inline-grid; grid-auto-flow: column; gap: 0.5rem; align-items: center; justify-self: start; }
+    h2 { font-size: 1.75rem; }
+    .player-heading { margin-bottom: 1.5rem; }
+    .assigned-team { display: block; margin: 0.5rem 0 0; }
+}

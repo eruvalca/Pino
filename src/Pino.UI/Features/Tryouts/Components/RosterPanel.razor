@@ -1,0 +1,27 @@
+<section aria-label="Tryout roster" class="roster-panel">
+    <div class="roster-tools">
+        <div class="roster-title"><h2>Players</h2><span>@Session.FilteredPlayers.Count() of @Session.Players.Count</span></div>
+        <label for="player-search">Find a player</label>
+        <input id="player-search" @ref="_searchInput" type="search" placeholder="Search name or bib number" @bind="Session.Search" @bind:event="oninput" />
+        <div class="roster-filters">
+            <div class="form-field"><label for="year-filter">Graduation</label><select id="year-filter" @bind="Session.YearFilter"><option value="">All years</option>@foreach (var year in Session.Players.Select(player => player.GraduationYear).Distinct().Order()) { <option value="@year">@year</option> }</select></div>
+            <div class="form-field"><label for="decision-filter">Decision</label><select id="decision-filter" @bind="Session.DecisionFilter"><option value="">All decisions</option><option value="awaiting">Awaiting decision</option><option value="placed">Placed</option><option value="withdrawn">Withdrawn</option><option value="not-selected">Not selected</option></select></div>
+        </div>
+        <div class="form-field"><label for="team-filter">Assigned team</label><select id="team-filter" @bind="Session.TeamFilter"><option value="">All teams</option>@foreach (var team in Session.Teams) { <option value="@team.Id">@team.Name</option> }</select></div>
+        @if (Session.HasFilters) { <button class="text-action" type="button" @onclick="Session.ClearFilters">Clear filters</button> }
+    </div>
+    <div class="roster-list">
+        @foreach (var player in Session.FilteredPlayers)
+        {
+            <button @key="player.Id" type="button" class="player-row" aria-current="@(player.Id == Session.Selected?.Id ? "true" : null)" disabled="@Session.Busy" @onclick="() => OnSelected.InvokeAsync(player.Id)">
+                <span class="bib-number">@player.Bib.ToString("00", System.Globalization.CultureInfo.InvariantCulture)</span>
+                <span class="player-summary"><strong>@player.Name</strong><span>@player.GraduationYear <span aria-hidden="true">·</span> @player.Position</span><span class="roster-decision" data-kind="@player.Decision.Kind">@player.Decision.Label@(player.Decision.AssignedTeam is { } team ? $" · {team.Name}" : "")</span></span>
+                <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m9 5 7 7-7 7" /></svg>
+            </button>
+        }
+        @if (!Session.FilteredPlayers.Any())
+        {
+            <div class="no-matches" role="status"><h3>No matching players</h3><p>Try another name, bib number or filter.</p><button type="button" class="secondary-action" @onclick="Session.ClearFilters">Clear filters</button></div>
+        }
+    </div>
+</section>

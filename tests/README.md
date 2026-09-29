@@ -7,7 +7,7 @@ the CLI and editor find `global.json` and `Pino.slnx`.
 | Project | Scope |
 | --- | --- |
 | `Pino.UnitTests` | Account services and extensions, outcome decoding, redirects, authentication-state revalidation, Identity endpoint behavior, and service defaults. |
-| `Pino.ComponentTests` | Account sign-in and management workflows, validation, shared account components, navigation, error request IDs, and the shared UI's `Counter`, using bUnit. |
+| `Pino.ComponentTests` | Account sign-in and management workflows, validation, shared account components, navigation, error request IDs, the shared UI's `Counter`, and tryout sample notes, filters, decisions, eligibility, completion, and history, using bUnit. |
 
 ## Supported stack
 
