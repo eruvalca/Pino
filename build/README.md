@@ -1,5 +1,14 @@
 # Build conventions
 
+This guide explains the repository's build policy. The authoritative settings are
+[`global.json`](../global.json), [`.editorconfig`](../.editorconfig),
+[`Directory.Build.props`](../Directory.Build.props),
+[`Directory.Packages.props`](../Directory.Packages.props), and
+[`CodeMetricsConfig.txt`](../CodeMetricsConfig.txt). Keep this guide aligned when
+those files change. See [AGENTS.md](../AGENTS.md) for agent instructions and the
+[test guide](../tests/README.md) for validation commands. Run commands from the
+repository root and stop Aspire before full builds on Windows.
+
 ## .NET SDK
 
 `global.json` selects the highest installed stable .NET 10.0 SDK at or above
@@ -22,7 +31,7 @@ individual projects. This compile-time analysis does not validate runtime inputs
 ## Central package management
 
 The root `Directory.Packages.props` enables NuGet Central Package Management and
-holds the versions of explicitly referenced packages in alphabetical order. Each
+holds the versions of explicitly referenced packages. Each
 consuming project uses a `PackageReference` without a `Version`; shared analyzer
 references stay in `Directory.Build.props`. Adding a central `PackageVersion` only
 defines its version and does not add that dependency to every project.
@@ -30,8 +39,7 @@ defines its version and does not add that dependency to every project.
 When adding or upgrading a package, update its central entry and keep reference
 metadata such as `PrivateAssets`, `IncludeAssets`, and conditions on the consuming
 reference. The xUnit analyzer remains conditional on `IsTestProject`; it does not
-introduce a test framework. All existing package versions and target frameworks
-were preserved during adoption. Transitive pinning is not enabled.
+introduce a test framework. Transitive pinning is not enabled.
 
 SDK declarations, including `Aspire.AppHost.Sdk` and `global.json`, retain their
 own version settings. SDK-provided implicit package references remain under SDK
@@ -43,8 +51,8 @@ only the nearest central package file.
 
 Text files use UTF-8 without a byte-order mark (`charset = utf-8`), including C#,
 Razor markup and companions, configuration, project files, scripts, and documentation.
-This preserves Unicode text and follows the existing C# convention in Pino rather
-than Nova's C# BOM preference. Encoding is an editor setting, not a build diagnostic.
+This preserves Unicode text consistently across the repository. Encoding is an
+editor setting, not a build diagnostic.
 Keep generated and third-party files under their owning tools' control. A file that
 requires another encoding needs a documented file-specific EditorConfig override.
 
@@ -82,8 +90,7 @@ retain four-space indentation. These settings guide editors and formatters witho
 emitting build diagnostics.
 
 JavaScript, TypeScript, and CSS use spaces with four spaces per indentation level,
-including `.razor.js` and `.razor.css` companion files. This follows Pino' existing
-JavaScript and CSS layout rather than Nova's two-space preference.
+including `.razor.js` and `.razor.css` companion files.
 
 Trailing whitespace is trimmed by default in editors that honor the setting.
 Markdown (`.md` and `.markdown`) and Razor markup (`.razor`, including `_Imports.razor`)
@@ -106,7 +113,7 @@ including preformatted content, and in string literals. Never edit generated C#.
 
 ## Analyzers
 
-`Directory.Build.props` adds Nova's analyzer packages to all C# projects, including
+`Directory.Build.props` adds the shared analyzer packages to C# projects, including
 the build tooling; `Directory.Packages.props` holds their versions. References use
 `PrivateAssets="all"` so consumers of Pino packages do not inherit them.
 
@@ -153,8 +160,8 @@ coverage is limited, and never edit generated Razor output. Resolve findings by
 separating meaningful responsibilities rather than splitting methods solely to
 reduce the score.
 
-The composite maintainability-index rule (`CA1505`) is explicitly disabled,
-matching Nova. It combines code size, operator/operand measurements, and branching
+The composite maintainability-index rule (`CA1505`) is explicitly disabled.
+It combines code size, operator/operand measurements, and branching
 into one score. Prefer the more specific `CA1502` complexity warning and `MA0051`
 method-length suggestion, plus review of actual responsibilities. This decision
 also applies to Razor code-behind, where lifecycle and binding code need context
@@ -167,12 +174,10 @@ referenced types, including framework types; review the responsibilities and rea
 for those dependencies before deciding whether to refactor. Suggestions do not fail
 builds.
 
-At adoption, the three findings were Identity endpoint registration (66 types),
-application startup (65), and the Razor validator's `Execute` method (44). These
-methods coordinate many framework types. No Razor code-behind findings were reported;
-future component findings still need lifecycle and binding context. Nova's feature-only
-warning scope is not copied because Pino also keeps Razor components inside its
-feature folders.
+Identity endpoint registration, application startup, and the Razor validator
+coordinate many framework types. Review these responsibilities before splitting
+them to lower coupling counts. Razor code-behind findings also need lifecycle
+and binding context; feature folders contain both services and components.
 
 Remove unused private methods, fields, properties, and events (`IDE0051`, warning).
 Check Razor markup, framework binding, and reflection before removing a reported
@@ -287,8 +292,8 @@ is needed to distinguish a member from a same-named parameter or local variable.
 This preference is compatible with primary constructors and does not apply to
 passing `this` as an argument.
 
-IDE0003 is an editor-only diagnostic in the current SDK. Its warning severity
-does not fail ordinary `dotnet build` commands, even with code-style enforcement
+With the 10.0.401 SDK baseline, IDE0003 is an editor-only diagnostic. Its warning
+severity does not fail ordinary `dotnet build` commands, even with code-style enforcement
 and warnings-as-errors enabled. Follow this convention when authoring or reviewing
 code; generated Razor output must remain untouched.
 
@@ -545,8 +550,9 @@ Avoid array-valued public properties (`CA1819`, warning). Display-only collectio
 parameters such as `ShowRecoveryCodes.RecoveryCodes` use `IReadOnlyList<T>` while
 retaining public get/set accessors for Blazor binding. This expresses read-only
 access through the parameter, not immutable underlying data. Private storage may
-still use arrays. The two recovery-code parent components materialize Identity's
-result once in code-behind, preserving a null result, and pass the snapshot
+still use arrays. `AccountTwoFactorService` materializes Identity's result once
+and represents generation failure and partial completion through its outcomes.
+The parent components store successful code arrays in code-behind and pass them
 directly instead of allocating a new array during each render.
 
 Writable mutable collection properties are checked (`CA2227`, warning). Prefer
@@ -561,7 +567,7 @@ Insecure randomness is checked (`CA5394`, warning). The rule flags `System.Rando
 usage, including `Random.Shared`, in ordinary C# and Razor code-behind. Use
 framework security APIs or `RandomNumberGenerator` when values must be
 unpredictable. A future non-security use, such as a simulation, can use a narrow,
-justified exception after review. No exception is currently needed.
+justified exception after review.
 
 Handwritten `.razor.cs` files receive the C# rules. Coverage of generated Razor C#
 depends on the analyzer and rule; do not edit generated output to satisfy a rule.

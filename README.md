@@ -3,9 +3,19 @@
 .NET 10 Blazor application with a hosted WebAssembly client, shared UI and kernel,
 Aspire orchestration, and PostgreSQL-backed ASP.NET Core Identity.
 
+## Documentation
+
+- [Agent guidance](AGENTS.md): project boundaries, design process, and authoring rules.
+- [Build conventions](build/README.md): analyzers, formatting, and Razor policy.
+- [Testing](tests/README.md): routine commands, assertions, and test isolation.
+- [Service defaults options](build/service-defaults-options.md): optional discovery and telemetry configuration.
+- [Documentation hooks](build/agent-hooks.md): automatic agent review and hook maintenance.
+
 ## Local prerequisites
 
-- .NET SDK **10.0.401** (selected by `global.json`).
+- .NET SDK **10.0.401 or a later stable 10.0 SDK**, selected by
+  `global.json` with `rollForward: latestFeature` and `allowPrerelease: false`.
+- PowerShell 7 for the repository's `.ps1` scripts.
 - Aspire CLI **13.5.4** on `PATH`, matching the AppHost SDK and stable integrations.
   Follow the [Aspire installation guide](https://aspire.dev/get-started/install/).
 - Docker Desktop running Linux containers, or another Aspire-supported container runtime.
@@ -23,18 +33,18 @@ Use PowerShell 7 for the scripts in this repository. From the solution root,
 run `dotnet build Pino.slnx`, then `aspire run`. The first build/start may
 restore NuGet packages, download Aspire/EF tooling, and pull container images.
 The initial migration creates an empty Identity schema; no accounts or local
-credentials are included. Git initialization is optional and separate.
+credentials are included.
 
-If this solution was generated, `.template-provenance.json` records its template
-version and source commit. It is an independent snapshot: template updates do not
-update this application. Review SDK/package/skill updates in this repository.
+This repository is an independent application. Review SDK, package, and skill
+updates against its own code and checked-in configuration.
 
-Use a unique application name for projects you run side by side. Different ports
-do not isolate browser cookies on the same hostname. A generated secrets ID is
-unique even when the application name is reused, but the development hostname is
-name-based. Aspire's default data-volume name depends on the AppHost path; moving
-or renaming a checkout can select a different volume. Keep the original secrets
-and volume together if preserving development data.
+When running separate copies side by side, use distinct development hostnames:
+different ports do not isolate browser cookies on the same hostname. Hostnames
+and user-secrets IDs are checked into the launch settings and project files;
+copying the repository reuses them. Choose separate IDs when copies need
+independent local credentials. Aspire's default data-volume name depends on the
+AppHost path; moving or renaming a checkout can select a different volume. Keep
+the original secrets and volume together when preserving development data.
 
 ## Run through Aspire
 
@@ -134,25 +144,34 @@ Test Explorer without Aspire.
 
 See the [Aspire VS Code extension guide](https://aspire.dev/get-started/aspire-vscode-extension/).
 
-## Styling
+## Design and styling
 
-The UI uses standard CSS with Grid as the default for structured layout and
-alignment. The shell has always-visible top navigation; account pages stack
-their sections and use forms capped at 36rem. The baseline is intentionally
-plain: a system font, neutral light colors, native controls, and visible focus.
+The application uses standard CSS with Grid as the default for structured layout
+and alignment. Its current system font, neutral palette, navigation layout, and
+control appearance are starter choices. The product's visual identity is open:
+typography, color, imagery, iconography, styled controls, and purposeful motion
+can evolve with the product's users and workflows.
 
-Shared styles live in `src/Pino/wwwroot/app.css`: sizing, typography, forms
-(`account-form`, `form-field`, `checkbox-field`), action groups (`actions`),
+Use the installed [Impeccable skill](.agents/skills/impeccable/SKILL.md) for design
+work. In Codex, `$impeccable init` captures confirmed product context in
+`PRODUCT.md`, and `$impeccable shape <feature>` develops a brief before coding.
+Record the visual system in `DESIGN.md` as it is established; do not treat the
+starter appearance as an approved design system. These records are created
+during product/design work, rather than inferred from the template.
+
+Shared tokens and styles live in `src/Pino/wwwroot/app.css`: sizing, typography,
+forms (`account-form`, `form-field`, `checkbox-field`), action groups (`actions`),
 notices (`notice` with a semantic `data-kind`), and table overflow
 (`table-container`). Component-specific styles belong in adjacent `.razor.css`
 files. Use narrowly scoped `::deep` selectors for child component markup.
 
 Use normal flow for prose and semantic tables, and positioning for overlays.
-Flexbox needs a specific benefit; do not recreate Bootstrap utilities or add
-inline layout styles, `!important`, decorative icons, or animations. Keep form
-labels before their controls and preserve Blazor/Identity behavior hooks when
-editing markup. Check narrow screens, keyboard focus, and text wrapping when
-changing layouts. See `AGENTS.md` for the authoring conventions.
+Flexbox needs a specific layout benefit; use descriptive classes and the CSS
+cascade rather than framework utilities, inline layout styles, or `!important`.
+Styled controls retain semantic behavior, associated labels, and visible focus.
+Motion respects `prefers-reduced-motion`. Check narrow screens, zoom, keyboard
+navigation, contrast, and text wrapping, and preserve Blazor/Identity form,
+passkey, and reconnect hooks. See [AGENTS.md](AGENTS.md) for authoring conventions.
 
 ## Resource graph and database
 
@@ -268,8 +287,28 @@ Aspire configures the connection and credentials. Stop it from the dashboard whe
 
 ## Agent tools and skills
 
-Shared repository skills live only in `.agents/skills`, supported by Codex and
+Shared repository skills live in `.agents/skills`, supported by Codex and
 Copilot CLI. Copilot desktop inherits repository/CLI skills and MCP configuration.
+Impeccable's installed provider integrations also include `.github/skills`,
+`.github/agents`, `.github/hooks`, and `.codex/hooks.json`. Preserve its
+installer-managed files and hook entries and update them through Impeccable's
+installer. The Codex manifest also contains separate project-owned documentation
+hooks; retain those when reviewing an installer update. Keep project-specific
+guidance in `AGENTS.md` and product/design records.
+
+Reload your agent after cloning or updating the installed skills. Impeccable's
+launcher can download its engine on first use; hook trust is local to the agent
+environment and is not granted by checking in the hook manifest. Follow the
+[installed skill](.agents/skills/impeccable/SKILL.md) and your agent's hook controls.
+
+The project-owned Codex hooks remind the agent to review documentation before
+committing or finishing work, then request one final review if the workspace
+changed during the turn. The agent makes any necessary edits in the normal task;
+the hook itself only stores ignored comparison state. It does not block Git
+commits. Reload Codex and review/trust the new hooks using its hook controls
+(`/hooks` in the CLI). See [documentation hooks](build/agent-hooks.md) for the
+scope, limitations, and regression check.
+
 The Aspire skills were reconciled with the first-party **aspire-skills v0.0.1**
 bundle referenced by CLI 13.5.4 (including its published SHA-512). Its descriptions
 still refer to Aspire 13.4; those upstream headings are intentionally unchanged.
@@ -287,12 +326,12 @@ configuration is required. On a new machine, install Aspire on `PATH`, then:
   repository and use the Aspire MCP resource-list tool to verify the connection.
   If several AppHosts are running, select this repository's AppHost explicitly.
 
-The checked-in skills require no additional installation on clone. To refresh them,
-use the matching CLI's `aspire agent init` with the **standard** skill location
-(`.agents/skills`), then review the diff. Avoid creating alternate copies under
-`.github`, `.codex`, or VS Code agent configuration. Keep user secrets, dashboard
-tokens, runtime `.aspire` state, telemetry exports, and temporary browser output out
-of source control.
+The checked-in Aspire skills require no additional installation on clone. To
+refresh those skills, use the matching CLI's `aspire agent init` with the
+**standard** skill location (`.agents/skills`), then review the diff. Avoid
+creating alternate Aspire skill copies under `.github`, `.codex`, or VS Code
+agent configuration. Keep user secrets, dashboard tokens, runtime `.aspire`
+state, telemetry exports, and temporary browser output out of source control.
 
 References: [Aspire MCP](https://aspire.dev/reference/cli/commands/aspire-agent-mcp/),
 [Codex skills](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills),

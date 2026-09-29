@@ -1,264 +1,315 @@
-# Pino
+# Pino agent guidance
 
-This solution contains a .NET 10 Blazor server, WebAssembly client, shared UI and
-shared kernel, plus Aspire hosting and service defaults.
+Pino is a .NET 10 / C# 14 Blazor application with server and WebAssembly rendering,
+Aspire orchestration, PostgreSQL, and ASP.NET Core Identity. The repository is a
+starting point for a new product; its sample pages and starter appearance do not
+establish the product's requirements or visual identity.
 
-## Project boundaries and rendering
+## Working in this repository
 
-- Keep browser-compatible shared pages, components, and layouts in `Pino.UI`.
-  Identity, persistence, and server services belong in `Pino`; WebAssembly
-  startup belongs in `Pino.Client`. Preserve the dependency direction:
-  `Pino.Client` and `Pino.UI` must not reference the server project.
-  Keep `Pino.SharedKernel` usable by both server and browser code.
+- Inspect the relevant implementation and `git status` before editing. Preserve
+  unrelated work and keep changes focused on the requested outcome.
+- Follow existing feature organization and reuse useful components and services.
+  Introduce abstractions and dependencies when a concrete requirement warrants
+  them; avoid speculative layers, broad rewrites, and unrelated cleanup.
+- Use the user's current brief and confirmed product decisions. Ask about material
+  gaps in product behavior or design intent; resolve routine implementation
+  choices within these conventions. Do not invent business rules or brand claims.
+- Keep this file focused on durable agent instructions. Update supporting docs
+  when behavior or workflows change, and remove conflicting guidance. Obtain
+  exact SDK/package versions from checked-in configuration rather than copying
+  version pins into new instructions.
+
+Read the relevant references as needed:
+
+| Reference | Purpose |
+| --- | --- |
+| [README.md](README.md) | Setup, Aspire lifecycle, migrations, and local services |
+| [build/README.md](build/README.md) | Analyzer rules, SDK compatibility, and Razor validation |
+| [tests/README.md](tests/README.md) | Test runner, helpers, assertions, and reports |
+| [Impeccable](.agents/skills/impeccable/SKILL.md) | Design discovery, implementation, and review |
+| [Aspire](.agents/skills/aspire/SKILL.md) | Orchestration and diagnostics workflows |
+
+## Project map and boundaries
+
+| Location | Responsibility |
+| --- | --- |
+| `src/Pino` | Web host, Identity, account SSR pages, persistence, server services |
+| `src/Pino.Client` | WebAssembly startup and client registrations |
+| `src/Pino.UI` | Browser-compatible shared pages, components, and layouts |
+| `src/Pino.SharedKernel` | Contracts and domain code usable by server and browser |
+| `src/Pino.AppHost` | Aspire resource graph and migration orchestration |
+| `src/Pino.ServiceDefaults` | Health checks, telemetry, and service defaults |
+| `tests/Pino.UnitTests` | Server logic tests |
+| `tests/Pino.ComponentTests` | Blazor rendering and interaction tests with bUnit |
+| `build/Pino.Build` | Razor code-behind policy validator |
+
+- Preserve dependency direction: `Pino.Client` and `Pino.UI` must not reference
+  `Pino`. Keep server infrastructure and secrets out of browser assemblies and
+  `Pino.SharedKernel`; share only contracts and behavior needed across boundaries.
+- Keep feature-specific pages, components, services, and outcomes close to their
+  feature. Follow the existing `Features/<Feature>/...` organization.
+- Enforce authorization and validate untrusted inputs on the server. Hiding UI or
+  client-side validation is insufficient to protect an operation.
+
+## Design process
+
+- Use the installed [Impeccable skill](.agents/skills/impeccable/SKILL.md) for design
+  and UI work. Its guidance supports the brief and repository's technical
+  contracts; its aesthetic preferences are not independent product requirements.
+- For new product work, establish the audience, primary tasks, realistic content,
+  and constraints before committing to screens. Use Impeccable's `init` workflow
+  to capture missing product context in `PRODUCT.md`; use `shape` when a design
+  brief is needed before implementation. In Codex, invoke these as
+  `$impeccable init` and `$impeccable shape <feature>`.
+- Keep confirmed product facts in `PRODUCT.md` and the established visual system
+  in `DESIGN.md`. Leave unknowns explicit. Record visual decisions as they are
+  established, rather than documenting the scaffold as an approved design system.
+  A focused fix can use existing context without reopening product discovery.
+- Develop representative workflows and domain models together. Use realistic,
+  clearly identified sample data while persistence is incomplete. Account for
+  relevant empty, loading, success, validation, failure, permission, and overflow
+  states, including minimum and maximum realistic content.
+- The starter's neutral palette, system font, navigation layout, native control
+  appearance, and lack of motion are provisional. Typography, color, density,
+  imagery, iconography, styled controls, and purposeful animation are available
+  design choices. Select them for the product and task; do not impose a generic
+  marketing aesthetic on operational screens.
+- Once a visual direction is established, keep additions consistent with it.
+  Distinguish focused refinement from an intended redesign. Preserve product
+  facts and working interactions throughout visual changes.
+
+## CSS, interaction, and accessibility
+
+- Use standard CSS with Grid as the default for structured layout and alignment.
+  Use normal flow for prose and semantic tables, and positioning for overlays.
+  Flexbox is appropriate when its one-dimensional behavior has a specific
+  benefit; document that reason near the relevant layout.
+- Put shared design tokens and reusable form, action, notice, and table patterns
+  in `src/Pino/wwwroot/app.css`. Put component-specific rules in adjacent
+  `.razor.css` files. Scope `::deep` narrowly to child markup that requires it.
+- Use descriptive classes and reusable CSS custom properties. Avoid Bootstrap
+  or utility-framework dependencies, inline layout styles, and `!important` as
+  shortcuts around the existing CSS structure.
+- Style semantic HTML controls freely. Preserve keyboard operation, accessible
+  names, visible focus, associated labels, and appropriate validation feedback.
+  Put form labels before their controls. Custom widgets must provide the
+  semantics and interactions of the control they replace.
+- Make layouts shrink, wrap, and remain usable on narrow screens and with zoom
+  or long content. Preserve logical reading and focus order when using Grid.
+  Keep sufficient contrast and communicate state with text as well as color.
+- Use motion intentionally and honor `prefers-reduced-motion`; essential content
+  and actions must remain available with reduced or disabled animation. Give
+  meaningful imagery alternative text and hide purely decorative icons from
+  assistive technology.
+- Shared notices use `class="notice"` with `data-kind="success"`, `"error"`,
+  `"warning"`, or `"information"`. Their presentation may evolve; preserve the
+  semantic kind and a meaningful message.
+- Preserve Blazor/Identity form, passkey, and reconnect hooks when changing markup.
+  Verify changed layouts and interactions in a browser; build success and design
+  detector results alone do not establish visual or accessibility quality.
+
+## Blazor and Razor contracts
+
 - Account pages use static server-side rendering (SSR). Preserve
   `[ExcludeFromInteractiveRouting]` in their page imports, authorization on
-  account-management pages, and their HTTP context and cookie contracts. Keep
-  form names, POST methods, `[SupplyParameterFromForm]` mapping, and antiforgery
-  hooks intact. Shared interactive pages currently opt into `InteractiveAuto`;
-  do not apply a global interactive render mode that changes account behavior.
-- `BlazorDisableThrowNavigationException` is enabled. After redirecting, return
-  or otherwise terminate the current branch when subsequent work must not
-  execute. Do not rely on navigation throwing to stop an account operation.
+  account-management pages, and HTTP context/cookie behavior. Keep form names,
+  POST methods, `[SupplyParameterFromForm]`, and antiforgery hooks intact.
+- Shared interactive pages opt into `InteractiveAuto`. Do not introduce a global
+  interactive render mode that changes account behavior. Keep shared components
+  compatible with both server and browser execution; consider prerendering when
+  loading data or invoking JavaScript.
+- `BlazorDisableThrowNavigationException` is enabled. Return or otherwise end a
+  branch after redirecting when later work must not execute; navigation does
+  not provide that control-flow boundary by throwing.
+- Every `.razor` page/component has a matching `.razor.cs` partial class, including
+  markup-only components. `_Imports.razor` is exempt. Keep members and logic in
+  code-behind; use no `@code` or `@functions` blocks. Rendering expressions and
+  control flow stay in markup.
+- Match the generated component's namespace, accessibility, class name, and
+  generic parameters. Add C# imports explicitly; `_Imports.razor` does not supply
+  code-behind imports. Preserve routes, render modes, injection, and parameter
+  contracts during refactoring. Do not edit generated Razor C#.
+- Mark necessary caller-supplied `[Parameter]` properties `[EditorRequired]`.
+  Keep optional inputs optional; assess route, query, form, and cascading inputs
+  separately. Use ordinary auto-properties, not `required` or `init`.
+  `[EditorRequired]` checks Razor call sites; it is not runtime validation.
+- Initialize values that depend on parameters in the appropriate lifecycle
+  method. Keep `[Parameter]` and `[CascadingParameter]` inputs as properties.
 
-## Project settings and dependencies
+## C# and dependencies
 
-- Nullable reference type analysis is enabled centrally in `Directory.Build.props`.
-  New projects inherit it; do not repeat or disable it in individual projects.
-- NuGet package versions belong in the root `Directory.Packages.props`. Add
-  versionless `PackageReference` items to consuming projects and preserve metadata
-  such as `PrivateAssets`. Shared analyzer references live in `Directory.Build.props`.
-- Keep SDK versions in their SDK declarations or `global.json`; they are not
-  NuGet `PackageReference` versions. Do not introduce per-project version overrides
-  or nested central package files without a deliberate, documented need.
-
-## Razor components
-
-- Every page/component must have a matching `.razor.cs` partial class, including
-  markup-only components. `_Imports.razor` does not need code-behind.
-- Put component members and logic in code-behind. Do not add `@code` or `@functions`
-  blocks. Rendering expressions and control flow remain in `.razor` markup.
-- Match the generated component's namespace, class name, and generic parameters.
-  `_Imports.razor` using directives do not apply to `.razor.cs` files; add the C#
-  imports the code-behind needs.
-- Preserve Razor routes, rendering, authorization, injection, and component
-  parameter contracts when moving code. Do not edit generated C# files.
-- Mark caller-supplied `[Parameter]` properties with `[EditorRequired]` when the
-  component needs them to serve its purpose. Keep optional inputs optional and
-  assess route, query, form, and cascading inputs separately. Use ordinary
-  auto-properties, not C# `required` or `init`. This is a Razor call-site check,
-  not runtime validation or a guarantee of non-null values.
-- Use file-scoped namespaces and braces around C# control-flow bodies.
-
-## CSS and layout
-
-- Use standard CSS and Grid for structured layout and alignment. Use normal
-  document flow for prose and semantic tables; positioning is appropriate for
-  overlays. Use Flexbox only when there is a specific, documented benefit.
-- Keep the shared baseline and reusable form, action, notice, and table patterns
-  in `src/Pino/wwwroot/app.css`. Keep component-specific rules in adjacent
-  `.razor.css` files, with narrowly scoped `::deep` selectors only when child
-  component markup requires them.
-- Use descriptive classes rather than framework utilities. Do not reintroduce
-  Bootstrap, inline layout styles, `!important`, decorative template icons, or
-  animations. Keep the baseline neutral and controls native.
-- Make layouts shrink and wrap on narrow screens, preserve visible keyboard
-  focus, and put form labels before their controls. Preserve semantic links,
-  buttons, tables, and all Blazor/Identity form and reconnect hooks.
-- Shared notices use `class="notice"` with `data-kind="success"`, `"error"`,
-  `"warning"`, or `"information"`. Keep meaning in the message, not just color.
-
-## Visibility and inheritance
-
-- When authoring or changing classes, use the narrowest practical visibility and
-  seal concrete classes unless inheritance has a purpose. Default to
-  `private sealed` for nested implementation classes and `internal sealed` for
-  namespace-level implementation classes; namespace-level classes cannot be
-  `private`.
-- Expose types across assemblies or allow inheritance when a current contract,
-  framework requirement, or deliberate base-class design calls for it. Document
-  the reason for analyzer exceptions on the affected type.
-- Preserve generated Razor component accessibility and Blazor parameter contracts.
-  Concrete components can be `public sealed partial class`; intentional base
-  components remain inheritable. Assess cross-project usage before sealing a
-  public type or reducing its visibility.
-- S3260 and MA0053 are warnings for eligible classes; MA0053 includes public
-  types. MA0053 sees inheritance only within the current project. Use a justified
-  type-level exception for an intentional base class consumed by another project.
-  The authoring convention also applies where the analyzers cannot enforce it.
-- CA1515 is a warning for public types in executable projects. Keep its default
-  exclusion of class libraries; review their exported contracts deliberately.
-  `.razor.cs` files are exempt from CA1515 because generated components are public,
-  but still use private implementation members and the other C# rules. Other
-  required public types need a type-level `SuppressMessage` with a concrete
-  justification, as on `PasskeyOperation`.
-
-## Constructors
-
+- Follow `.editorconfig`: UTF-8 without BOM, LF line endings, file-scoped C#
+  namespaces, braces around control-flow bodies, and the configured formatting.
+- Use the narrowest practical visibility and seal concrete classes unless
+  inheritance has a purpose. Default implementation types to `internal sealed`
+  at namespace scope and `private sealed` when nested. Preserve necessary public
+  contracts and assess cross-project inheritance before sealing or hiding types.
+- Concrete Razor components can be `public sealed partial class`; intentional
+  base components remain inheritable. Keep implementation members private.
+  Document analyzer exceptions on the affected type with a concrete reason.
+  MA0053 cannot see inheritance in other projects; `.razor.cs` is exempt from
+  CA1515, not from other conventions. See the build guide for these boundaries.
 - Use primary constructors whenever a handwritten class or struct needs an
-  explicit instance constructor, including Razor code-behind. Additional
-  constructor overloads must delegate to the primary constructor with `this(...)`.
-  Types that need no explicit constructor do not need an empty primary constructor.
-  Static constructors are unaffected.
-- Keep Blazor `[Parameter]` and `[CascadingParameter]` inputs as properties. Perform
-  initialization that depends on these inputs in the appropriate lifecycle method.
-- IDE0290 is an error for conversions supported by the SDK analyzer. The authoring
-  requirement also applies where the analyzer cannot suggest a conversion. This
-  rule does not migrate existing `@inject` or `[Inject]` property injection.
+  explicit instance constructor, including code-behind. Additional overloads
+  delegate through `this(...)`. Do not add empty constructors when unnecessary.
+  Static constructors and existing `@inject`/`[Inject]` injection are unaffected.
+- Prefer C# 14 extension blocks for handwritten extensions; follow the
+  [extension members skill](.agents/skills/csharp-extension-members/SKILL.md).
+  Use properties for inexpensive, side-effect-free facts and methods for
+  transformations, enumeration, asynchronous work, or side effects. Preserve
+  public contracts and document any need for classic extension-method syntax.
+  Keep core behavior and factories on types we own; do not convert every static
+  helper. Stay on C# 14 rather than copying preview syntax or SDK settings.
+- Nullable analysis and analyzer references are centralized in
+  `Directory.Build.props`. NuGet versions belong in `Directory.Packages.props`;
+  consuming `PackageReference` items stay versionless and retain metadata such
+  as `PrivateAssets`. SDK versions stay in SDK declarations or `global.json`.
+  Do not add per-project overrides or nested central package files without a
+  documented need.
+- Compiler/analyzer warnings fail builds. Fix the cause without weakening shared
+  settings. Keep necessary suppressions narrow and justified; retain the
+  documented SDK compatibility workaround in `build/README.md`.
 
-## OneOf and operation outcomes
+## Operation outcomes
 
-- Use unions for meaningful alternatives that need different handling or payloads,
-  or to replace fields and flags representing mutually exclusive states. Keep
-  ordinary optional values, independent booleans, and adequate existing contracts
-  such as simple `IdentityResult` operations. Do not introduce a universal result
-  abstraction or convert every operation to OneOf.
-- Prefer named, source-generated `OneOfBase` types for reusable service outcomes:
-  `[GenerateOneOf] internal sealed partial class ... : OneOfBase<...>`. Use
-  descriptive case records for payloads and marker structs for cases without data.
-  Let the generator supply constructors and conversions. A small local helper does
-  not automatically need a named union class.
-- Prefer exhaustive `Match` when producing a value and `Switch` for synchronous
-  side effects. Avoid routine control flow through the union's `.Value`, `IsTn`,
-  or `AsTn`. `TryPick` is appropriate when deliberately separating one case and
-  handling or forwarding the remaining union; direct case inspection is also
-  appropriate in tests.
-- Return and await `Match<Task>` or `Match<Task<T>>` for asynchronous branches.
-  Never pass asynchronous lambdas to `Switch`, whose callbacks return `void`.
-- Represent anticipated failures and partial completion accurately, including
-  earlier writes that succeeded. Preserve unexpected exceptions and cancellation;
-  do not catch every exception into a generic failure outcome.
-- Keep outcomes close to their feature with the narrowest practical visibility.
-  Share cases only when their meaning is identical. Keep transport models separate;
-  do not expose OneOf directly through forms, cookies, persistence models, or HTTP
-  contracts.
-- Test each meaningful case, its payload, and its observable handling. For
-  multi-step operations, verify that failures skip later operations and that
-  partial completion does not produce complete-success messages or logs.
+- Use OneOf for meaningful alternatives with different handling or payloads,
+  including mutually exclusive states. Keep ordinary optional values,
+  independent booleans, and adequate contracts such as simple `IdentityResult`.
+  Do not introduce a universal result abstraction.
+- Prefer named source-generated unions for reusable service outcomes:
+  `[GenerateOneOf] internal sealed partial class ... : OneOfBase<...>`.
+  Use descriptive payload records and marker structs for cases without data;
+  let the generator supply constructors/conversions. Small local helpers need
+  not become named union classes.
+- Use exhaustive `Match` for values and `Switch` for synchronous side effects.
+  Return and await `Match<Task>` or `Match<Task<T>>` for asynchronous branches;
+  never pass async lambdas to `Switch`. Use `TryPick` for deliberate separation
+  of one case; avoid routine `.Value`, `IsTn`, or `AsTn` control flow. Direct case
+  inspection is appropriate in tests.
+- Represent anticipated failure and partial completion accurately, including
+  earlier writes that succeeded. Preserve unexpected exceptions and cancellation.
+  Keep outcomes feature-local and separate from forms, cookies, persistence,
+  and HTTP transport models. Share cases only when their meaning is identical.
+- Test each meaningful case, its payload, and observable handling. Verify that
+  failures skip later operations and partial completion never reports full success.
+  See [PasskeySubmission](src/Pino/Features/Account/Models/PasskeySubmission.cs) and
+  [EnableAuthenticatorOutcome](src/Pino/Features/Account/Models/EnableAuthenticatorOutcome.cs).
 
-Examples: [PasskeySubmission](src/Pino/Features/Account/Models/PasskeySubmission.cs)
-models mutually exclusive inputs;
-[EnableAuthenticatorOutcome](src/Pino/Features/Account/Models/EnableAuthenticatorOutcome.cs)
-distinguishes complete success from partial completion.
+## Aspire, persistence, and local data
 
-## Validation
+- Run the application through Aspire from the repository root;
+  `aspire.config.json` selects `src/Pino.AppHost/Pino.AppHost.csproj`. Use the CLI
+  for agent runs and the **Aspire: Pino** configuration for VS Code debugging;
+  Visual Studio uses `Pino.AppHost`. Do not run the web/client projects alone.
+- For agent validation, use `aspire start --non-interactive`,
+  `aspire wait pino --timeout 120 --non-interactive`, and
+  `aspire describe --non-interactive`. Discover endpoints from Aspire; do not
+  hard-code ports. Stop Aspire before full builds on Windows, and stop instances
+  started for agent validation when finished. Account for an existing user-run
+  session before interrupting it.
+- PostgreSQL resource `postgres` hosts `pinodb` (physical database `pino`). Aspire
+  injects `ConnectionStrings:pinodb`. Preserve the managed data volume and
+  session-scoped container lifetime; do not restore SQLite or hard-code credentials.
+- Use `IDbContextFactory<ApplicationDbContext>` for independent Blazor operations
+  and dispose created contexts. Preserve Identity schema version 3 and passkeys.
+- Author migrations through the built-in `pino-migrations` resource using the
+  web startup model. Keep migrations/snapshot in `src/Pino/Data/Migrations`,
+  namespace `Pino.Migrations`, and rebuild after generation. The web resource
+  waits for successful migration completion. Do not add startup migration code
+  or a custom migration worker. Follow the README's migration procedure.
+- Keep Aspire packages/SDK, the selected preview EF integration, and the managed
+  EF tool version aligned with checked-in configuration and the README.
+- Preserve `/health` database readiness, its bounded check, and Aspire's health
+  monitoring. `/alive` checks process liveness independently. These endpoints
+  are Development-only; changing exposure requires a deployment decision.
+- pgAdmin is an explicit-start, run-mode tool. In normal operation it is **Not
+  started**, migrations are **Finished**, and web/database resources are
+  **Running / Healthy**. Inspect commands/logs before treating optional or
+  one-shot resource states as failures.
+- Database drop/reset requires explicit intent to delete local data. Use
+  disposable accounts for validation and remove only data created for that task.
+  Keep secrets, dashboard tokens, local runtime state, telemetry exports, and
+  temporary browser captures out of source control. Do not enable preview
+  browser logging unless requested.
+- The no-op email sender and scaffold confirmation link are development setup,
+  not a production delivery mechanism. Follow the README's production requirements
+  before deployment; do not weaken authentication to make a design demo work.
 
-- Compiler and analyzer warnings fail builds through `TreatWarningsAsErrors`.
-  `.editorconfig`, `Directory.Build.props`, and `CodeMetricsConfig.txt` govern
-  diagnostics. Fix findings without weakening shared settings; keep necessary
-  exceptions narrow and justified. See [build/README.md](build/README.md) for
-  analyzer rules and the documented SDK compatibility workaround.
-- Run `dotnet build Pino.slnx` after code changes. The Razor code-behind policy
-  is checked automatically during builds; see `build/README.md` for diagnostics.
-- After changing the policy or upgrading the SDK, also run
-  `pwsh ./scripts/Test-RazorCodeBehind.ps1`.
-- Fix violations rather than disabling checks or adding unrelated placeholder
-  files. An empty matching partial class is valid for a markup-only component.
+## Validation and tests
 
-## Tests
-
-- Run commands from the repository root so `global.json` selects the .NET SDK
-  and native Microsoft.Testing.Platform (MTP) runner. Both test projects run
-  headlessly; VS Code, Aspire, a browser, and a database are not required.
-- Use `Pino.UnitTests` for server logic and `Pino.ComponentTests` for
-  Blazor rendering and interactions with bUnit. Run relevant tests while making
-  changes, then run both projects before completing code changes. Keep the full
-  solution build requirement above.
-- Use Shouldly exclusively for assertions in both test projects. Keep xUnit for
-  test discovery and execution; use `xunit.v3.core.mtp-v2` without the xUnit
-  assertion package. Do not add xUnit `Assert`, FluentAssertions, or bUnit
-  assertion helpers such as `MarkupMatches`. For semantic markup checks, use
-  bUnit's `CompareTo` and assert that its differences `ShouldBeEmpty()`.
-  Use Shouldly assertions inside bUnit's `WaitForAssertionAsync` for asynchronous
-  rendering. Preserve exact exception checks with
-  `Should.Throw<T>(action).ShouldBeOfType<T>()` when derived types must fail.
-- `dotnet test` restores and builds by default. Use `--no-build` only after the
-  relevant code and tests have been built with the same configuration and no
-  subsequent source changes. Keep coverage and reports opt-in for routine runs.
-- For focused checks, use xUnit's MTP `--filter-class` or `--filter-method`
-  options directly, without a `--` separator. Do not use VSTest's `--filter`
-  expressions. Confirm that the selected test names and count match the intended
-  scope; zero discovered or executed tests do not establish successful validation.
-- Preserve `all` / `conservative` / `1x` parallel settings. Give each test its own
-  mutable state; bUnit tests create and dispose a fresh `BunitContext` with
-  `await using`. Shared fixtures must support concurrent access, and any opt-out
-  from parallel execution needs a documented reason.
-- Reuse `ConfigureAccount`, `CaptureLogs`, and the account form helpers when
-  testing account components. Exercise rendered events; use `SetFormValue` and
-  `SetInputValue` only to supply posted values normally provided by static SSR
-  form mapping. Do not invoke private handlers or mutate cached private state
-  just to increase coverage.
-- Seed Bogus per instance with `UseSeed` or a locally assigned `Randomizer`;
-  never set global `Randomizer.Seed`. Keep explicit values for boundaries,
-  encoded tokens, and expected results.
-- bUnit verifies component behavior, not real JavaScript, browser layout, or
-  server/WebAssembly render-mode transitions. Those need browser validation;
-  database persistence needs integration validation. Do not claim these are
-  covered by the headless unit/component suites.
-- Report the commands run and actual passed, failed, and skipped counts. If
-  validation is blocked, state the blocker rather than claiming success. See
-  [tests/README.md](tests/README.md) for runner details, reports, and conventions.
+Run commands from the repository root so `global.json` selects the SDK and native
+Microsoft.Testing.Platform (MTP) runner. After code changes, run the full solution
+build and both test projects; use relevant focused tests during development:
 
 ```powershell
-# Run the relevant project during development.
-dotnet test --project tests/Pino.UnitTests/Pino.UnitTests.csproj
-dotnet test --project tests/Pino.ComponentTests/Pino.ComponentTests.csproj
-
-# Example focused check.
-dotnet test --project tests/Pino.ComponentTests/Pino.ComponentTests.csproj --filter-class "Pino.ComponentTests.Features.Counter.Pages.CounterTests"
-
-# Run both projects before completing code changes.
+dotnet build Pino.slnx
 dotnet test --solution Pino.slnx
 ```
 
-## Aspire and PostgreSQL
+- Unit and component tests are headless and need no Aspire, database, browser,
+  or editor. Use `Pino.UnitTests` for server logic and `Pino.ComponentTests` for
+  rendering/interactions. See the test guide for focused project commands.
+- Use xUnit discovery/execution with `xunit.v3.core.mtp-v2` and Shouldly assertions
+  exclusively. Do not add xUnit assertions, FluentAssertions, or bUnit assertion
+  helpers such as `MarkupMatches`. For semantic markup, assert that `CompareTo`
+  differences `ShouldBeEmpty()`. Use Shouldly inside `WaitForAssertionAsync` for
+  asynchronous rendering. Preserve exact exception checks with
+  `Should.Throw<T>(action).ShouldBeOfType<T>()` where derived types must fail.
+- Preserve `all` / `conservative` / `1x` parallel settings. Each test owns its
+  mutable state; create and dispose a fresh `BunitContext` with `await using`.
+  Shared fixtures must support concurrent access; justify parallelism opt-outs.
+  Seed Bogus per instance using `UseSeed` or a local `Randomizer`, never global
+  `Randomizer.Seed`. Use explicit boundary values, tokens, and expected results.
+- Reuse `ConfigureAccount`, `CaptureLogs`, and account form helpers. Exercise
+  rendered events. Use `SetFormValue`/`SetInputValue` only for posted values
+  normally supplied by static SSR form mapping. Do not invoke private handlers
+  or mutate private state to inflate coverage.
+- Use xUnit MTP's `--filter-class` or `--filter-method` directly, without a `--`
+  separator or VSTest `--filter` expressions. Verify selected names and counts;
+  zero executed tests is not validation. `dotnet test` builds/restores by default;
+  use `--no-build` only after matching configuration builds with no later source
+  edits. Coverage and report generation are opt-in for routine work.
+- Builds enforce the Razor code-behind policy. After modifying that policy or
+  upgrading the SDK, also run `pwsh ./scripts/Test-RazorCodeBehind.ps1`.
+  Fix violations; an empty matching partial class is valid for markup-only UI.
+- Check changed UI in the running browser at relevant desktop/narrow widths,
+  including keyboard navigation and meaningful states. bUnit does not verify
+  real JavaScript, CSS layout, or server/WebAssembly transitions. Persistence
+  changes need integration validation when they affect database behavior.
+- For documentation-only changes, verify accuracy, referenced paths, and the diff;
+  application builds/tests are unnecessary unless executable behavior also changes.
+- Report what changed, the checks actually run, and any remaining limitations.
+  For tests, report actual passed, failed, and skipped counts. State blockers
+  clearly rather than claiming unperformed validation.
 
-- Aspire is the default application run/debug entry point. Use the CLI for agent
-  runs and the checked-in **Aspire: Pino** VS Code configuration for F5 debugging;
-  in Visual Studio, use `Pino.AppHost` as the startup project. Do not bypass
-  orchestration by launching the web or WebAssembly project alone. Unit/component
-  tests remain headless and do not require Aspire.
-- Run Aspire CLI commands from the repository root; `aspire.config.json` selects
-  `src/Pino.AppHost/Pino.AppHost.csproj`. Use `aspire start --non-interactive`,
-  `aspire wait pino --timeout 120 --non-interactive`, and `aspire describe`.
-  Stop Aspire before full builds on Windows and when agent validation is finished.
-- Keep Aspire 13.5.4, the explicitly selected preview EF integration, and
-  the managed EF tool 10.0.12 aligned with the documented setup in `README.md`.
-  Use `.agents/skills` as the shared skill location; retain the single user-level
-  `aspire agent mcp` entry for each agent rather than adding repository duplicates.
-- PostgreSQL resource `postgres` hosts `pinodb` (physical database `pino`).
-  Aspire injects `ConnectionStrings:pinodb`. Do not restore SQLite, commit local
-  credentials, hard-code ports, or make development containers persistent processes.
-- Use `IDbContextFactory<ApplicationDbContext>` for independent Blazor operations
-  and dispose created contexts. Preserve Identity schema version 3 and passkeys.
-- `/health` includes database readiness; `/alive` checks process liveness
-  independently of database availability. Preserve the bounded database
-  readiness check and Aspire's monitoring of `/health`. Both endpoints are
-  currently Development-only; changing their exposure is a deliberate
-  deployment decision.
-- Author migrations through the built-in `pino-migrations` resource using the
-  web project's actual startup model. Keep migrations and snapshot under
-  `src/Pino/Data/Migrations`, namespace `Pino.Migrations`. Rebuild after
-  generating migrations. The web resource must wait for successful migration
-  completion; do not add application-startup migration code or a custom worker.
-- pgAdmin is an explicit-start, run-mode developer tool. See `README.md` for
-  endpoint discovery, data persistence, and telemetry. Database reset/drop requires
-  an explicit intent to delete the local data. Do not add preview browser logging
-  unless explicitly requested.
-- A normal run leaves pgAdmin **Not started**, migrations
-  **Finished**, and the web/database resources **Running / Healthy**. Inspect
-  resource commands and logs before treating optional or one-shot resource states
-  as failures. Use existing Identity registration/login/account management to
-  exercise PostgreSQL; remove only disposable accounts created for validation.
+## Agent tooling maintenance
 
-## C# extension members
+- Review documentation as part of each implementation task, before any authorized
+  commit and before reporting completion. Update affected instructions and docs
+  alongside the implementation; leave accurate documentation unchanged. Briefly
+  report the review outcome. A review is not permission to commit or to edit files
+  during a read-only task.
+- Keep durable agent conventions here, setup and runtime workflows in `README.md`,
+  build rules in `build/README.md`, and test conventions in `tests/README.md`.
+  Use feature docs for detailed behavior and `PRODUCT.md` / `DESIGN.md` for
+  established product/design decisions. Update existing sources rather than
+  duplicating rules, version pins, or historical validation results.
+- The project-owned Codex documentation hooks prompt this review and request at
+  most one finishing pass for a turn that changed the workspace. They are advisory,
+  not proof of documentation accuracy or a Git commit gate. See
+  [agent hook maintenance](build/agent-hooks.md) for behavior and validation.
 
-- Prefer C# 14 extension blocks for handwritten extensions. Group related members
-  by receiver and concern, using internal static containers for feature-local APIs.
-  Preserve existing public contracts and document any compatibility or generator
-  requirement that needs classic extension-method syntax.
-- Use properties for inexpensive, side-effect-free facts and methods for
-  transformations, enumeration, async work, or side effects. Keep core behavior
-  and factories on types we own; do not convert every static helper.
-- Follow the [C# extension members skill](.agents/skills/csharp-extension-members/SKILL.md)
-  for receiver/generic rules, migration checks, and compiled examples. Keep this
-  repository on C# 14; do not copy preview extension indexers or SDK settings.
+- Use `.agents/skills` for shared repository skills and read relevant skills
+  before applying them. Keep upstream packages intact; put project-specific
+  conventions here or in the appropriate project documentation.
+- Impeccable also has installed provider-specific files under `.github` and
+  `.codex`. Preserve its generated hook entries and use the upstream installer
+  to update its integrations together; retain the separate project-owned
+  documentation entries in `.codex/hooks.json` when reviewing installer changes.
+  Product/design records belong to this project, outside the installed skill.
+- Refresh Aspire skills with `aspire agent init` using the standard
+  `.agents/skills` location and review the diff. Preserve the single user-level
+  `aspire agent mcp` entry for each agent; do not add repository MCP duplicates.
+- Prefer checked-in configuration and installed API evidence when upstream skill
+  text describes a different version. Keep tool upgrades explicit and reviewable.

@@ -1,5 +1,18 @@
 {
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/scripts/Invoke-DocumentationReviewHook.ps1\"",
+            "commandWindows": "pwsh -NoProfile -NonInteractive -Command \"$repoRoot = git rev-parse --show-toplevel; if ($LASTEXITCODE -eq 0) { & (Join-Path $repoRoot 'scripts/Invoke-DocumentationReviewHook.ps1') }\"",
+            "timeout": 15,
+            "statusMessage": "Preparing documentation review"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|apply_patch",
@@ -15,6 +28,17 @@
       }
     ],
     "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pwsh -NoProfile -NonInteractive -File \"$(git rev-parse --show-toplevel)/scripts/Invoke-DocumentationReviewHook.ps1\"",
+            "commandWindows": "pwsh -NoProfile -NonInteractive -Command \"$repoRoot = git rev-parse --show-toplevel; if ($LASTEXITCODE -eq 0) { & (Join-Path $repoRoot 'scripts/Invoke-DocumentationReviewHook.ps1') }\"",
+            "timeout": 15,
+            "statusMessage": "Reviewing documentation impact"
+          }
+        ]
+      },
       {
         "hooks": [
           {
