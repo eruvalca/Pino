@@ -5,6 +5,7 @@ Aspire orchestration, and PostgreSQL-backed ASP.NET Core Identity.
 
 ## Documentation
 
+- [Product context](PRODUCT.md): confirmed users, workflows, requirements, and open decisions.
 - [Agent guidance](AGENTS.md): project boundaries, design process, and authoring rules.
 - [Build conventions](build/README.md): analyzers, formatting, and Razor policy.
 - [Testing](tests/README.md): routine commands, assertions, and test isolation.
