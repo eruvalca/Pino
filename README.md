@@ -3,6 +3,11 @@
 .NET 10 Blazor application with a hosted WebAssembly client, shared UI and kernel,
 Aspire orchestration, and PostgreSQL-backed ASP.NET Core Identity.
 
+Pino is in heavy early development. Existing development data is disposable;
+model and database changes have no backward-compatibility or data-preservation
+requirement. Prefer one fresh initial migration when the persisted model changes.
+See the [early-development migration workflow](#ef-migrations).
+
 ## Documentation
 
 - [Agent guidance](AGENTS.md): project boundaries, design process, and authoring rules.
@@ -229,22 +234,50 @@ the web application starts only after migration success. Failure blocks web star
 Migrations use the actual web startup registration, keeping Identity's design-time
 and runtime models aligned.
 
-For a schema change:
+During early development, replace the migration history for entity/model changes
+that affect persistence instead of accumulating incremental migrations. Delete
+the old migrations, their designer files, and the model snapshot, then generate
+one new initial migration for the complete current model. Existing local accounts
+and other application data do not need to survive this process; do not add
+backfills or compatibility layers solely to retain them.
 
-1. Stop Aspire, change the model, and build the solution.
-2. Start Aspire. If EF detects pending model changes, migration startup can fail and
-   block the web resource; the migration authoring commands remain available.
-3. On `pino-migrations` in the dashboard, run **Add Migration...** and supply a
-   descriptive name. Review the generated files in `src/Pino/Data/Migrations`
-   with namespace `Pino.Migrations`.
-4. Apply the repository's conventions to the handwritten migration class (file-scoped
+Replacing migration files also requires recreating databases built from the old
+history. Deleting files or clearing `__EFMigrationsHistory` alone does not remove
+the old schema. Each developer using the changed branch must recreate their own
+local `pino` database. This policy authorizes that reset as part of schema/model
+work without a separate data-preservation confirmation; it does not extend to
+unrelated databases or volumes.
+
+For a schema change, use this reset workflow:
+
+1. If a local `pino` database exists, start the current Aspire graph if needed,
+   then stop the `pino` web resource and close other application/database clients.
+   On `pino-migrations`, run **Drop Database**, accepting its confirmation for this
+   checkout's local database. Keep PostgreSQL running for the command and retain
+   its managed volume and credentials.
+2. Stop Aspire. Update the model and remove the existing migration files, designer
+   files, and `ApplicationDbContextModelSnapshot.cs` from `src/Pino/Data/Migrations`.
+   Before removing them, identify any still-needed custom schema SQL or seed
+   definitions that must be carried into the new migration; EF cannot reconstruct
+   arbitrary migration customizations from the model.
+3. Build the solution and start Aspire. While the new initial migration is absent,
+   migration startup can fail and block the web resource; the migration authoring
+   commands remain available. This intermediate state is not successful validation.
+4. On `pino-migrations` in the dashboard, run **Add Migration...** with a name such
+   as `InitialCreate`. Review the complete schema in `src/Pino/Data/Migrations`,
+   using namespace `Pino.Migrations`, and restore any still-needed customizations.
+5. Apply the repository's conventions to the handwritten migration class (file-scoped
    namespace and `internal sealed partial class`); leave generated designer code alone.
    Keep the model snapshot in the same migrations directory. EF can choose a directory
    from the legacy namespace when regenerating a missing snapshot, so check its location.
-5. Stop Aspire, rebuild, and start again. The built-in migration resource applies the
-   newly compiled migration before starting the web application.
-6. Run **Get Database Status** on `pino-migrations` to verify applied migrations and
-   pending model changes.
+6. Stop Aspire, rebuild, and start again. Migration commands are disabled after
+   authoring until the target project is rebuilt. The built-in migration resource
+   applies the newly compiled initial migration to the empty database before
+   starting the web application.
+7. Run **Get Database Status** on `pino-migrations` to verify that the single new
+   initial migration is applied and no model changes or migrations are pending.
+   Verify application/database health and exercise the changed persistence behavior.
+   Recreate disposable sample data or accounts as needed.
 
 CLI equivalents for inspecting and updating the current compiled model:
 
@@ -255,9 +288,17 @@ aspire logs pino-migrations --non-interactive
 ```
 
 The built-in **Remove Migration**, **Drop Database**, and **Reset Database** commands
-are also available. Drop/reset delete local application data; use them only when
-that is intended. There is no application-startup migration routine or custom worker.
-See [Aspire's EF migration integration](https://aspire.dev/integrations/databases/efcore/migrations/).
+are also available. **Reset Database** drops and recreates the database using the
+currently compiled migrations; it does not replace the migration source files.
+Use it when a reset is needed after rebuilding the new initial migration. Ordinary
+restarts retain local data, and routine validation does not require a reset.
+
+This workflow is appropriate while all affected databases are disposable. Before
+production or any environment whose data must be retained, update this policy,
+keep applied migration history, and use incremental, data-preserving migrations.
+There is no application-startup migration routine or custom worker. See
+[EF Core's reset guidance](https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/managing#resetting-all-migrations)
+and [Aspire's EF migration integration](https://aspire.dev/integrations/databases/efcore/migrations/).
 
 ## Health, telemetry, and pgAdmin
 

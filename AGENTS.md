@@ -2,8 +2,9 @@
 
 Pino is a .NET 10 / C# 14 Blazor application with server and WebAssembly rendering,
 Aspire orchestration, PostgreSQL, and ASP.NET Core Identity. The repository is a
-starting point for a new product; its sample pages and starter appearance do not
-establish the product's requirements or visual identity.
+starting point for a new product in heavy early development; its sample pages
+and starter appearance do not establish the product's requirements or visual
+identity.
 
 ## Working in this repository
 
@@ -198,6 +199,22 @@ Read the relevant references as needed:
 
 ## Aspire, persistence, and local data
 
+- During this early-development phase, existing application data is disposable.
+  Model, schema, and data-format decisions do not need backward compatibility
+  with earlier versions or data-preserving upgrade paths. Avoid compatibility
+  layers, backfills, or transitional schemas solely to preserve old local data.
+- For entity/model changes that affect persistence, prefer replacing all existing
+  migrations, their designer files, and the model snapshot with one fresh initial
+  migration for the complete current model. Recreate the local database to match;
+  do not accumulate incremental migrations by default. Carry forward still-needed
+  custom schema SQL or seed definitions that EF cannot regenerate. Follow the
+  README's reset procedure and validate creation from an empty database.
+- This policy provides standing authorization to drop/recreate this checkout's
+  local development `pino` database when required for schema/model work; no
+  separate data-preservation confirmation is needed. Scope resets to that
+  database, preserving unrelated databases, files, volumes, and secrets. Before
+  introducing production or other data that must survive upgrades, replace this
+  policy with an incremental, data-preserving migration workflow.
 - Run the application through Aspire from the repository root;
   `aspire.config.json` selects `src/Pino.AppHost/Pino.AppHost.csproj`. Use the CLI
   for agent runs and the **Aspire: Pino** configuration for VS Code debugging;
@@ -209,8 +226,10 @@ Read the relevant references as needed:
   started for agent validation when finished. Account for an existing user-run
   session before interrupting it.
 - PostgreSQL resource `postgres` hosts `pinodb` (physical database `pino`). Aspire
-  injects `ConnectionStrings:pinodb`. Preserve the managed data volume and
-  session-scoped container lifetime; do not restore SQLite or hard-code credentials.
+  injects `ConnectionStrings:pinodb`. Keep the managed data-volume configuration
+  and session-scoped container lifetime; reset the application database through
+  the migration resource rather than deleting the volume. Do not restore SQLite
+  or hard-code credentials.
 - Use `IDbContextFactory<ApplicationDbContext>` for independent Blazor operations
   and dispose created contexts. Preserve Identity schema version 3 and passkeys.
 - Author migrations through the built-in `pino-migrations` resource using the
@@ -227,8 +246,8 @@ Read the relevant references as needed:
   started**, migrations are **Finished**, and web/database resources are
   **Running / Healthy**. Inspect commands/logs before treating optional or
   one-shot resource states as failures.
-- Database drop/reset requires explicit intent to delete local data. Use
-  disposable accounts for validation and remove only data created for that task.
+- Use disposable accounts for validation. Outside a schema/model reset, clean up
+  only data created for that task; routine validation does not require a reset.
   Keep secrets, dashboard tokens, local runtime state, telemetry exports, and
   temporary browser captures out of source control. Do not enable preview
   browser logging unless requested.
