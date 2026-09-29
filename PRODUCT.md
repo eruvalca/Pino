@@ -24,8 +24,9 @@ placement history across tryouts and seasons as players progress through their
 playing careers.
 
 A tryout is complete once a decision has been made for every participating
-player. The full set of decisions that satisfy this condition is still open;
-completion does not yet imply that every player must receive a team placement.
+player. A completed decision is placement on a team, withdrawal from the tryout,
+or a club/coach decision not to place the player on any team. Completion does
+not require every player to receive a team placement.
 
 ## Operating Context
 
@@ -39,8 +40,12 @@ individually or by CSV import, evaluate the participating players, record their
 decisions, and later consult historical placements. A player's team can change
 between seasons; a current team assignment must not replace earlier history.
 
-Specific sports, existing tools being replaced, device priorities, connectivity
-conditions, and the detailed evaluation process have not been established.
+The initial focus is soccer, with workflows intended to support other youth
+sports. Staff are expected to use phones or tablets during tryouts and computers
+afterward. Evaluation uses shared notes rather than scores or a formal rubric.
+The first version can require an internet connection; offline note capture and
+synchronization are outside its scope. Existing tools being replaced and
+typical roster sizes have not been established.
 
 ## Capabilities and Constraints
 
@@ -83,19 +88,25 @@ are planned capabilities, not claims of implemented behavior.
   **Blue**, **Silver**, and **Elite** are examples of team designations, not a
   confirmed fixed list or ranking.
 - A player's team membership can change across seasons.
+- A player can have only one current team within a season. Replacements must
+  preserve placement history rather than create simultaneous team memberships.
 
 ### Evaluation and decisions
 
 - Administrators and coaches working a tryout can create notes for a player to
   communicate with other staff or record pertinent information.
+- Evaluation uses shared notes only; scores and evaluation rubrics are outside
+  the current scope. Note editing rules remain undecided.
 - Those staff can place a player on an appropriate, compatible team during the
   tryout. Graduation year eligibility must be enforced.
 - Every participating player needs a decision before the tryout is complete.
-- Decision types beyond team placement, evaluation criteria or scores, note
-  visibility and editing rules, and the handling of changed decisions remain
-  undecided.
-- Whether a player can hold more than one placement within a tryout or season
-  has not been specified.
+- The completing outcomes are placement on a team, withdrawal from the tryout,
+  and a club/coach decision not to place the player on any team.
+- Coaches and administrators working a tryout can finalize and revise player
+  outcomes directly; a separate administrator approval step is not required.
+- A placement must respect the one-current-team-per-season rule. The effect of
+  changing a decision in one tryout on an existing placement from another
+  tryout in the same season remains to be defined.
 
 ### History
 
