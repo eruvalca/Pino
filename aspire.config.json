@@ -1,0 +1,6 @@
+{
+  "appHost": {
+    "language": "csharp",
+    "path": "src/Pino.AppHost/Pino.AppHost.csproj"
+  }
+}

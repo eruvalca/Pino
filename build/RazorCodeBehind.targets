@@ -1,0 +1,37 @@
+<Project>
+  <PropertyGroup>
+    <_PinoBuildProject>$(MSBuildThisFileDirectory)Pino.Build/Pino.Build.csproj</_PinoBuildProject>
+    <_PinoBuildAssembly>$(MSBuildThisFileDirectory)Pino.Build/bin/$(Configuration)/net10.0/Pino.Build.dll</_PinoBuildAssembly>
+    <_PinoDotNetHost Condition="'$(DotNetHostPath)' != ''">$(DotNetHostPath)</_PinoDotNetHost>
+    <_PinoDotNetHost Condition="'$(_PinoDotNetHost)' == ''">dotnet</_PinoDotNetHost>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(_PinoBuildProject)"
+                      ReferenceOutputAssembly="false"
+                      Private="false"
+                      PrivateAssets="all"
+                      GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained;PublishAot;PublishTrimmed" />
+  </ItemGroup>
+
+  <!-- Always recheck, including incremental builds and deleted companion files. -->
+  <Target Name="ValidateRazorCodeBehind"
+          BeforeTargets="CoreCompile"
+          DependsOnTargets="ResolveProjectReferences;ResolveRazorComponentInputs"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_PinoComponentManifest>$(IntermediateOutputPath)pino-razor-components.txt</_PinoComponentManifest>
+      <_PinoCompileManifest>$(IntermediateOutputPath)pino-compile-files.txt</_PinoCompileManifest>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(_PinoComponentManifest)" Lines="@(RazorComponent->'%(FullPath)')"
+                      Overwrite="true" WriteOnlyWhenDifferent="true" Encoding="UTF-8" />
+    <WriteLinesToFile File="$(_PinoCompileManifest)" Lines="@(Compile->'%(FullPath)')"
+                      Overwrite="true" WriteOnlyWhenDifferent="true" Encoding="UTF-8" />
+    <ItemGroup>
+      <FileWrites Include="$(_PinoComponentManifest);$(_PinoCompileManifest)" />
+    </ItemGroup>
+    <!-- A separate process avoids locking the validator's assemblies in reusable MSBuild nodes. -->
+    <Exec Command="&quot;$(_PinoDotNetHost)&quot; &quot;$(_PinoBuildAssembly)&quot; &quot;$(MSBuildProjectDirectory)&quot; &quot;$(RootNamespace)&quot; &quot;$(DefineConstants)&quot; &quot;$(_PinoComponentManifest)&quot; &quot;$(_PinoCompileManifest)&quot;"
+          Condition="'@(RazorComponent)' != ''" />
+  </Target>
+</Project>

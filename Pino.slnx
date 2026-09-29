@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/build/">
+    <Project Path="build/Pino.Build/Pino.Build.csproj" />
+  </Folder>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="src/Pino.ServiceDefaults/Pino.ServiceDefaults.csproj" />
+  <Folder Name="/tests/">
+    <Project Path="tests/Pino.ComponentTests/Pino.ComponentTests.csproj" />
+    <Project Path="tests/Pino.UnitTests/Pino.UnitTests.csproj" />
+  </Folder>
+  <Project Path="src/Pino.AppHost/Pino.AppHost.csproj" />
+  <Project Path="src/Pino.Client/Pino.Client.csproj" />
+  <Project Path="src/Pino.SharedKernel/Pino.SharedKernel.csproj" />
+  <Project Path="src/Pino.UI/Pino.UI.csproj" />
+  <Project Path="src/Pino/Pino.csproj" />
+</Solution>

@@ -1,0 +1,4 @@
+{
+  "dotnet.defaultSolution": "Pino.slnx",
+  "aspire.dashboardBrowser": "openExternalBrowser"
+}
