@@ -14,6 +14,13 @@ handlers alongside Impeccable's existing entries. Both run
 using PowerShell 7 and Git on `PATH`, resolving the script from the Git root so
 sessions started in subdirectories work.
 
+The Windows overrides explicitly invoke PowerShell 7 with command text that is
+safe under both PowerShell and `cmd.exe`. Avoid `$variables` or `$()` inside the
+outer double-quoted `-Command` argument: a PowerShell caller expands them before
+the child process starts. Batch-only syntax such as `if exist` also fails under
+a PowerShell caller. Resolve the Git root inside the child using
+`(git rev-parse --show-toplevel)` and `Join-Path`.
+
 - `UserPromptSubmit` supplies a short review instruction before work starts and
   records a workspace baseline for the session/turn.
 - `Stop` compares that baseline with the current workspace. If it changed, the
@@ -53,10 +60,26 @@ configuration does not grant trust. No Git-hook installation is needed. See the
 event protocol and trust controls. These are command handlers because Codex
 currently skips handlers declared as `type: "prompt"` or `type: "agent"`.
 
-Keep Impeccable's handlers intact. Review `.codex/hooks.json` after running its
-installer to retain the project-owned documentation handlers. To disable this
-feature, disable only the handlers labelled **Preparing documentation review**
+Keep Impeccable's events, matcher, and detector invocation intact. Its Windows
+command overrides have a project compatibility adjustment using the same
+PowerShell launch pattern and Git-root resolution; the installed skill and
+launcher remain upstream-owned. Review `.codex/hooks.json` after running its
+installer to retain that adjustment and the project-owned documentation handlers.
+To disable this feature, disable only the handlers labelled **Preparing documentation review**
 and **Reviewing documentation impact** in Codex's hook controls.
+
+Before relying on Impeccable hooks on a new machine, initialize its pinned engine
+once from a terminal with network access and permission to write the user cache:
+
+```powershell
+.\.agents\skills\impeccable\scripts\impeccable.cmd engine-probe
+```
+
+The launcher reads the engine version from its installed `scripts/VERSION`,
+verifies the downloaded checksum, and caches it under the user's `.impeccable`
+directory. A successful probe prints `impeccable-engine` and its version. Hook
+execution should not be the first attempt to download the engine, especially
+with the short per-edit timeout. Keep the cache outside source control.
 
 After changing the script or manifest, run from the repository root:
 
@@ -66,5 +89,9 @@ pwsh ./scripts/Test-DocumentationReviewHook.ps1
 
 The check exercises JSON events in isolated Git fixtures under ignored
 `artifacts/`, including dirty baselines, edits, staging, commits, loop prevention,
-and failure handling. It does not launch a model or establish that a particular
-desktop session has loaded/trusted the hooks. Verify that separately in Codex.
+and failure handling. On Windows it also runs the actual manifest commands through
+PowerShell 7, Windows PowerShell, and `cmd.exe` from a subdirectory in a path with
+spaces. A fixture stub checks both Impeccable events, stdin and argument forwarding,
+engine failure, and an absent optional skill without downloading the engine.
+It does not launch a model or establish that a particular desktop session has
+loaded/trusted the hooks. Verify that separately in Codex.

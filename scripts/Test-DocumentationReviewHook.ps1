@@ -5,7 +5,7 @@ param()
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path $PSScriptRoot
 $hookScript = Join-Path $PSScriptRoot 'Invoke-DocumentationReviewHook.ps1'
-$fixtureRoot = Join-Path $repoRoot ('artifacts/documentation-hook-tests/' + [guid]::NewGuid().ToString('N'))
+$fixtureRoot = Join-Path $repoRoot ('artifacts/documentation-hook-tests/' + [guid]::NewGuid().ToString('N') + '/workspace with spaces')
 New-Item -ItemType Directory -Path $fixtureRoot -Force | Out-Null
 $passed = 0
 
@@ -46,6 +46,17 @@ function Assert-Result([string] $Name, [bool] $Condition) {
     }
     $script:passed++
     Write-Host "PASS: $Name"
+}
+
+function Invoke-WindowsManifestHook($Handler, [hashtable] $Payload, [string] $Shell) {
+    $json = $Payload | ConvertTo-Json -Compress
+    $output = if ($Shell -eq 'cmd') {
+        $json | & $env:ComSpec /d /s /c $Handler.commandWindows
+    }
+    else {
+        $json | & $Shell -NoProfile -NonInteractive -Command $Handler.commandWindows
+    }
+    return @{ ExitCode = $LASTEXITCODE; Output = $output -join "`n" }
 }
 
 # All mutations and commits below belong to this isolated, ignored test repo.
@@ -130,7 +141,8 @@ $result = Invoke-Hook 'UserPromptSubmit' 'no-repo' @{ cwd = (Join-Path $fixtureR
 Assert-Result 'Missing repository warns without dropping the early reminder' (
     $result.systemMessage -and $result.hookSpecificOutput.additionalContext)
 
-# Execute the actual Windows launch command from a subdirectory, preserving stdin.
+# Exercise manifest commands through both Windows shell families. A cmd-only
+# check misses PowerShell expansion of $variables inside nested quoted commands.
 $manifest = Get-Content -LiteralPath (Join-Path $repoRoot '.codex/hooks.json') -Raw | ConvertFrom-Json
 $startHandler = $manifest.hooks.UserPromptSubmit[0].hooks[0]
 $stopHandler = $manifest.hooks.Stop[0].hooks[0]
@@ -143,18 +155,56 @@ if ($IsWindows) {
     $scriptDirectory = Join-Path $fixtureRoot 'scripts'
     New-Item -ItemType Directory -Path $scriptDirectory -Force | Out-Null
     Copy-Item -LiteralPath $hookScript -Destination $scriptDirectory
-    $payload = @{
-        hook_event_name = 'UserPromptSubmit'
-        session_id = 'launcher'
-        turn_id = 'subdirectory'
-        cwd = $scriptDirectory
-    } | ConvertTo-Json -Compress
     Push-Location $scriptDirectory
     try {
-        $output = $payload | & $env:ComSpec /d /s /c $startHandler.commandWindows
-        $result = ($output -join "`n") | ConvertFrom-Json -AsHashtable
-        Assert-Result 'Windows manifest launcher resolves from a subdirectory and reads stdin' (
-            $LASTEXITCODE -eq 0 -and $result.hookSpecificOutput.additionalContext -and -not $result.systemMessage)
+        foreach ($shell in @('pwsh', 'powershell', 'cmd')) {
+            $payload = @{
+                hook_event_name = 'UserPromptSubmit'
+                session_id = 'launcher'
+                turn_id = $shell
+                cwd = $scriptDirectory
+            }
+            $execution = Invoke-WindowsManifestHook $startHandler $payload $shell
+            $result = $execution.Output | ConvertFrom-Json -AsHashtable
+            Assert-Result "$shell prompt launcher resolves paths with spaces and preserves stdin" (
+                $execution.ExitCode -eq 0 -and $result.hookSpecificOutput.additionalContext -and -not $result.systemMessage)
+
+            $payload.hook_event_name = 'Stop'
+            $execution = Invoke-WindowsManifestHook $stopHandler $payload $shell
+            Assert-Result "$shell Stop launcher stays quiet for an unchanged workspace" (
+                $execution.ExitCode -eq 0 -and ($execution.Output | ConvertFrom-Json -AsHashtable).Count -eq 0)
+            Set-FixtureFile "launcher-$shell.md" 'A change after the manifest prompt hook.'
+            $execution = Invoke-WindowsManifestHook $stopHandler $payload $shell
+            Assert-Result "$shell Stop launcher returns a review decision after an edit" (
+                $execution.ExitCode -eq 0 -and ($execution.Output | ConvertFrom-Json -AsHashtable).decision -eq 'block')
+
+            # A local stub tests dispatch, stdin, and failure reporting without
+            # downloading an engine or modifying installed third-party files.
+            $launcherPath = '.agents/skills/impeccable/scripts/impeccable.cmd'
+            $stubScript = @'
+if ($args[0] -ne 'hook') { exit 9 }
+$event = [Console]::In.ReadToEnd() | ConvertFrom-Json
+@{ event = $event.hook_event_name; session = $event.session_id } | ConvertTo-Json -Compress
+'@
+            Set-FixtureFile 'scripts/ImpeccableFixture.ps1' $stubScript
+            # Resolve the stub script from its launcher, even from a subdirectory.
+            Set-FixtureFile $launcherPath "@echo off`r`npwsh -NoProfile -NonInteractive -File `"%~dp0../../../../scripts/ImpeccableFixture.ps1`" %*`r`nexit /b %errorlevel%`r`n"
+            foreach ($eventName in @('PostToolUse', 'Stop')) {
+                $handler = if ($eventName -eq 'Stop') { $manifest.hooks.Stop[1].hooks[0] } else { $manifest.hooks.PostToolUse[0].hooks[0] }
+                $payload.hook_event_name = $eventName
+                $execution = Invoke-WindowsManifestHook $handler $payload $shell
+                $result = $execution.Output | ConvertFrom-Json -AsHashtable
+                Assert-Result "$shell Impeccable $eventName launcher preserves arguments and stdin" (
+                    $execution.ExitCode -eq 0 -and $result.event -eq $eventName -and $result.session -eq 'launcher')
+            }
+            Set-FixtureFile $launcherPath "@echo off`r`nexit /b 7`r`n"
+            $execution = Invoke-WindowsManifestHook $handler $payload $shell
+            Assert-Result "$shell Impeccable launcher reports engine failure" ($execution.ExitCode -ne 0)
+            Remove-Item -LiteralPath (Join-Path $fixtureRoot $launcherPath)
+            $execution = Invoke-WindowsManifestHook $handler $payload $shell
+            Assert-Result "$shell Impeccable launcher tolerates an absent optional skill" (
+                $execution.ExitCode -eq 0 -and -not $execution.Output)
+        }
     }
     finally {
         Pop-Location
