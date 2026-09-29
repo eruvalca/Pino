@@ -1,0 +1,56 @@
+@page "/"
+@page "/tryouts/spring-2027"
+@layout TryoutLayout
+@rendermode InteractiveAuto
+
+<PageTitle>Spring 2027 tryout · Pino</PageTitle>
+
+<CascadingValue Value="_session">
+    <div class="tryout-page">
+        <header class="tryout-heading">
+            <div><h1>Spring 2027 tryout</h1><p>Shared observations. Thoughtful placements.</p></div>
+            <div class="tryout-date"><strong>Spring 2027 season</strong><span>Soccer · April 17</span></div>
+        </header>
+        <div class="progress-strip" aria-live="polite">
+            <span><strong>@_session.Players.Count</strong> players</span>
+            <span><strong>@(_session.Players.Count - _session.Remaining)</strong> decisions recorded</span>
+            <span class="remaining">@(_session.Players.Count > 0 && _session.Remaining == 0 ? "Tryout complete" : $"{_session.Remaining} awaiting decision")</span>
+        </div>
+        <div class="workspace-navigation" aria-label="Tryout views">
+            <button type="button" class="view-button" aria-pressed="@(!_showTeams ? "true" : "false")" disabled="@_session.Busy" @onclick="ShowEvaluation">Evaluation</button>
+            <button type="button" class="view-button" aria-pressed="@(_showTeams ? "true" : "false")" disabled="@_session.Busy" @onclick="ShowTeams">Team placements</button>
+            <span class="session-hint">Fictional data · Changes last until you leave or reload</span>
+        </div>
+        @if (_session.Condition is SampleCondition.Disconnected or SampleCondition.ReadOnly)
+        {
+            <div class="notice" data-kind="warning" role="status">
+                @(_session.Condition == SampleCondition.Disconnected ? "Sample connection lost. Keep this page open to retain drafts; choose Connected in Sample controls to retry." : "Sample view-only access. You can review players and notes, but cannot save changes. Ask a club administrator for access.")
+            </div>
+        }
+        @if (_loading)
+        {
+            <div class="loading-state" role="status"><h2>Loading the sample roster…</h2><p>Preparing players and shared observations.</p><div class="loading-line"></div><div class="loading-line"></div><div class="loading-line"></div></div>
+        }
+        else if (_session.Players.Count == 0)
+        {
+            <div class="empty-workspace"><h2>No players in this tryout yet</h2><p>Once players join the tryout, their shared notes and decisions will appear here.</p><button class="primary-action" type="button" @onclick="RestoreRoster">Load sample roster</button></div>
+        }
+        else if (_showTeams)
+        {
+            <TeamPlacements OnOpenPlayer="OpenPlayerAsync" />
+        }
+        else
+        {
+            <div class="evaluation-workspace" data-mobile-view="@(_showRoster ? "roster" : "notebook")">
+                <div class="roster-region"><RosterPanel FocusRequest="_rosterFocusRequest" OnSelected="OpenPlayerAsync" /></div>
+                <div class="notebook-region">
+                    @if (_session.Selected is { } player)
+                    {
+                        <PlayerNotebook @key="player.Id" FocusRequest="_playerFocusRequest" OnBack="ShowRosterAsync" OnChanged="Refresh" />
+                    }
+                </div>
+            </div>
+        }
+        <SampleControls OnReload="ReloadAsync" OnChanged="Refresh" />
+    </div>
+</CascadingValue>

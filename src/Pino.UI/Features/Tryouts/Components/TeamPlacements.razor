@@ -1,0 +1,19 @@
+<section class="team-placements" aria-labelledby="teams-heading">
+    <header><h2 id="teams-heading">Team placements</h2><p>Current placements for Spring 2027. Open a player to review notes or revise a decision.</p></header>
+    @foreach (var team in Session.Teams)
+    {
+        var players = Session.Players.Where(player => player.Decision.AssignedTeam?.Id == team.Id).ToList();
+        <section class="team-section" aria-labelledby="team-@team.Id">
+            <div class="team-heading"><h3 id="team-@team.Id">@team.Name</h3><span>Graduation @team.GraduationYear or later</span><strong>@players.Count @(players.Count == 1 ? "player" : "players")</strong></div>
+            @if (players.Count == 0)
+            {
+                <p class="empty-team">No placements yet. Eligible players appear here when a decision is saved.</p>
+            }
+            else
+            {
+                <ul>@foreach (var player in players) { <li @key="player.Id"><button type="button" disabled="@Session.Busy" @onclick="() => OnOpenPlayer.InvokeAsync(player.Id)"><span class="bib">@player.Bib.ToString("00", System.Globalization.CultureInfo.InvariantCulture)</span><strong>@player.Name</strong><span>@player.GraduationYear · @player.Position</span><span class="open-player">Open notebook <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M5 19 19 5M5 5h14v14" /></svg></span></button></li> }</ul>
+            }
+        </section>
+    }
+    <footer><strong>@Session.Remaining awaiting decision</strong><span>@Session.Players.Count(player => player.Decision.Kind == "withdrawn") withdrawn · @Session.Players.Count(player => player.Decision.Kind == "not-selected") not selected</span><p>Withdrawn and Not selected are completed decisions and do not appear on a team roster.</p></footer>
+</section>

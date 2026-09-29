@@ -1,0 +1,30 @@
+<section class="decision-section" aria-label="Player decision">
+    @if (!_open)
+    {
+        <button @ref="_trigger" type="button" class="secondary-action decision-toggle" aria-expanded="false" aria-describedby="decision-feedback" disabled="@Session.Busy" @onclick="Open">@(Player.Decision.IsComplete ? "Revise decision" : "Record decision")<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m6 9 6 6 6-6" /></svg></button>
+        <p class="decision-hint">Placed · Withdrawn · Not selected<br />Decisions can be revised.</p>
+    }
+    else
+    {
+        <h3 id="decision-heading" @ref="_editorHeading" tabindex="-1">@(Player.Decision.IsComplete ? "Revise decision" : "Record decision")</h3>
+        <p class="decision-explanation">Every player needs a decision. A team placement is one possible outcome.</p>
+        <form @onsubmit="SaveAsync" @onsubmit:preventDefault>
+            <fieldset disabled="@(Session.Busy || Session.Condition == SampleCondition.ReadOnly)" aria-describedby="decision-feedback" aria-invalid="@(_invalid ? "true" : "false")">
+                <legend>Decision for @Player.Name</legend>
+                <div class="decision-options">
+                    <label class="choice" for="outcome-placed"><input id="outcome-placed" name="decision" type="radio" value="placed" checked="@(_kind == "placed")" @onchange="Choose" /><span>Place on a team</span></label>
+                    <label class="choice" for="outcome-withdrawn"><input id="outcome-withdrawn" name="decision" type="radio" value="withdrawn" checked="@(_kind == "withdrawn")" @onchange="Choose" /><span>Withdrawn</span></label>
+                    <label class="choice" for="outcome-not-selected"><input id="outcome-not-selected" name="decision" type="radio" value="not-selected" checked="@(_kind == "not-selected")" @onchange="Choose" /><span>Not selected</span></label>
+                </div>
+                @if (_kind == "placed")
+                {
+                    <div class="form-field team-choice"><label for="placement-team">Team</label><select id="placement-team" @bind="_teamId" @bind:after="ClearValidation" aria-describedby="eligibility-help decision-feedback" aria-invalid="@(_invalid ? "true" : "false")"><option value="">Choose an eligible team</option>@foreach (var team in Session.Teams) { <option value="@team.Id" disabled="@(Player.GraduationYear < team.GraduationYear)">@team.Name · @team.GraduationYear or later@(Player.GraduationYear < team.GraduationYear ? " (not eligible)" : "")</option> }</select><p id="eligibility-help">Graduation year @Player.GraduationYear. Players must graduate in the team's year or later.</p></div>
+                    @if (!Session.Teams.Any(team => Player.GraduationYear >= team.GraduationYear)) { <div class="notice" data-kind="warning">No eligible teams for @Player.GraduationYear. You can record Withdrawn or Not selected, or leave this player awaiting a decision.</div> }
+                }
+                @if (Player.Decision.AssignedTeam is { } currentTeam) { <p class="replacement-help">Current placement: <strong>@currentTeam.Name</strong>. Saving replaces this season's current decision; earlier entries stay in history.</p> }
+                <div class="decision-actions"><button type="submit" class="primary-action" disabled="@(_conflict || _saving)">@(_saving ? "Saving decision…" : "Save decision")</button><button type="button" class="text-action" @onclick="Close">Cancel</button></div>
+            </fieldset>
+        </form>
+    }
+    <div id="decision-feedback" aria-live="polite">@if (_message is not null) { <div class="notice" data-kind="@_messageKind">@_message @if (_conflict) { <button class="secondary-action" type="button" @onclick="ReviewLatest">Load latest decision</button> }</div> }</div>
+</section>

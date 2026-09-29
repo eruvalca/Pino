@@ -1,0 +1,31 @@
+<article class="player-notebook" aria-labelledby="player-heading">
+    <div class="notebook-toolbar">
+        <button type="button" class="text-action roster-back" disabled="@Session.Busy" @onclick="OnBack"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m10 5-7 7 7 7M3 12h18" /></svg> Roster</button>
+        <span class="player-bib">Bib @Player.Bib.ToString("00", System.Globalization.CultureInfo.InvariantCulture)</span>
+    </div>
+    <header class="player-heading">
+        <h2 id="player-heading" tabindex="-1" @ref="_heading">@Player.Name</h2>
+        <p>Graduation year <strong>@Player.GraduationYear</strong><span aria-hidden="true"> · </span>@Player.Position</p>
+        <span class="decision-badge" data-kind="@Player.Decision.Kind">@Player.Decision.Label</span>
+        @if (Player.Decision.AssignedTeam is { } team) { <span class="assigned-team">@team.Name · Spring 2027</span> }
+    </header>
+    <NoteComposer OnChanged="OnChanged" />
+    <ObservationList />
+    <DecisionEditor OnChanged="OnChanged" />
+    <details class="placement-history">
+        <summary>Decision &amp; placement history <span>@Player.History.Count</span></summary>
+        @if (Player.History.Count == 0)
+        {
+            <p class="muted">No earlier decisions recorded for this sample player.</p>
+        }
+        else
+        {
+            <ol>
+                @foreach (var record in Player.History)
+                {
+                    <li><strong>@record.Outcome</strong><span>@record.Season · @record.Tryout</span><span>@record.Author · @record.RecordedAt.ToString("MMM d, yyyy · h:mm tt", System.Globalization.CultureInfo.InvariantCulture)</span></li>
+                }
+            </ol>
+        }
+    </details>
+</article>

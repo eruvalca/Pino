@@ -1,0 +1,19 @@
+.decision-section { margin-top: 1.5rem; }
+.decision-toggle { display: grid; grid-template-columns: 1fr auto; align-items: center; width: 100%; }
+.decision-hint { text-align: center; font-size: 0.75rem; line-height: 1.7; color: var(--muted); margin: 0.75rem 0 0; }
+h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+.decision-explanation, .replacement-help { font-size: 0.8125rem; color: var(--muted); }
+fieldset { min-width: 0; padding: 0; border: 0; margin: 0; }
+legend { font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.75rem; }
+.decision-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
+.choice { display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center; padding: 0.75rem; border: 1px solid var(--line-strong); border-radius: var(--radius); font-size: 0.8125rem; cursor: pointer; }
+.choice:has(:checked) { background: var(--blue-soft); border-color: var(--blue); color: var(--blue); }
+input { margin: 0; accent-color: var(--blue); }
+.team-choice { margin-top: 1rem; }
+.team-choice label { font-size: 0.8125rem; font-weight: 600; }
+.team-choice p { font-size: 0.75rem; color: var(--muted); margin: 0.25rem 0; }
+.replacement-help { margin-top: 1rem; }
+.decision-actions { display: grid; grid-template-columns: auto auto; justify-content: start; align-items: center; gap: 1rem; margin-top: 1rem; }
+.notice { font-size: 0.8125rem; }
+.notice button { display: block; margin-top: 0.75rem; }
+@media (max-width: 60rem) { .decision-options { grid-template-columns: 1fr; } }

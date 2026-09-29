@@ -49,9 +49,12 @@ typical roster sizes have not been established.
 
 ## Capabilities and Constraints
 
-These are confirmed product requirements. The repository currently provides a
-Blazor starter and account infrastructure; the club and tryout workflows below
-are planned capabilities, not claims of implemented behavior.
+These are confirmed product requirements. The repository provides account
+infrastructure and an interactive, fictional tryout evaluation and team placement
+workspace. The workspace uses page-session sample data; it does not persist club
+records or implement club authorization. The broader capabilities below remain
+requirements, not claims of completed server integration. See the
+[tryout feature documentation](docs/features/tryout-evaluation.md) for its scope.
 
 ### Clubs and membership
 
@@ -136,10 +139,12 @@ The initial product brief establishes the users, tenant model, seasonal tryout
 workflow, graduation year eligibility rule, membership approval, image and import
 requirements, and placement history.
 
-The current sample pages and starter styling are technical scaffolding, not an
-approved product experience. No real player roster, sample CSV, evaluation
-rubric, club imagery, or external product evidence was supplied during this
-initialization. Future sample content must be clearly identified as such.
+The tryout workspace follows the approved Sideline notebook direction recorded
+in the merged feature brief and implemented visual system in `DESIGN.md`.
+Other starter pages remain technical scaffolding. No real player roster,
+sample CSV, club imagery, or external product evidence was supplied. The
+interactive workspace uses clearly identified fictional players and observations;
+its representative roster sizes are demonstration cases, not product limits.
 
 ## Product Principles
 

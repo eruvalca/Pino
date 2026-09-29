@@ -1,0 +1,10 @@
+<details class="sample-controls">
+    <summary>Sample controls</summary>
+    <p>This is a fictional workspace, with Coach Sam as the sample coach. Notes and decisions stay in this page session only. No real players or club records are changed.</p>
+    <div class="sample-fields">
+        <div class="form-field"><label for="sample-condition">Connection &amp; access simulation</label><select id="sample-condition" @bind="Session.Condition" @bind:after="NotifyAsync" disabled="@Session.Busy"><option value="Available">Connected · can edit</option><option value="FailNextSave">Fail the next save</option><option value="Disconnected">Connection lost</option><option value="ReadOnly">View-only access</option><option value="ConcurrentChange">Another coach changes the next decision</option></select></div>
+        <div class="form-field"><label for="sample-roster">Sample roster</label><select id="sample-roster" @bind="_roster" disabled="@(Session.Busy || _loading)"><option value="standard">16 players</option><option value="single">One player</option><option value="large">96 players</option><option value="empty">Empty roster</option></select></div>
+        <button type="button" class="secondary-action" disabled="@(Session.Busy || _loading)" @onclick="LoadAsync">@(_loading ? "Loading…" : "Reset sample roster")</button>
+    </div>
+    <p class="reset-help">Resetting the roster clears all sample changes and drafts. Failure simulations do not represent live server responses.</p>
+</details>

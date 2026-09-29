@@ -1,0 +1,7 @@
+.sample-controls { margin-top: 1rem; padding: 0.5rem 0; color: var(--muted); font-size: 0.75rem; }
+summary { width: fit-content; padding: 0.75rem 0; color: var(--blue); font-weight: 600; }
+p { max-width: 85ch; margin-top: 0.5rem; }
+.sample-fields { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) auto; gap: 1rem; align-items: end; max-width: 60rem; }
+select, button { font-size: 0.8125rem; }
+.reset-help { margin-top: 1rem; }
+@media (max-width: 45rem) { .sample-fields { grid-template-columns: 1fr; } }
