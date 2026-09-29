@@ -112,6 +112,25 @@ Read the relevant references as needed:
 
 ## Blazor and Razor contracts
 
+- Prefer C# and Blazor for interactivity, including event handlers, binding, and
+  component state. Use native HTML/CSS behavior when sufficient. Add JavaScript
+  only when the capability is unavailable through C#/Blazor, a browser API or
+  lifecycle requires it, or a C# implementation would materially worsen
+  complexity, maintainability, reliability, or performance. Keep JavaScript
+  focused on that need; do not change required render modes or authentication
+  boundaries merely to avoid it.
+- Strongly prefer component-owned JavaScript in an adjacent `Component.razor.js`
+  ES module. Load it when needed using a mechanism appropriate to the component's
+  render mode and lifecycle. Prefer module exports over inline JavaScript or
+  `window` globals. Colocation does not create per-component-instance isolation:
+  scope DOM operations and mutable state to the owning instance, and clean up
+  listeners and interop references when their lifetime ends.
+- Create shared JavaScript files/modules only for concrete reuse by multiple
+  consumers; keep feature-specific shared code within its feature. Use global
+  scripts, global APIs, or application-wide loading only when an integration or
+  application lifecycle requires that scope. Record the consumers or reason near
+  the implementation. Loading a component's module from the app shell does not
+  require moving its implementation into a global file.
 - Account pages use static server-side rendering (SSR). Preserve
   `[ExcludeFromInteractiveRouting]` in their page imports, authorization on
   account-management pages, and HTTP context/cookie behavior. Keep form names,

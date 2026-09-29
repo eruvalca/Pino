@@ -179,6 +179,24 @@ Motion respects `prefers-reduced-motion`. Check narrow screens, zoom, keyboard
 navigation, contrast, and text wrapping, and preserve Blazor/Identity form,
 passkey, and reconnect hooks. See [AGENTS.md](AGENTS.md) for authoring conventions.
 
+## Interactivity and JavaScript
+
+Prefer C# and Blazor for application interactivity, using native HTML/CSS behavior
+where sufficient. Use JavaScript only for capabilities or browser lifecycles that
+require it, or when using C# would create greater complexity, maintenance,
+reliability, or performance problems. Existing passkey browser APIs on static SSR
+account pages and reconnection controls that work without a live server circuit
+are examples of justified JavaScript.
+
+Strongly prefer component-owned, colocated `Component.razor.js` ES modules.
+Introduce shared modules for actual reuse and global scripts/APIs or app-wide
+loading only for a concrete application-level requirement. Component ownership
+still applies when a module must be loaded from the app shell, as with the
+passkey custom element. See the [Blazor and Razor contracts](AGENTS.md#blazor-and-razor-contracts)
+for scope and lifecycle conventions and Microsoft's
+[JavaScript location guidance](https://learn.microsoft.com/en-us/aspnet/core/blazor/javascript-interoperability/location-of-javascript?view=aspnetcore-10.0)
+for Blazor module loading.
+
 ## Resource graph and database
 
 ```text
