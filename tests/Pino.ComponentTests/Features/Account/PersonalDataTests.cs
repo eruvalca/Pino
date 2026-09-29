@@ -27,7 +27,8 @@ public sealed class PersonalDataTests
         await account.Users.Received(1).GetUserAsync(account.Http.User);
         component.Find("form").GetAttribute("action").ShouldBe("Account/Manage/DownloadPersonalData");
         component.Find("form").GetAttribute("method").ShouldBe("post");
-        component.Find("a").GetAttribute("href").ShouldBe("Account/Manage/DeletePersonalData");
+        component.Find("a[href='Account/Manage/DeletePersonalData']").TextContent.ShouldBe("Delete");
+        component.Find("a[href='/api/clubs/personal-data']").TextContent.ShouldBe("Download club profile, photo, and request history");
         navigation.Uri.ShouldBe("http://localhost/Account/Manage/PersonalData");
         await account.Users.DidNotReceiveWithAnyArgs().DeleteAsync(default!);
     }

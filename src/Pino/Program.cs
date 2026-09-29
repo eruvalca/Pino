@@ -7,10 +7,23 @@ using Pino.Data;
 using Pino.Features.Account.Endpoints;
 using Pino.Features.Account.Services;
 using Pino.ServiceDefaults;
+using Cropper.Blazor.Extensions;
+using Microsoft.AspNetCore.Http.Features;
+using Pino.Features.Clubs.Endpoints;
+using Pino.Features.Clubs.Services;
+using Pino.SharedKernel.Clubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
+builder.AddAzureBlobServiceClient("profileblobs");
+builder.Services.AddCropper();
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<IProfilePhotoStore, ProfilePhotoStore>();
+builder.Services.AddHostedService<PhotoCleanupService>();
+builder.Services.AddScoped<ClubService>();
+builder.Services.AddScoped<IClubGateway, ServerClubGateway>();
+builder.Services.AddAntiforgery(options => options.HeaderName = "X-Pino-CSRF");
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -33,6 +46,29 @@ builder.Services.AddAuthentication(options =>
         options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
     })
     .AddIdentityCookies();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    // File endpoints also need API status codes; never turn a denied photo into login HTML.
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api/clubs", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        }
+        else { context.Response.Redirect(context.RedirectUri); }
+        return Task.CompletedTask;
+    };
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api/clubs", StringComparison.OrdinalIgnoreCase))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        }
+        else { context.Response.Redirect(context.RedirectUri); }
+        return Task.CompletedTask;
+    };
+});
 
 var connectionString = builder.Configuration.GetConnectionString("pinodb")
     ?? throw new InvalidOperationException("Connection string 'pinodb' not found. Start the application through Aspire or configure ConnectionStrings:pinodb.");
@@ -61,6 +97,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddScoped<IUserStore<ApplicationUser>, ClubUserStore>();
 
 var app = builder.Build();
 
@@ -78,6 +115,15 @@ else
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/api/clubs", StringComparison.OrdinalIgnoreCase) &&
+        context.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } limits)
+    {
+        limits.MaxRequestBodySize = 2 * 1024 * 1024;
+    }
+    await next(context);
+});
 
 app.UseAntiforgery();
 
@@ -89,6 +135,7 @@ app.MapRazorComponents<App>()
 
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
+ClubEndpoints.Map(app);
 app.MapDefaultEndpoints();
 
 await app.RunAsync();

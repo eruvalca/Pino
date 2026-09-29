@@ -12,6 +12,7 @@ See the [early-development migration workflow](#ef-migrations).
 
 - [Product context](PRODUCT.md): confirmed users, workflows, requirements, and open decisions.
 - [Tryout evaluation](docs/features/tryout-evaluation.md): interactive sample workspace, selected design direction, and remaining integration work.
+- [Club onboarding and access](docs/features/club-onboarding-access.md): persisted profiles, private photos, requests, roles, and membership management.
 - [Design system](DESIGN.md): the implemented Sideline notebook visual system.
 - [Agent guidance](AGENTS.md): project boundaries, design process, and authoring rules.
 - [Build conventions](build/README.md): analyzers, formatting, and Razor policy.
@@ -21,8 +22,8 @@ See the [early-development migration workflow](#ef-migrations).
 
 ## Tryout sample workspace
 
-After starting through Aspire, open the web endpoint's root page or
-`/tryouts/spring-2027`. The fictional Northside FC workspace supports roster
+After starting through Aspire, open `/tryouts/spring-2027`. The fictional
+Northside FC workspace supports roster
 filters, shared notes, decision revisions, graduation-year eligibility, current
 team rosters, and decision history. It runs with `InteractiveAuto` and requires
 no account because it exposes only synthetic data.
@@ -33,6 +34,28 @@ and 96-player rosters plus simulated connection, permission, save-failure, and
 concurrent-decision states. Resetting a roster clears the sample session.
 These simulations do not test real networking, authorization, or persistence.
 Account pages retain their existing static SSR and Identity behavior.
+
+## Club onboarding and access
+
+The root page requires sign-in. Confirm a development account, complete first
+and last names and a cropped profile photo, then create a club or request to
+join one. `/club/access` shows the current profile and membership/request state.
+Existing members visiting `/` continue to `/clubs/{clubId}`; administrators use
+`/clubs/{clubId}/people` for requests and members. Real club workspaces contain
+no sample players or seasons.
+
+Aspire runs Azurite as `profilestorage` with a managed data volume and supplies
+the `profileblobs` connection to the server and migration resource. Profile
+images live in the private `profile-photos` blob container, served through
+authorized, non-cacheable endpoints. The browser accepts JPEG/PNG up to 5 MB;
+the server validates and re-encodes the saved 512 × 512 crop using SkiaSharp.
+Original uploads and metadata are not retained. A database-backed cleanup queue
+retries deletion of replaced/deleted photos every minute and abandoned uploads
+after an hour. Both database and blob storage are needed for photo operations.
+
+Before deployment, configure private Azure storage and server credentials or
+managed identity, persistent volumes/services, and monitoring for cleanup errors.
+The checked-in Azurite configuration is local development infrastructure.
 
 ## Local prerequisites
 
@@ -55,7 +78,7 @@ root to verify the environment. The AppHost is explicitly located by the root
 Use PowerShell 7 for the scripts in this repository. From the solution root,
 run `dotnet build Pino.slnx`, then `aspire run`. The first build/start may
 restore NuGet packages, download Aspire/EF tooling, and pull container images.
-The initial migration creates an empty Identity schema; no accounts or local
+The initial migration creates empty Identity and club tables; no accounts or local
 credentials are included.
 
 This repository is an independent application. Review SDK, package, and skill
@@ -222,6 +245,8 @@ postgres (PostgreSQL 18.3, managed data volume)
   │    └─ pino-migrations (EF database update)
   │         └─ pino (Blazor server + hosted WebAssembly)
   └─ pgadmin (explicit start)
+profilestorage (Azurite, managed data volume)
+  └─ profileblobs → pino and pino-migrations
 ```
 
 After a normal startup, these dashboard states are expected:
@@ -229,6 +254,7 @@ After a normal startup, these dashboard states are expected:
 | Resource | Expected state | Meaning |
 | --- | --- | --- |
 | `postgres`, `pinodb` | Running / Healthy | PostgreSQL and the application database are ready. |
+| `profilestorage`, `profileblobs` | Running / Healthy | Local private profile-image storage is ready. |
 | `pino-migrations` | Finished | The one-shot migration command completed successfully. It is not a long-running service. |
 | `pino` | Running / Healthy | The web application is ready and its database readiness check passes. |
 | `pgadmin` | Not started | Optional database UI; start it when needed. |

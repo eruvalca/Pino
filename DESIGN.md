@@ -1,6 +1,6 @@
 ---
 name: Pino
-description: Sideline notebook visual system for the tryout workspace.
+description: Sideline notebook visual system for club access and tryout work.
 colors:
   navy: "#202c42"
   blue: "#244d9e"
@@ -126,13 +126,15 @@ density supports repeated reading and input on a field-side phone or a review
 desktop. Readable system sans-serif type and restrained controls keep names,
 notes and decisions easy to scan.
 
-This records the implemented tryout workspace, not a global redesign of the
-legacy sample and account layouts. Shared tokens and controls live in
-[app.css](src/Pino/wwwroot/app.css); the dedicated
-[TryoutLayout](src/Pino.UI/Layout/TryoutLayout.razor) and adjacent feature styles
-establish this visual world. Product facts and open decisions remain in
-[PRODUCT.md](PRODUCT.md); page composition, fictional content and session-only
-behavior are defined in the [feature brief](docs/features/tryout-evaluation.md).
+This records the implemented club access, membership and tryout surfaces.
+Legacy sample and account layouts remain outside this visual-system extension.
+Shared tokens and controls live in [app.css](src/Pino/wwwroot/app.css);
+[TryoutLayout](src/Pino.UI/Layout/TryoutLayout.razor),
+[ClubPageShell](src/Pino.UI/Features/Clubs/Components/ClubPageShell.razor) and
+adjacent feature styles express this visual world. Product facts and open
+decisions remain in [PRODUCT.md](PRODUCT.md); surface composition and behavior
+are defined in the [tryout brief](docs/features/tryout-evaluation.md) and
+[club access brief](docs/features/club-onboarding-access.md).
 
 **Key Characteristics:**
 
@@ -173,8 +175,9 @@ state or feedback message; it never carries the meaning alone.
 
 Segoe UI with system-ui and sans-serif fallbacks carries headings, reading text
 and controls. The operational interface has no separate decorative display face.
-The frontmatter captures the default hierarchy; ordinary headings use browser
-bold weight, while row names, authors and status labels use semibold (650).
+The frontmatter captures the tryout hierarchy and shared body and action text;
+ordinary headings use browser bold weight, while row names, authors and status
+labels use semibold (650).
 
 - **Display:** the selected player, the strongest reading anchor.
 - **Headline:** tryout context, slightly smaller than the player name.
@@ -187,6 +190,10 @@ bold weight, while row names, authors and status labels use semibold (650).
 At the phone breakpoint, player names reduce to 1.75rem and the tryout heading
 to 1.5rem. Bib numbers, counts and timestamps use tabular numerals. Keep full
 names and note text able to wrap.
+
+Club page headings are larger reading anchors (2.5–2.75rem), reducing to 2rem
+on narrow screens. Person names sit beside their photos; muted supporting text
+keeps role, location and request time subordinate without hiding them.
 
 ## Layout
 
@@ -204,26 +211,32 @@ player focuses the notebook heading. Save note fills the available width, note
 timestamps wrap beneath authors, and team rows become stacked readable records.
 The roster's internal height cap is removed.
 
+Club access and home use centered white sheets capped at 66rem; People expands
+to 76rem for readable identity and action columns. Narrow layouts reduce sheet
+padding and stack search, result and person actions beneath their associated
+content. These sheets retain normal page scrolling and visible page gutters.
+
 The spacing entries are extracted repeated values, not new CSS variables. Use
 compact gaps within a record and larger gaps between reading and action groups.
 Long content must shrink and wrap without changing reading or focus order.
 
 ## Elevation & Depth
 
-The tryout workspace uses no shadows. White and subtly tinted surfaces,
+Club and tryout working surfaces use no shadows. White and subtly tinted surfaces,
 single-pixel rules and pale-blue selection establish structure. Focus is an
 outline (2px, offset 3px), with an inset offset on roster rows; masthead focus
 uses a lighter blue so it remains visible against navy.
 
-**The Ruled Paper Rule.** Separate repeated observations and player records with
+**The Ruled Paper Rule.** Separate repeated observations and records with
 fine rules and spacing; keep writing surfaces flat.
 
 ## Shapes
 
 Controls use the shared gently rounded `radius`; badges use `radius-small`.
-Workspace frames and roster rows stay square. Author initials are circular
-marks, not photographic identities. Icons are small authored outline SVGs
-(14–18px), paired with text or hidden from assistive technology when decorative.
+Workspace frames and roster rows stay square. Tryout author initials are circular
+marks. Club profile photos use circular display crops beside names; their
+editing preview retains the square crop that is saved. Icons are small authored
+outline SVGs (14–18px), paired with text or hidden from assistive technology when decorative.
 No raster imagery ships in the tryout workspace.
 
 ## Components
@@ -246,10 +259,24 @@ and semantic success, error, warning or information kinds.
 
 ### Navigation
 
-The navy club masthead frames the dedicated workspace. View buttons use muted
-text and a thin bottom rule; the selected view uses blue text and rule. A
-keyboard-visible skip link leads to the content. Phone navigation preserves
-the club identity, sample label and explicit roster return.
+The navy masthead frames each dedicated workspace. The shared club shell shows
+Pino, Your club and Account, with the active club name linking to its home when
+membership is available. Phone navigation retains this identity and lets long
+club names wrap. A keyboard-visible skip link leads to the content.
+
+Tryout view buttons use muted text and a thin bottom rule; the selected view uses
+blue text and rule. Its phone navigation preserves the sample label and explicit
+roster return. People uses text actions with a blue bottom rule on the current
+Requests or Members view.
+
+### Profiles and club records
+
+Completed profiles pair a circular photo and full name with a visible edit action
+and textual completion status. Club search and People lists use fine rules,
+readable supporting details and explicit actions aligned beside each record on
+wide screens, then below it on phones. Confirmations appear inline on a subtly
+tinted, bordered surface. The photo editor keeps labelled movement and zoom
+buttons available alongside dragging.
 
 ### Status labels and roster rows
 

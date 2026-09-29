@@ -79,7 +79,8 @@ with a brief restrained highlight, while the draft clears only on success.
 
 ## Running the sample
 
-Open `/` or `/tryouts/spring-2027` through the Aspire web endpoint. The feature
+Open `/tryouts/spring-2027` through the Aspire web endpoint. The root page now
+leads to persisted club onboarding and access. The demonstration
 uses `InteractiveAuto`, a dedicated tryout layout, and feature-local components
 in `src/Pino.UI/Features/Tryouts`. Its per-page `SampleTryoutSession` is shared
 through a notifying cascade so successful writes update notes, player status,

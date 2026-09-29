@@ -1,0 +1,122 @@
+@page "/"
+@page "/club/access"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+
+<PageTitle>Your club · Pino</PageTitle>
+<ClubPageShell Club="_access?.Membership?.Club">
+<article class="access-sheet" aria-busy="@IsBusy">
+    <h1 @ref="_heading" tabindex="-1">Your club</h1>
+    @if (_message is not null)
+    {
+        <p class="notice" data-kind="@_kind" role="status">@_message</p>
+    }
+    @if (_access is null)
+    {
+        <p>@(_failed ? "We couldn't load your club access." : "Loading your access…")</p>
+        @if (_failed)
+        {
+            <button class="secondary-action" @onclick="RefreshAsync">Try again</button>
+            <a href="/Account/Login?returnUrl=%2Fclub%2Faccess">Sign in again</a>
+        }
+    }
+    else if (!_access.Profile.IsComplete || _editing)
+    {
+        <ProfileEditor Profile="_access.Profile" Save="SaveProfileAsync" Cancel="StopEditing" Busy="IsBusy" />
+    }
+    else
+    {
+        <div class="profile-strip">
+            <img src="@_access.Profile.PhotoUrl" width="80" height="80" alt="" />
+            <div><strong>@_access.Profile.FirstName @_access.Profile.LastName</strong><p>Profile complete</p></div>
+            <button type="button" class="text-action" @onclick="EditProfile" disabled="@IsBusy">Edit profile</button>
+        </div>
+        <section class="access-task" aria-labelledby="task-heading">
+            @if (_access.Membership is { } member)
+            {
+                <h2 id="task-heading">@member.Club.Name</h2>
+                <p class="muted">@member.Club.Sport · @member.Club.City, @UsStates.All[member.Club.State]</p>
+                <p>You have access as @RoleLabel(member.Role).</p>
+                <div class="actions"><a class="primary-action" href="@($"/clubs/{member.Club.Id}")">Open club</a>
+                    @if (member.Role == ClubRole.Administrator)
+                    {
+                        <a class="secondary-action" href="@($"/clubs/{member.Club.Id}/people")">Manage people</a>
+                    }
+                </div>
+                @if (_confirmLeave)
+                {
+                    <div class="access-confirm" role="group" aria-label="Confirm leaving club">
+                        <h3>Leave @member.Club.Name?</h3><p>Your club access will end. Your Pino account and profile will remain.</p>
+                        <p class="muted">The last administrator must promote another member before leaving.</p>
+                        <div class="actions"><button class="primary-action" disabled="@IsBusy" @onclick="() => LeaveAsync(member.Club.Id)">Leave club</button><button class="secondary-action" disabled="@IsBusy" @onclick="CancelLeave">Stay in club</button></div>
+                    </div>
+                }
+                else
+                {
+                    <button class="text-action leave-action" disabled="@IsBusy" @onclick="ConfirmLeave">Leave club</button>
+                }
+            }
+            else if (_access.Request is { Status: JoinRequestStatus.Pending } request)
+            {
+                <h2 id="task-heading">Waiting for approval</h2>
+                <h3>@request.Club.Name</h3>
+                <p class="muted">@request.Club.Sport · @request.Club.City, @UsStates.All[request.Club.State]</p>
+                <p>A club administrator needs to review your request before you can enter the workspace.</p>
+                <p class="muted">Requested @request.CreatedAt.ToLocalTime().ToString("g")</p>
+                <div class="actions"><button class="secondary-action" disabled="@IsBusy" @onclick="RefreshAsync">Check status</button><button class="text-action" disabled="@IsBusy" @onclick="() => CancelRequestAsync(request.Id)">Cancel request</button></div>
+            }
+            else if (_creating)
+            {
+                <h2 id="task-heading">Create a club</h2>
+                <p>You'll become this club's first administrator and manage who can join.</p>
+                <EditForm Model="_club" OnValidSubmit="CreateAsync" FormName="create-club">
+                    <DataAnnotationsValidator />
+                    <fieldset disabled="@IsBusy" class="club-form">
+                        <div class="form-field"><label for="club-name">Club name</label><InputText id="club-name" maxlength="120" @bind-Value="_club.Name" /><ValidationMessage For="() => _club.Name" /></div>
+                        <div class="form-field"><label for="club-sport">Sport</label><InputText id="club-sport" maxlength="60" @bind-Value="_club.Sport" /><ValidationMessage For="() => _club.Sport" /></div>
+                        <div class="location-fields">
+                            <div class="form-field"><label for="club-city">City</label><InputText id="club-city" maxlength="100" @bind-Value="_club.City" /><ValidationMessage For="() => _club.City" /></div>
+                            <div class="form-field"><label for="club-state">State</label><InputSelect id="club-state" @bind-Value="_club.State"><option value="">Select a state</option>@foreach (var state in UsStates.All) { <option value="@state.Key">@state.Value</option> }</InputSelect><ValidationMessage For="() => _club.State" /></div>
+                        </div>
+                        <div class="actions"><button class="primary-action" type="submit">@(IsBusy ? "Creating club…" : "Create club")</button><button class="text-action" type="button" @onclick="ShowSearch">Back to club search</button></div>
+                    </fieldset>
+                </EditForm>
+            }
+            else
+            {
+                <h2 id="task-heading">Find your club</h2>
+                @if (_access.Request is { Status: JoinRequestStatus.Denied } denied)
+                {
+                    <p class="notice" data-kind="information">Your request to @denied.Club.Name was denied. You may reapply or choose another club.</p>
+                }
+                else if (_access.Request is { Status: JoinRequestStatus.Approved })
+                {
+                    <p class="notice" data-kind="information">Your previous club access has ended. You can request to join again or choose another club.</p>
+                }
+                <p class="muted">An administrator will review your request to join as a coach.</p>
+                <form @onsubmit="SearchAsync" @onsubmit:preventDefault class="search-form">
+                    <div class="form-field"><label for="club-search">Club name</label><input id="club-search" disabled="@IsBusy" type="search" minlength="2" maxlength="120" required @bind="_query" placeholder="Enter at least 2 characters" /></div>
+                    <button class="secondary-action" type="submit" disabled="@IsBusy">Search</button>
+                </form>
+                @if (_results is not null)
+                {
+                    @if (_results.Clubs.Count == 0) { <p class="empty-message">No clubs match “@_searched”. Check the name or create a club below.</p> }
+                    <ul class="club-results" aria-label="Club search results">
+                        @foreach (var club in _results.Clubs)
+                        {
+                            <li @key="club.Id"><div><h3>@club.Name</h3><p>@club.Sport · @club.City, @UsStates.All[club.State]</p></div><button class="primary-action" disabled="@IsBusy" @onclick="() => RequestAsync(club.Id)" aria-label="@($"Request to join {club.Name} in {club.City}, {club.State}")">Request to join</button></li>
+                        }
+                    </ul>
+                    @if (_results.Page > 0 || _results.HasMore)
+                    {
+                        <nav class="actions" aria-label="Search pages"><button class="secondary-action" disabled="@(IsBusy || _results.Page == 0)" @onclick="PreviousAsync">Previous</button><span>Page @(_results.Page + 1)</span><button class="secondary-action" disabled="@(IsBusy || !_results.HasMore)" @onclick="NextAsync">Next</button></nav>
+                    }
+                }
+                <div class="create-alternative"><button class="secondary-action" disabled="@IsBusy" @onclick="ShowCreate">Create a club</button><span class="muted">You'll become its administrator.</span></div>
+            }
+        </section>
+    }
+</article>
+<AccessWatch Tick="RefreshQuietlyAsync" />
+</ClubPageShell>

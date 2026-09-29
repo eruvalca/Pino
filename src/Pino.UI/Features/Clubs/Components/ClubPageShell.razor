@@ -1,0 +1,17 @@
+<div class="club-shell">
+    <a class="skip-link" href="#club-content">Skip to content</a>
+    <header class="access-masthead">
+        <div class="masthead-identity">
+            <a class="access-wordmark" href="/">Pino<span aria-hidden="true">.</span></a>
+            @if (Club is not null)
+            {
+                <a class="active-club" href="@($"/clubs/{Club.Id}")">@Club.Name</a>
+            }
+        </div>
+        <nav aria-label="Account navigation">
+            <a href="/club/access">Your club</a>
+            <a href="/Account/Manage">Account</a>
+        </nav>
+    </header>
+    <main id="club-content" tabindex="-1">@ChildContent</main>
+</div>

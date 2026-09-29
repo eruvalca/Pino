@@ -8,6 +8,7 @@
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["app.css"]" />
     <link rel="stylesheet" href="@Assets["Pino.styles.css"]" />
+    <link rel="stylesheet" href="_content/Cropper.Blazor/cropper.min.css" />
     <ImportMap />
     <link rel="icon" type="image/png" href="favicon.png" />
     <HeadOutlet />
@@ -16,6 +17,8 @@
 <body>
     <Routes />
     <ReconnectModal />
+    @* Cropper.Blazor requires its bundled global Cropper constructor for profile cropping. *@
+    <script src="_content/Cropper.Blazor/cropper.min.js"></script>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="@Assets["Features/Account/Components/PasskeySubmit.razor.js"]" type="module"></script>
 </body>
