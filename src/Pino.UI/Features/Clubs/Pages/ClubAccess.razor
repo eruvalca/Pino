@@ -5,7 +5,7 @@
 @layout ClubLayout
 
 <PageTitle>Your club · Pino</PageTitle>
-<ClubPageShell Club="_access?.Membership?.Club">
+<ClubPageShell Club="_access?.Membership?.Club" CanManagePeople="@(_access?.Membership?.Role == ClubRole.Administrator)">
 <article class="access-sheet" aria-busy="@IsBusy">
     <h1 @ref="_heading" tabindex="-1">Your club</h1>
     @if (_message is not null)

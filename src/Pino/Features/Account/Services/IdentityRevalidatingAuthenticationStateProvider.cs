@@ -33,15 +33,14 @@ internal sealed class IdentityRevalidatingAuthenticationStateProvider(
         {
             return false;
         }
-        else if (!userManager.SupportsUserSecurityStamp)
+
+        if (!userManager.SupportsUserSecurityStamp)
         {
             return true;
         }
-        else
-        {
-            var principalStamp = principal.FindFirstValue(options.Value.ClaimsIdentity.SecurityStampClaimType);
-            var userStamp = await userManager.GetSecurityStampAsync(user);
-            return string.Equals(principalStamp, userStamp, StringComparison.Ordinal);
-        }
+
+        var principalStamp = principal.FindFirstValue(options.Value.ClaimsIdentity.SecurityStampClaimType);
+        var userStamp = await userManager.GetSecurityStampAsync(user);
+        return string.Equals(principalStamp, userStamp, StringComparison.Ordinal);
     }
 }

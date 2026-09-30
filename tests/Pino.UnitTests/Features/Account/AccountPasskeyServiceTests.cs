@@ -42,7 +42,7 @@ public sealed class AccountPasskeyServiceTests
 
         var result = await service.AddAsync(user, "credential", count);
 
-        result.Value.ShouldBeOfType<AddPasskeyOutcome.Added>().CredentialId.ShouldBe(new byte[] { 1, 2, 3 });
+        result.Value.ShouldBeOfType<AddPasskeyOutcome.Added>().CredentialId.ShouldBe([1, 2, 3]);
         await identity.Users.Received(1).AddOrUpdatePasskeyAsync(user, passkey);
     }
 
@@ -121,5 +121,5 @@ public sealed class AccountPasskeyServiceTests
     }
 
     private static UserPasskeyInfo CreatePasskey() => new([1, 2, 3], [4, 5, 6], DateTimeOffset.UnixEpoch,
-        0, ["internal"], true, false, false, [], []);
+        0, ["internal"], isUserVerified: true, isBackupEligible: false, isBackedUp: false, [], []);
 }

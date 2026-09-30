@@ -54,7 +54,7 @@ else if (_sharedKey is not null)
                         <InputText @bind-Value="Input.Code" id="Input.Code" autocomplete="off" placeholder="Enter the code" />
                         <ValidationMessage For="() => Input.Code" class="error-text" />
                     </div>
-                    <button type="submit">Verify</button>
+                    <button class="primary-action" type="submit">Verify</button>
                     <ValidationSummary class="error-text" role="alert" />
                 </EditForm>
             </li>

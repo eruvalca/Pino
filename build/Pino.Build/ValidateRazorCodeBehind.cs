@@ -47,13 +47,13 @@ internal sealed class ValidateRazorCodeBehind
             capture.Reset();
             engine.Process(fileSystem.GetItem(relativePath));
 
-            foreach (var directive in capture.MemberBlocks)
+            foreach (var (Name, Source) in capture.MemberBlocks)
             {
                 // Imports are also processed for each component. Report each file's own blocks once.
-                if (paths.Equals(directive.Source.FilePath, path))
+                if (paths.Equals(Source.FilePath, path))
                 {
-                    Report("RUV002", path, directive.Source.LineIndex + 1, directive.Source.CharacterIndex + 1,
-                        $"Move @{directive.Name} members into '{Path.GetFileName(path)}.cs'. Inline component member blocks are not allowed.");
+                    Report("RUV002", path, Source.LineIndex + 1, Source.CharacterIndex + 1,
+                        $"Move @{Name} members into '{Path.GetFileName(path)}.cs'. Inline component member blocks are not allowed.");
                 }
             }
 
@@ -86,7 +86,7 @@ internal sealed class ValidateRazorCodeBehind
             if (!matchingClass)
             {
                 Report("RUV003", companion, 1, 1,
-                    $"Declare the matching partial class '{capture.Namespace}.{capture.ClassName}' with {capture.TypeParameterCount} type parameter(s) in this code-behind file.");
+                    string.Create(System.Globalization.CultureInfo.CurrentCulture, $"Declare the matching partial class '{capture.Namespace}.{capture.ClassName}' with {capture.TypeParameterCount} type parameter(s) in this code-behind file."));
             }
         }
 
@@ -94,13 +94,13 @@ internal sealed class ValidateRazorCodeBehind
     }
 
     private static string GetNamespace(ClassDeclarationSyntax declaration) =>
-        string.Join(".", declaration.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().Reverse()
+        string.Join('.', declaration.Ancestors().OfType<BaseNamespaceDeclarationSyntax>().Reverse()
             .Select(item => string.Concat(item.Name.DescendantTokens().Select(token => token.ValueText))));
 
     private void Report(string code, string path, int line, int column, string message)
     {
         _hasErrors = true;
-        Console.Error.WriteLine($"{path}({line},{column}): error {code}: {message}");
+        Console.Error.WriteLine(string.Create(System.Globalization.CultureInfo.InvariantCulture, $"{path}({line},{column}): error {code}: {message}"));
     }
 
     private sealed class ComponentStructurePass : IntermediateNodePassBase, IRazorDirectiveClassifierPass
@@ -124,10 +124,7 @@ internal sealed class ValidateRazorCodeBehind
             _componentClass = null;
         }
 
-        protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode, CancellationToken cancellationToken)
-        {
-            Visit(documentNode);
-        }
+        protected override void ExecuteCore(RazorCodeDocument codeDocument, DocumentIntermediateNode documentNode, CancellationToken cancellationToken) => Visit(documentNode);
 
         private void Visit(IntermediateNode node)
         {

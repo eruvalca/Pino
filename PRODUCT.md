@@ -13,8 +13,8 @@ player catalog, organize seasonal tryout campaigns, evaluate players, and decide
 which teams are appropriate for them.
 
 Administrators manage club membership requests. Administrators and coaches
-working a tryout record player notes and make team placement decisions. More
-detailed permissions for other operations remain undecided.
+working a tryout record player notes and make team placement decisions. Both
+roles maintain sporting records in their club.
 
 ## Product Purpose
 
@@ -49,13 +49,12 @@ typical roster sizes have not been established.
 
 ## Capabilities and Constraints
 
-These are confirmed product requirements. The repository provides account
-infrastructure, persisted club onboarding and membership management, and an
-interactive, fictional tryout evaluation and team placement workspace. The
-tryout demonstration uses page-session sample data and is separate from real
-club records. The broader player and season capabilities below remain
-requirements, not claims of completed server integration. See the
-[tryout feature documentation](docs/features/tryout-evaluation.md) for its scope.
+The application persists account and club access, player catalogs, seasons,
+teams, tryout rosters, shared observations, decisions and placement history.
+The [sporting workspace](docs/features/club-sporting-workspace.md) records the
+implementation decisions made under the owner's authorization to complete v1.
+The earlier fictional [tryout demonstration](docs/features/tryout-evaluation.md)
+remains a separate, public sample and never reads or writes club records.
 
 ### Clubs and membership
 
@@ -74,7 +73,7 @@ requirements, not claims of completed server integration. See the
   multi-club membership or club switcher.
 - Creating a club makes its creator an administrator. Approved join requests
   become coach memberships. Administrators manage club access; coaches do club
-  work. Detailed permissions for other operations remain undecided.
+  work. Both roles maintain players, seasons, teams, enrollment, notes and decisions.
 - Club administrators can view membership requests and approve or deny them,
   change member roles between administrator and coach, and remove members.
 - A person can have only one pending join request at a time and can cancel it
@@ -95,14 +94,20 @@ The implemented flow and remaining product boundaries are recorded in the
 - A club maintains a persistent catalog of players.
 - Staff can create a player individually, with an optional player photo.
 - Staff can import players in bulk from a CSV file using **CsvHelper**.
-- Required player fields, the CSV schema, duplicate matching, and import error
-  handling are not yet specified.
+- Required fields are first name, last name, a unique club-local player reference
+  and graduation year. Position and contact email are optional.
+- CSV contains PlayerReference, FirstName, LastName, GraduationYear, Position and
+  ContactEmail. Preview reports row errors; imports are atomic and create-only.
+  References are normalized to uppercase and compared against archived records too.
+- Players may be archived and restored without losing notes or placements.
 
 ### Seasons, tryouts, and teams
 
 - Staff can create and configure seasons, tryouts, and teams.
-- A season can contain distinct campaigns or tryouts. Whether "campaign" and
-  "tryout" are interchangeable terms or separate entities remains undecided.
+- A season contains distinct tryouts; campaign is another name for a tryout,
+  rather than a separate entity. Tryout dates must fall inside the season.
+- Archived seasons preserve readable records and block sporting changes until
+  staff reopen them. Teams with current players cannot be archived.
 - Team eligibility has a strict high school graduation year requirement: a
   player must graduate in the team's specified year **or later** to be placed
   on that team. For example, a threshold of 2030 permits 2030 and later years;
@@ -119,7 +124,8 @@ The implemented flow and remaining product boundaries are recorded in the
 - Administrators and coaches working a tryout can create notes for a player to
   communicate with other staff or record pertinent information.
 - Evaluation uses shared notes only; scores and evaluation rubrics are outside
-  the current scope. Note editing rules remain undecided.
+  the current scope. Authors append corrections to their own notes, retaining
+  the earlier text, authorship and timestamp. Other staff cannot rewrite a note.
 - Those staff can place a player on an appropriate, compatible team during the
   tryout. Graduation year eligibility must be enforced.
 - Every participating player needs a decision before the tryout is complete.
@@ -127,9 +133,11 @@ The implemented flow and remaining product boundaries are recorded in the
   and a club/coach decision not to place the player on any team.
 - Coaches and administrators working a tryout can finalize and revise player
   outcomes directly; a separate administrator approval step is not required.
-- A placement must respect the one-current-team-per-season rule. The effect of
-  changing a decision in one tryout on an existing placement from another
-  tryout in the same season remains to be defined.
+- A new placement replaces the current team within that season. A non-placement
+  revision clears a team only if that same tryout created the assignment; a team
+  from another tryout remains. Stale saves are rejected using record revisions.
+- Empty tryouts need players. A nonempty tryout completes when every player has
+  an outcome, and reopens when someone is added or reset to Awaiting decision.
 
 ### History
 
@@ -137,8 +145,9 @@ The implemented flow and remaining product boundaries are recorded in the
   players and teams.
 - Historical placements must remain available when players move to different
   teams in later seasons.
-- The treatment of corrections to past decisions, archived records, and
-  historical team identity remains to be defined.
+- Every saved decision is appended with actor, timestamp, reason, and the team,
+  tryout and season names at that time. Current assignments are stored separately.
+  Player and team pages expose history; renaming records does not rewrite it.
 
 ### Implementation requirements
 
@@ -160,9 +169,9 @@ requirements, and placement history.
 
 The tryout workspace follows the approved Sideline notebook direction recorded
 in the merged feature brief and implemented visual system in `DESIGN.md`.
-Other starter pages remain technical scaffolding. No real player roster,
+The persisted workspace extends that visual system. No real player roster,
 sample CSV, club imagery, or external product evidence was supplied. The
-interactive workspace uses clearly identified fictional players and observations;
+public sample uses clearly identified fictional players and observations;
 its representative roster sizes are demonstration cases, not product limits.
 
 ## Product Principles

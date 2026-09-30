@@ -91,7 +91,7 @@ public sealed class SetPasswordTests
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
-        account.Users.HasPasswordAsync(user).Returns(true);
+        account.Users.HasPasswordAsync(user).Returns(returnThis: true);
 
         account.Render<SetPassword>(context);
 

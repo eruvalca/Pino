@@ -37,7 +37,7 @@ public sealed class DeletePersonalDataTests
         var user = account.Authenticate();
         var logger = context.CaptureLogs<DeletePersonalData>();
         account.Users.HasPasswordAsync(user).Returns(hasPassword);
-        account.Users.CheckPasswordAsync(user, "current-password").Returns(true);
+        account.Users.CheckPasswordAsync(user, "current-password").Returns(returnThis: true);
         account.Users.DeleteAsync(user).Returns(IdentityResult.Success);
         var navigation = context.Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo("Account/Manage/DeletePersonalData?confirm=true");
@@ -81,8 +81,8 @@ public sealed class DeletePersonalDataTests
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
         var logger = context.CaptureLogs<DeletePersonalData>();
-        account.Users.HasPasswordAsync(user).Returns(true);
-        account.Users.CheckPasswordAsync(user, password).Returns(false);
+        account.Users.HasPasswordAsync(user).Returns(returnThis: true);
+        account.Users.CheckPasswordAsync(user, password).Returns(returnThis: false);
         var component = account.Render<DeletePersonalData>(context);
         await component.Find("input[name='Input.Password']").ChangeAsync(new ChangeEventArgs { Value = password });
 

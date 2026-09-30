@@ -134,12 +134,14 @@ Keep the existing Blazor architecture and account behavior. Enforce club access,
 eligibility, and placement constraints on the server. Account setup, CSV import,
 scores, approval workflows, and offline synchronization are outside this brief.
 
-## Open decisions
+## Decisions resolved by the persisted workspace
 
 - Who may edit or delete shared notes, and how those changes are represented.
 - How revising a decision in one tryout affects a placement from another tryout
   in the same season while preserving history and one current team.
 - Realistic roster sizes and the corresponding navigation and loading needs.
 
-These questions remain open product decisions; the demo does not settle them.
+The [persisted sporting workspace](club-sporting-workspace.md) now defines note
+corrections, cross-tryout replacement and explicit capacity limits. Those decisions
+apply to real club records; this older fictional demo retains its original behavior.
 The established visual system is recorded in [DESIGN.md](../../DESIGN.md).

@@ -34,7 +34,7 @@ internal sealed class AccountTwoFactorService(UserManager<ApplicationUser> userM
         {
             return new EnableAuthenticatorOutcome.InvalidCode();
         }
-        var enable = await userManager.SetTwoFactorEnabledAsync(user, true);
+        var enable = await userManager.SetTwoFactorEnabledAsync(user, enabled: true);
         if (!enable.Succeeded)
         {
             return new EnableAuthenticatorOutcome.EnableFailed();
@@ -51,7 +51,7 @@ internal sealed class AccountTwoFactorService(UserManager<ApplicationUser> userM
 
     public async Task<ResetAuthenticatorOutcome> ResetAsync(ApplicationUser user)
     {
-        var disable = await userManager.SetTwoFactorEnabledAsync(user, false);
+        var disable = await userManager.SetTwoFactorEnabledAsync(user, enabled: false);
         if (!disable.Succeeded)
         {
             return new ResetAuthenticatorOutcome.DisableFailed();
@@ -71,7 +71,7 @@ internal sealed class AccountTwoFactorService(UserManager<ApplicationUser> userM
         {
             return new DisableTwoFactorOutcome.AlreadyDisabled();
         }
-        var result = await userManager.SetTwoFactorEnabledAsync(user, false);
+        var result = await userManager.SetTwoFactorEnabledAsync(user, enabled: false);
         return result.Succeeded ? new DisableTwoFactorOutcome.Disabled() : new DisableTwoFactorOutcome.DisableFailed();
     }
 

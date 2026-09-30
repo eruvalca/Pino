@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using Pino.SharedKernel.Clubs;
@@ -7,8 +8,8 @@ namespace Pino.Client.Features.Clubs;
 internal sealed class HttpClubGateway(HttpClient http) : IClubGateway
 {
     public Task<AccessSnapshot> GetAccessAsync(CancellationToken cancellationToken = default) => GetAsync<AccessSnapshot>("access", cancellationToken);
-    public Task<ClubSearchPage> SearchAsync(string query, int page, CancellationToken cancellationToken = default) => GetAsync<ClubSearchPage>($"search?query={Uri.EscapeDataString(query)}&page={page}", cancellationToken);
-    public Task<PeoplePage> GetPeopleAsync(Guid clubId, bool requests, int page, CancellationToken cancellationToken = default) => GetAsync<PeoplePage>($"{clubId}/people?requests={requests}&page={page}", cancellationToken);
+    public Task<ClubSearchPage> SearchAsync(string query, int page, CancellationToken cancellationToken = default) => GetAsync<ClubSearchPage>(string.Create(CultureInfo.InvariantCulture, $"search?query={Uri.EscapeDataString(query)}&page={page}"), cancellationToken);
+    public Task<PeoplePage> GetPeopleAsync(Guid clubId, bool requests, int page, CancellationToken cancellationToken = default) => GetAsync<PeoplePage>(string.Create(CultureInfo.InvariantCulture, $"{clubId}/people?requests={requests}&page={page}"), cancellationToken);
     public Task<ClubReply> SaveProfileAsync(ProfileInput input, CancellationToken cancellationToken = default) => PostAsync("profile", input, cancellationToken);
     public Task<ClubReply> CreateAsync(CreateClubInput input, CancellationToken cancellationToken = default) => PostAsync("create", input, cancellationToken);
     public Task<ClubReply> RequestAsync(Guid clubId, CancellationToken cancellationToken = default) => PostAsync($"{clubId}/requests", new { }, cancellationToken);

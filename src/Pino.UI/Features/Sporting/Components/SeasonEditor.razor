@@ -1,0 +1,9 @@
+<EditForm Model="_model" OnValidSubmit="SaveAsync" class="sport-form" FormName="SeasonEditor">
+    <DataAnnotationsValidator /><ValidationSummary />
+    <fieldset disabled="@(Busy || !RendererInfo.IsInteractive)">
+        <div class="form-field"><label for="season-name">Season name</label><InputText id="season-name" maxlength="120" @bind-Value="_model.Name" /></div>
+<div class="field-pair"><div class="form-field"><label for="season-start">Start date</label><InputDate id="season-start" @bind-Value="_model.StartsOn" /></div><div class="form-field"><label for="season-end">End date</label><InputDate id="season-end" @bind-Value="_model.EndsOn" /></div></div>
+@if (_model.Revision > 0) { <label class="checkbox-field"><InputCheckbox @bind-Value="_model.Archived" /> Archive season (make sporting records read-only)</label> }
+        <div class="actions"><button class="primary-action" type="submit">@(Busy ? "Saving…" : "Save season")</button><button class="text-action" type="button" @onclick="Cancel">Cancel</button></div>
+    </fieldset>
+</EditForm>

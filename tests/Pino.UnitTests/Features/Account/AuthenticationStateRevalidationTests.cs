@@ -35,7 +35,7 @@ public sealed class AuthenticationStateRevalidationTests
             claimStamp is null ? [] : [new Claim("pino:security-stamp", claimStamp)], "test"));
         var user = new Faker<ApplicationUser>().UseSeed(147).RuleFor(u => u.Id, f => f.Random.Guid().ToString()).Generate();
         identity.Users.GetUserAsync(principal).Returns(user);
-        identity.Users.SupportsUserSecurityStamp.Returns(true);
+        identity.Users.SupportsUserSecurityStamp.Returns(returnThis: true);
         identity.Users.GetSecurityStampAsync(user).Returns(storedStamp);
         var scopes = Substitute.For<IServiceScopeFactory>();
         var scope = CreateScope(identity.Users);
@@ -72,7 +72,7 @@ public sealed class AuthenticationStateRevalidationTests
         using var identity = IdentityTestContext.Create();
         var principal = new ClaimsPrincipal(new ClaimsIdentity([], "test"));
         identity.Users.GetUserAsync(principal).Returns(new ApplicationUser());
-        identity.Users.SupportsUserSecurityStamp.Returns(false);
+        identity.Users.SupportsUserSecurityStamp.Returns(returnThis: false);
         var scopes = Substitute.For<IServiceScopeFactory>();
         var scope = CreateScope(identity.Users);
         scopes.CreateScope().Returns(scope);
@@ -90,7 +90,7 @@ public sealed class AuthenticationStateRevalidationTests
         using var secondIdentity = IdentityTestContext.Create();
         var principal = new ClaimsPrincipal(new ClaimsIdentity([], "test"));
         firstIdentity.Users.GetUserAsync(principal).Returns(new ApplicationUser());
-        firstIdentity.Users.SupportsUserSecurityStamp.Returns(false);
+        firstIdentity.Users.SupportsUserSecurityStamp.Returns(returnThis: false);
         secondIdentity.Users.GetUserAsync(principal).Returns((ApplicationUser?)null);
         var firstScope = CreateScope(firstIdentity.Users);
         var secondScope = CreateScope(secondIdentity.Users);

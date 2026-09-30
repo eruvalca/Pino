@@ -37,9 +37,7 @@ public sealed partial class ExternalLogins
         }
 
         _currentLogins = await UserManager.GetLoginsAsync(_user);
-        _otherLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync())
-            .Where(auth => _currentLogins.All(ul => !string.Equals(auth.Name, ul.LoginProvider, StringComparison.Ordinal)))
-            .ToList();
+        _otherLogins = [.. (await SignInManager.GetExternalAuthenticationSchemesAsync()).Where(auth => _currentLogins.All(ul => !string.Equals(auth.Name, ul.LoginProvider, StringComparison.Ordinal)))];
 
         string? passwordHash = null;
         if (UserStore is IUserPasswordStore<ApplicationUser> userPasswordStore)

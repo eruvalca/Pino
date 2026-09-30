@@ -15,14 +15,14 @@ namespace Pino.ComponentTests.Features.Account;
 public sealed class ExternalProviderComponentsTests
 {
     [Fact]
-    public async Task PickerWithoutProvidersExplainsAbsenceAndCannotSubmitAsync()
+    public async Task PickerWithoutProvidersRendersNoUnavailableChoicesAsync()
     {
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
 
         var component = account.Render<ExternalLoginPicker>(context);
 
-        component.Markup.ShouldContain("There are no external authentication services configured.");
+        component.Markup.ShouldBeEmpty();
         component.FindAll("form, button[name='provider']").ShouldBeEmpty();
         await account.SignIn.Received(1).GetExternalAuthenticationSchemesAsync();
     }

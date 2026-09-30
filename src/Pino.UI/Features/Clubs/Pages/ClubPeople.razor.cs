@@ -77,15 +77,15 @@ public sealed partial class ClubPeople(IClubGateway gateway, ILogger<ClubPeople>
         }
     }
 
-    private Task ShowRequestsAsync() => IsBusy ? Task.CompletedTask : LoadPageAsync(true, 0);
-    private Task ShowMembersAsync() => IsBusy ? Task.CompletedTask : LoadPageAsync(false, 0);
+    private Task ShowRequestsAsync() => IsBusy ? Task.CompletedTask : LoadPageAsync(requests: true, 0);
+    private Task ShowMembersAsync() => IsBusy ? Task.CompletedTask : LoadPageAsync(requests: false, 0);
     private Task PreviousAsync() => IsBusy ? Task.CompletedTask : LoadPageAsync(_requests, _page - 1);
     private Task NextAsync() => IsBusy ? Task.CompletedTask : LoadPageAsync(_requests, _page + 1);
-    private Task ApproveAsync(PersonSummary person) => RunAsync(() => gateway.DecideAsync(ClubId, new(person.RequestId!.Value, true)));
+    private Task ApproveAsync(PersonSummary person) => RunAsync(() => gateway.DecideAsync(ClubId, new(person.RequestId!.Value, Approve: true)));
 
     private void Deny(PersonSummary person) => ShowConfirmation(new(
         $"Deny {person.FirstName} {person.LastName}'s request?", $"Access to {_data!.Club.Name} will not be granted. This person may reapply.",
-        "Deny request", () => gateway.DecideAsync(ClubId, new(person.RequestId!.Value, false))));
+        "Deny request", () => gateway.DecideAsync(ClubId, new(person.RequestId!.Value, Approve: false))));
 
     private void ChangeRole(PersonSummary person)
     {
@@ -99,7 +99,7 @@ public sealed partial class ClubPeople(IClubGateway gateway, ILogger<ClubPeople>
     private void Remove(PersonSummary person) => ShowConfirmation(new(
         $"Remove {person.FirstName} {person.LastName} from {_data!.Club.Name}?",
         "Their club access will end. Their Pino account and the club's records will remain. They may reapply.",
-        "Remove from club", () => gateway.ChangeMemberAsync(ClubId, new(person.UserId, person.Role, null))));
+        "Remove from club", () => gateway.ChangeMemberAsync(ClubId, new(person.UserId, person.Role, NewRole: null))));
 
     private void ShowConfirmation(Confirmation confirmation) { _confirmation = confirmation; _focusConfirmation = true; }
     private Task ConfirmAsync() => _confirmation is null ? Task.CompletedTask : RunAsync(_confirmation.Operation);

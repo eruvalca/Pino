@@ -4,7 +4,7 @@
 @layout ClubLayout
 
 <PageTitle>People · Pino</PageTitle>
-<ClubPageShell Club="_data?.Club">
+<ClubPageShell Club="_data?.Club" CanManagePeople="@(_data is not null)">
 <article class="people-sheet" aria-busy="@IsBusy">
     <a href="@($"/clubs/{ClubId}")">Back to club</a>
     <h1 @ref="_heading" tabindex="-1">People</h1>

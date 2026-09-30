@@ -1,0 +1,26 @@
+@page "/clubs/{ClubId:guid}/players/import"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits SportPageBase
+
+<PageTitle>Import players · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    <p><a href="@($"/clubs/{ClubId}/players")">All players</a></p>
+    <header class="sport-heading"><div><h1>Import players</h1><p>Preview your file, fix any errors, then add the whole batch together.</p></div><a class="secondary-action" href="@($"/api/clubs/{ClubId}/sport/template")" download>Download CSV template</a></header>
+    <section class="sport-form"><p>Use the six template columns. Player reference, first name, last name and graduation year are required. Position and contact email may be empty. Existing references, including archived players, are never overwritten.</p>
+        <fieldset class="sport-fields" disabled="@Disabled"><div class="form-field"><label for="import-file">Player CSV</label><InputFile id="import-file" accept=".csv,text/csv" OnChange="ChooseAsync" /><p class="muted">UTF-8 CSV. Up to 500 players, 1 MB and 500,000 characters per import.</p></div><button class="secondary-action" disabled="@(_csv is null)" @onclick="PreviewAsync">@(Busy ? "Checking file…" : "Preview file")</button></fieldset>
+    </section>
+    @if (_report is not null)
+    {
+        <section class="sport-section"><h2>Preview@(_fileName is null ? "" : $" · {_fileName}")</h2><p class="notice" data-kind="@PreviewKind" role="status">@_report.Message</p>
+            <div class="table-container" tabindex="0" role="region" aria-label="Import preview">
+                <table><thead><tr><th>Row</th><th>Reference</th><th>Player</th><th>Graduation</th><th>Result</th></tr></thead><tbody>
+                @foreach (var row in _report.Rows) { <tr @key="row.Row"><td>@row.Row</td><td>@row.PlayerReference</td><td>@row.Name</td><td>@(row.GraduationYear == 0 ? "—" : row.GraduationYear.ToString())</td><td>@(row.Error ?? (_report.Saved ? "Imported" : "Ready"))</td></tr> }
+                </tbody></table>
+            </div>
+            @if (!_report.Saved) { <button class="primary-action" disabled="@(Disabled || !_report.CanImport)" @onclick="ImportAsync">Import @_report.Rows.Count players</button> }
+            else { <a class="primary-action" href="@($"/clubs/{ClubId}/players")">Open player catalog</a> }
+        </section>
+    }
+</SportFrame>

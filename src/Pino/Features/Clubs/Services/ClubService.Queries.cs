@@ -35,7 +35,7 @@ internal sealed partial class ClubService
         page = Math.Clamp(page, 0, 10000);
         if (term.Length is < 2 or > 120)
         {
-            return new([], page, false);
+            return new([], page, HasMore: false);
         }
         // Escape LIKE metacharacters so search input remains a literal substring.
         var pattern = "%" + term.Replace("\\", "\\\\", StringComparison.Ordinal).Replace("%", "\\%", StringComparison.Ordinal).Replace("_", "\\_", StringComparison.Ordinal) + "%";
@@ -59,7 +59,7 @@ internal sealed partial class ClubService
         var id = await VerifiedActorAsync(db, actor, cancellationToken);
         await RequireAdministratorAsync(db, id, clubId, cancellationToken);
         page = Math.Clamp(page, 0, 10000);
-        IQueryable<PersonRow> people = requests
+        var people = requests
             ? from request in db.ClubJoinRequests
               join profile in db.ClubProfiles on request.UserId equals profile.UserId
               where request.ClubId == clubId && request.Status == JoinRequestStatus.Pending
@@ -69,7 +69,7 @@ internal sealed partial class ClubService
               join profile in db.ClubProfiles on member.UserId equals profile.UserId
               where member.ClubId == clubId
               orderby profile.LastName, profile.FirstName, profile.UserId
-              select new PersonRow(profile.UserId, profile.FirstName, profile.LastName, profile.PhotoKey!, member.Role, null, member.JoinedAt);
+              select new PersonRow(profile.UserId, profile.FirstName, profile.LastName, profile.PhotoKey!, member.Role, RequestId: null, member.JoinedAt);
         var items = await people.Skip(page * PageSize).Take(PageSize + 1).ToListAsync(cancellationToken);
         var rows = items.Take(PageSize).Select(value => new PersonSummary(value.UserId, value.FirstName, value.LastName, PhotoUrl(value.UserId, value.PhotoKey), value.Role, value.RequestId, value.Since)).ToArray();
         return new(Summary(await db.Clubs.SingleAsync(value => value.Id == clubId, cancellationToken)), rows, page, items.Count > PageSize);

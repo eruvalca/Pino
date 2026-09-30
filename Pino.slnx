@@ -8,7 +8,9 @@
     <Platform Name="x86" />
   </Configurations>
   <Project Path="src/Pino.ServiceDefaults/Pino.ServiceDefaults.csproj" />
+  <Folder Name="/src/" />
   <Folder Name="/tests/">
+    <Project Path="tests/Pino.BrowserTests/Pino.BrowserTests.csproj" />
     <Project Path="tests/Pino.ComponentTests/Pino.ComponentTests.csproj" />
     <Project Path="tests/Pino.UnitTests/Pino.UnitTests.csproj" />
   </Folder>

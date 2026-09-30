@@ -25,7 +25,8 @@ makes the club workspace available.
 The existing application supplies Identity registration, email confirmation,
 password/passkey sign-in, account management, and a fictional tryout workspace.
 Club profiles, memberships, requests, server authorization, and private photos
-are now persisted. Player and season workflows remain separate future work.
+are now persisted. Player and season workflows are implemented in the separate
+[sporting workspace](club-sporting-workspace.md).
 The confirmed requirements are in [PRODUCT.md](../../PRODUCT.md).
 People and clubs in concept images are fictional.
 
@@ -75,8 +76,9 @@ fictional tryout remains at `/tryouts/spring-2027`, separate from club records.
 
 Multi-club membership, a club switcher, invitations, custom roles, player/season
 setup, billing, club deletion, offline support, and redesigning all account
-settings are outside this brief. Detailed permissions for player, season, team,
-and other club operations remain open; the two access roles do not settle them.
+settings are outside this brief. The [sporting workspace](club-sporting-workspace.md)
+defines player, season and team permissions: coaches and administrators both
+maintain those records within their club.
 
 ## Confirmed access rules
 
@@ -276,8 +278,9 @@ navigation. A response for an earlier club must not restore its rows or errors.
 
 - International locations and a sport taxonomy are outside the first version.
   A self-created club is not a verified organization. Club logos are not required.
-- Exact permissions outside membership administration remain open, as do typical
-  club/member/request volumes. Club deletion and recovery for an abandoned club
+- Sporting permissions are defined in the [sporting workspace brief](club-sporting-workspace.md):
+  coaches and administrators both maintain club sporting records. Typical
+  club/member/request volumes remain unmeasured. Club deletion and recovery for an abandoned club
   are separate work; protecting the last administrator does not invent either.
 
 Before shipping, verify create/join/approve/deny/cancel/reapply, each role change,

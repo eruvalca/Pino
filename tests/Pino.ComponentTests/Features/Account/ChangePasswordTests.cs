@@ -24,7 +24,7 @@ public sealed class ChangePasswordTests
         var user = account.Authenticate();
         var logger = context.CaptureLogs<ChangePassword>();
         var password = new string('N', length);
-        account.Users.HasPasswordAsync(user).Returns(true);
+        account.Users.HasPasswordAsync(user).Returns(returnThis: true);
         account.Users.ChangePasswordAsync(user, "current-password", password).Returns(IdentityResult.Success);
         var navigation = context.Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo("Account/Manage/ChangePassword?from=profile");
@@ -52,7 +52,7 @@ public sealed class ChangePasswordTests
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
         var logger = context.CaptureLogs<ChangePassword>();
-        account.Users.HasPasswordAsync(user).Returns(true);
+        account.Users.HasPasswordAsync(user).Returns(returnThis: true);
         account.Users.ChangePasswordAsync(user, "current-password", "new-password").Returns(IdentityResult.Failed(
             new IdentityError { Description = "Current password is incorrect" },
             new IdentityError { Description = "New password was used previously" }));
@@ -81,7 +81,7 @@ public sealed class ChangePasswordTests
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
-        account.Users.HasPasswordAsync(user).Returns(true);
+        account.Users.HasPasswordAsync(user).Returns(returnThis: true);
         var component = account.Render<ChangePassword>(context);
         var password = new string('N', length);
         await FillPasswordAsync(component, current, password, mismatch ? "different-password" : password);
@@ -99,7 +99,7 @@ public sealed class ChangePasswordTests
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
-        account.Users.HasPasswordAsync(user).Returns(false);
+        account.Users.HasPasswordAsync(user).Returns(returnThis: false);
 
         account.Render<ChangePassword>(context);
 

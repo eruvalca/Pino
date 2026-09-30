@@ -22,7 +22,7 @@ public sealed class RegistrationTests
     {
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
-        account.Users.SupportsUserEmail.Returns(true);
+        account.Users.SupportsUserEmail.Returns(returnThis: true);
         account.Users.CreateAsync(Arg.Any<ApplicationUser>(), "password").Returns(IdentityResult.Failed(new IdentityError { Description = "Email already registered" }));
         var component = account.Render<Register>(context);
         await component.Find("input[name='Input.Email']").ChangeAsync(new ChangeEventArgs { Value = "member@example.test" });
@@ -44,7 +44,7 @@ public sealed class RegistrationTests
     {
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
-        account.Users.SupportsUserEmail.Returns(true);
+        account.Users.SupportsUserEmail.Returns(returnThis: true);
         account.Users.Options.SignIn.RequireConfirmedAccount = requireConfirmation;
         account.Users.CreateAsync(Arg.Any<ApplicationUser>(), "password").Returns(IdentityResult.Success);
         account.Users.GetUserIdAsync(Arg.Any<ApplicationUser>()).Returns("member");
@@ -70,7 +70,7 @@ public sealed class RegistrationTests
         else
         {
             navigation.Uri.ShouldBe("http://localhost/events");
-            await account.SignIn.Received(1).SignInAsync(Arg.Any<ApplicationUser>(), false, null);
+            await account.SignIn.Received(1).SignInAsync(Arg.Any<ApplicationUser>(), isPersistent: false, authenticationMethod: null);
         }
     }
 
@@ -81,7 +81,7 @@ public sealed class RegistrationTests
     {
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
-        account.Users.SupportsUserEmail.Returns(true);
+        account.Users.SupportsUserEmail.Returns(returnThis: true);
         var login = new ExternalLoginInfo(new ClaimsPrincipal(new ClaimsIdentity()), "Provider", "key", "Provider");
         account.SignIn.GetExternalLoginInfoAsync().Returns(login);
         var failure = IdentityResult.Failed(new IdentityError { Description = "Operation rejected" });
@@ -121,7 +121,7 @@ public sealed class RegistrationTests
     {
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
-        account.Users.SupportsUserEmail.Returns(true);
+        account.Users.SupportsUserEmail.Returns(returnThis: true);
         account.Users.Options.SignIn.RequireConfirmedAccount = requireConfirmation;
         var login = new ExternalLoginInfo(new ClaimsPrincipal(new ClaimsIdentity()), "Provider", "key", "Provider");
         account.SignIn.GetExternalLoginInfoAsync().Returns(login);
@@ -147,17 +147,17 @@ public sealed class RegistrationTests
         else
         {
             navigation.Uri.ShouldBe("http://localhost/events");
-            await account.SignIn.Received(1).SignInAsync(Arg.Any<ApplicationUser>(), false, "Provider");
+            await account.SignIn.Received(1).SignInAsync(Arg.Any<ApplicationUser>(), isPersistent: false, "Provider");
         }
     }
 
     [Fact]
-    public async Task FailedExternalLinkWithDevelopmentEmailSenderOffersExistingConfirmationPageAsync()
+    public async Task FailedExternalLinkOffersRecoveryWithoutAnInlineConfirmationBypassAsync()
     {
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
-        context.Services.AddSingleton<IEmailSender<ApplicationUser>>(new IdentityNoOpEmailSender());
-        account.Users.SupportsUserEmail.Returns(true);
+
+        account.Users.SupportsUserEmail.Returns(returnThis: true);
         var login = new ExternalLoginInfo(new ClaimsPrincipal(new ClaimsIdentity()), "Provider", "key", "Provider");
         account.SignIn.GetExternalLoginInfoAsync().Returns(login);
         account.Users.CreateAsync(Arg.Any<ApplicationUser>()).Returns(IdentityResult.Success);
@@ -167,9 +167,8 @@ public sealed class RegistrationTests
 
         await component.Find("form").SubmitAsync();
 
-        await component.WaitForAssertionAsync(() => component.Find("a[href^='Account/RegisterConfirmation']").GetAttribute("href")
-            .ShouldBe("Account/RegisterConfirmation?email=member%40example.test"));
-        component.Markup.ShouldContain("Password reset requires an email sender.");
+        component.Find("a[href='Account/ResendEmailConfirmation']").TextContent.ShouldBe("Request a confirmation email");
+        component.FindAll("a[href*='RegisterConfirmation']").ShouldBeEmpty();
         await account.SignIn.DidNotReceiveWithAnyArgs().SignInAsync(default!, default(bool), default);
     }
 }

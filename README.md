@@ -11,7 +11,8 @@ See the [early-development migration workflow](#ef-migrations).
 ## Documentation
 
 - [Product context](PRODUCT.md): confirmed users, workflows, requirements, and open decisions.
-- [Tryout evaluation](docs/features/tryout-evaluation.md): interactive sample workspace, selected design direction, and remaining integration work.
+- [Sporting workspace](docs/features/club-sporting-workspace.md): players, CSV import, seasons, teams, persisted tryouts and history.
+- [Tryout demonstration](docs/features/tryout-evaluation.md): the separate fictional sample and its design direction.
 - [Club onboarding and access](docs/features/club-onboarding-access.md): persisted profiles, private photos, requests, roles, and membership management.
 - [Design system](DESIGN.md): the implemented Sideline notebook visual system.
 - [Agent guidance](AGENTS.md): project boundaries, design process, and authoring rules.
@@ -19,6 +20,27 @@ See the [early-development migration workflow](#ef-migrations).
 - [Testing](tests/README.md): routine commands, assertions, and test isolation.
 - [Service defaults options](build/service-defaults-options.md): optional discovery and telemetry configuration.
 - [Documentation hooks](build/agent-hooks.md): automatic agent review and hook maintenance.
+
+## Use the club workspace
+
+Register, confirm the email in the local Mailpit inbox (open its HTTP endpoint
+from Aspire), then sign in. Complete your profile and create or join a club.
+From the club navigation:
+
+1. **Players:** add individual records or download the CSV template, preview a
+   file and import its valid batch. Edit or archive records from player details.
+2. **Seasons & teams:** create a season, add graduation-year teams and a tryout.
+3. Open the tryout, **Add players**, then select a player to write shared notes
+   and record their outcome. Each save persists to PostgreSQL. Refresh saved
+   decisions before resolving a stale-save message.
+4. Follow **Player record & history** or a team link to revisit placements.
+   Archive a season when finished; reopen it to make corrections.
+
+Coaches and administrators have the same sporting permissions. Administrators
+also manage **People**. All operations recheck current club membership on the
+server. The first version requires a connection; save drafts before navigating
+away or reloading. See the [sporting brief](docs/features/club-sporting-workspace.md)
+for validation limits, correction rules and cross-tryout placement behavior.
 
 ## Tryout sample workspace
 
@@ -78,7 +100,7 @@ root to verify the environment. The AppHost is explicitly located by the root
 Use PowerShell 7 for the scripts in this repository. From the solution root,
 run `dotnet build Pino.slnx`, then `aspire run`. The first build/start may
 restore NuGet packages, download Aspire/EF tooling, and pull container images.
-The initial migration creates empty Identity and club tables; no accounts or local
+The initial migration creates empty Identity, club and sporting tables; no accounts or local
 credentials are included.
 
 This repository is an independent application. Review SDK, package, and skill
@@ -196,8 +218,8 @@ The application uses standard CSS with Grid as the default for structured layout
 and alignment. The tryout workspace implements the approved **Sideline notebook**
 direction: white writing surfaces, navy navigation, cobalt actions, pale blue
 selection, and readable sans-serif typography. [DESIGN.md](DESIGN.md) records its
-tokens and component patterns. Account and remaining scaffold layouts have not
-been redesigned as part of this feature.
+tokens and component patterns. Persisted club pages and account navigation share
+its palette and working surfaces; account forms retain static SSR behavior.
 
 Use the installed [Impeccable skill](.agents/skills/impeccable/SKILL.md) for design
 work. In Codex, `$impeccable init` captures confirmed product context in
@@ -247,6 +269,7 @@ postgres (PostgreSQL 18.3, managed data volume)
   └─ pgadmin (explicit start)
 profilestorage (Azurite, managed data volume)
   └─ profileblobs → pino and pino-migrations
+mailpit (development SMTP and local inbox) → pino
 ```
 
 After a normal startup, these dashboard states are expected:
@@ -255,6 +278,7 @@ After a normal startup, these dashboard states are expected:
 | --- | --- | --- |
 | `postgres`, `pinodb` | Running / Healthy | PostgreSQL and the application database are ready. |
 | `profilestorage`, `profileblobs` | Running / Healthy | Local private profile-image storage is ready. |
+| `mailpit` | Running / Healthy | Local confirmation and password-reset inbox; mail does not leave this development service. |
 | `pino-migrations` | Finished | The one-shot migration command completed successfully. It is not a long-running service. |
 | `pino` | Running / Healthy | The web application is ready and its database readiness check passes. |
 | `pgadmin` | Not started | Optional database UI; start it when needed. |
@@ -277,15 +301,45 @@ supports a context per Blazor operation; Identity can still resolve the scoped
 context. Dispose factory-created contexts with `await using`.
 
 Identity schema version 3 is retained, including the `AspNetUserPasskeys` table.
-Development registration uses the existing no-op email sender: follow the confirmation
-link on the registration confirmation page before logging in. This setup does not
-configure a production email service or deployment infrastructure.
+MailKit sends confirmation and password-reset messages through SMTP. In Development,
+Aspire supplies Mailpit's SMTP connection; read the messages in its HTTP inbox.
+There is no inline account-confirmation shortcut. Add application resource references
+before calling `AddEFMigrations`: that integration snapshots the web environment.
 
-Before production, replace `IdentityNoOpEmailSender` and remove or deliberately
-gate the scaffold confirmation link. The current shortcut checks the sender type,
-not the hosting environment; it is not restricted to Development. External-login
-provider credentials, production secrets, HTTPS/domain configuration, deployment,
-and the desired exposure of health endpoints also require application-specific work.
+## Email and deployment configuration
+
+Outside Development, configure `Smtp:Host` and `Smtp:From`, plus `Smtp:Username`
+and `Smtp:Password` when the SMTP service requires authentication. Store credentials
+in a secret provider. `Smtp:Port` defaults to 587 with required STARTTLS; set
+`Smtp:ImplicitTls=true` and the provider's port for implicit TLS. Mailpit is run-mode
+development infrastructure and is not a production email service.
+
+Deployment also requires persistent PostgreSQL and private Azure Blob Storage,
+HTTPS/domain configuration, protected Identity data-protection keys, and backups.
+Configure external identity providers only if wanted; unconfigured providers are
+not presented as sign-in options. Health endpoint exposure remains a deployment
+choice. No deployment destination or production credentials are included.
+
+## Persistence model
+
+`ApplicationDbContext` exposes named plural sets for every application entity.
+Feature code uses these properties (`db.Players`, `db.Seasons`, and so on).
+EF Core derives application table names from the set names: `Clubs`,
+`ClubProfiles`, `ClubMemberships`, `ClubJoinRequests`, `PhotoDeletions`, `Players`,
+`Seasons`, `SportTeams`, `TryoutEvents`, `Participations`, `SeasonPlacements`,
+`PlayerNotes`, and `DecisionEvents`. Identity retains its default `AspNet*`
+tables and schema version 3, including passkeys.
+
+Each entity's `IEntityTypeConfiguration<T>` class keeps its explicit mapping beside
+the entity in its feature's `Data` directory. `ApplicationDbContext` discovers these
+classes through `ApplyConfigurationsFromAssembly` after Identity's model configuration.
+Configuration discovery has no guaranteed order, so mappings must not depend on one
+configuration overriding another. Use EF conventions for ordinary
+keys, columns, and nullability; configure domain-specific lengths, composite
+keys, indexes, checks, concurrency tokens, and delete behavior explicitly.
+Club-scoped relationships and restricted deletes protect existing records and
+must remain intact when changing the model. Table renames are schema changes
+and follow the migration reset procedure below.
 
 ## EF migrations
 
@@ -330,6 +384,8 @@ For a schema change, use this reset workflow:
    using namespace `Pino.Migrations`, and restore any still-needed customizations.
 5. Apply the repository's conventions to the handwritten migration class (file-scoped
    namespace and `internal sealed partial class`); leave generated designer code alone.
+   Retain the justified type-scoped CA1861 suppression for one-time generated
+   column arrays; do not disable the rule for application code.
    Keep the model snapshot in the same migrations directory. EF can choose a directory
    from the legacy namespace when regenerating a missing snapshot, so check its location.
 6. Stop Aspire, rebuild, and start again. Migration commands are disabled after
@@ -453,3 +509,6 @@ dotnet test --solution Pino.slnx
 
 See [tests/README.md](tests/README.md) for test conventions and
 [build/README.md](build/README.md) for Razor code-behind validation.
+Before committing any changes, also complete the required
+[style verification](build/README.md#pre-commit-style-verification), which catches
+editor-only diagnostics that the build does not report.

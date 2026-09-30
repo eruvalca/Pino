@@ -54,7 +54,7 @@ public sealed class ProfileTests
         if (phone is null)
         {
             // Supply the nullable posted value because bUnit does not run static SSR's form mapper.
-            component.Instance.SetInputValue("PhoneNumber", null);
+            component.Instance.SetInputValue("PhoneNumber", value: null);
         }
         else
         {

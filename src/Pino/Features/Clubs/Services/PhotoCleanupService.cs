@@ -31,7 +31,8 @@ internal sealed partial class PhotoCleanupService(IDbContextFactory<ApplicationD
         var entries = await db.PhotoDeletions.Where(value => value.NotBefore <= now).Take(50).ToListAsync(cancellationToken);
         foreach (var entry in entries)
         {
-            if (!await db.ClubProfiles.AnyAsync(value => value.PhotoKey == entry.PhotoKey, cancellationToken))
+            if (!await db.ClubProfiles.AnyAsync(value => value.PhotoKey == entry.PhotoKey, cancellationToken) &&
+                !await db.Players.AnyAsync(value => value.PhotoKey == entry.PhotoKey, cancellationToken))
             {
                 await photos.DeleteAsync(entry.PhotoKey, cancellationToken);
             }

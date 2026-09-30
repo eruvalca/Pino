@@ -54,7 +54,7 @@ internal static class BunitAccountExtensions
         internal ILogger<TComponent> CaptureLogs<TComponent>()
         {
             var logger = Substitute.For<ILogger<TComponent>>();
-            logger.IsEnabled(Arg.Any<LogLevel>()).Returns(true);
+            logger.IsEnabled(Arg.Any<LogLevel>()).Returns(returnThis: true);
             context.Services.AddSingleton(logger);
             return logger;
         }

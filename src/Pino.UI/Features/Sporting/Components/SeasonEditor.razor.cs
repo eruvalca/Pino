@@ -1,0 +1,21 @@
+using Microsoft.AspNetCore.Components;
+using Pino.SharedKernel.Sporting;
+
+namespace Pino.UI.Features.Sporting.Components;
+
+public sealed partial class SeasonEditor
+{
+    private SeasonInput _model = new();
+    private Guid _loaded;
+    [Parameter, EditorRequired] public SeasonInput Input { get; set; } = default!;
+    [Parameter, EditorRequired] public EventCallback<SeasonInput> Save { get; set; }
+    [Parameter, EditorRequired] public EventCallback Cancel { get; set; }
+    [Parameter] public bool Busy { get; set; }
+    protected override void OnParametersSet()
+    {
+        if (_loaded == Input.Id) { return; }
+        _loaded = Input.Id;
+        _model = new() { Id = Input.Id, Revision = Input.Revision, Name = Input.Name, StartsOn = Input.StartsOn, EndsOn = Input.EndsOn, Archived = Input.Archived };
+    }
+    private Task SaveAsync() => Save.InvokeAsync(_model);
+}

@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Pino.Migrations;
 
 /// <inheritdoc />
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments", Justification = "Generated schema operations run once per database migration; keep the generated column lists readable.")]
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments", Justification = "EF-generated schema declarations execute once per database migration; keeping column arrays beside each operation makes schema review reliable.")]
 internal sealed partial class InitialCreate : Migration
 {
     /// <inheritdoc />
@@ -282,6 +282,239 @@ internal sealed partial class InitialCreate : Migration
                     onDelete: ReferentialAction.Restrict);
             });
 
+        migrationBuilder.CreateTable(
+            name: "Players",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
+                PlayerReference = table.Column<string>(type: "character varying(40)", maxLength: 40, nullable: false),
+                FirstName = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                LastName = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                GraduationYear = table.Column<int>(type: "integer", nullable: false),
+                Position = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                ContactEmail = table.Column<string>(type: "character varying(254)", maxLength: 254, nullable: false),
+                PhotoKey = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
+                Archived = table.Column<bool>(type: "boolean", nullable: false),
+                Revision = table.Column<long>(type: "bigint", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_Players", x => x.Id);
+                table.UniqueConstraint("AK_Players_ClubId_Id", x => new { x.ClubId, x.Id });
+                table.CheckConstraint("CK_Player_Year", "\"GraduationYear\" BETWEEN 2000 AND 2100");
+                table.ForeignKey(
+                    name: "FK_Players_Clubs_ClubId",
+                    column: x => x.ClubId,
+                    principalTable: "Clubs",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Seasons",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                StartsOn = table.Column<DateOnly>(type: "date", nullable: false),
+                EndsOn = table.Column<DateOnly>(type: "date", nullable: false),
+                Archived = table.Column<bool>(type: "boolean", nullable: false),
+                Revision = table.Column<long>(type: "bigint", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_Seasons", x => x.Id);
+                table.UniqueConstraint("AK_Seasons_ClubId_Id", x => new { x.ClubId, x.Id });
+                table.CheckConstraint("CK_Season_Dates", "\"StartsOn\" <= \"EndsOn\"");
+                table.ForeignKey(
+                    name: "FK_Seasons_Clubs_ClubId",
+                    column: x => x.ClubId,
+                    principalTable: "Clubs",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "SportTeams",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
+                SeasonId = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                GraduationYear = table.Column<int>(type: "integer", nullable: false),
+                Archived = table.Column<bool>(type: "boolean", nullable: false),
+                Revision = table.Column<long>(type: "bigint", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_SportTeams", x => x.Id);
+                table.UniqueConstraint("AK_SportTeams_ClubId_Id", x => new { x.ClubId, x.Id });
+                table.CheckConstraint("CK_Team_Year", "\"GraduationYear\" BETWEEN 2000 AND 2100");
+                table.ForeignKey(
+                    name: "FK_SportTeams_Seasons_ClubId_SeasonId",
+                    columns: x => new { x.ClubId, x.SeasonId },
+                    principalTable: "Seasons",
+                    principalColumns: new[] { "ClubId", "Id" },
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "TryoutEvents",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
+                SeasonId = table.Column<Guid>(type: "uuid", nullable: false),
+                Name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                Date = table.Column<DateOnly>(type: "date", nullable: false),
+                Location = table.Column<string>(type: "character varying(160)", maxLength: 160, nullable: false),
+                Revision = table.Column<long>(type: "bigint", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_TryoutEvents", x => x.Id);
+                table.UniqueConstraint("AK_TryoutEvents_ClubId_Id", x => new { x.ClubId, x.Id });
+                table.ForeignKey(
+                    name: "FK_TryoutEvents_Seasons_ClubId_SeasonId",
+                    columns: x => new { x.ClubId, x.SeasonId },
+                    principalTable: "Seasons",
+                    principalColumns: new[] { "ClubId", "Id" },
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "Participations",
+            columns: table => new
+            {
+                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
+                TryoutId = table.Column<Guid>(type: "uuid", nullable: false),
+                PlayerId = table.Column<Guid>(type: "uuid", nullable: false),
+                Bib = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                Decision = table.Column<int>(type: "integer", nullable: false),
+                TeamId = table.Column<Guid>(type: "uuid", nullable: true),
+                Revision = table.Column<long>(type: "bigint", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_Participations", x => new { x.ClubId, x.TryoutId, x.PlayerId });
+                table.CheckConstraint("CK_Participation_Decision", "\"Decision\" BETWEEN 0 AND 3 AND ((\"Decision\" = 1) = (\"TeamId\" IS NOT NULL))");
+                table.ForeignKey(
+                    name: "FK_Participations_Players_ClubId_PlayerId",
+                    columns: x => new { x.ClubId, x.PlayerId },
+                    principalTable: "Players",
+                    principalColumns: new[] { "ClubId", "Id" },
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_Participations_SportTeams_ClubId_TeamId",
+                    columns: x => new { x.ClubId, x.TeamId },
+                    principalTable: "SportTeams",
+                    principalColumns: new[] { "ClubId", "Id" },
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_Participations_TryoutEvents_ClubId_TryoutId",
+                    columns: x => new { x.ClubId, x.TryoutId },
+                    principalTable: "TryoutEvents",
+                    principalColumns: new[] { "ClubId", "Id" },
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "SeasonPlacements",
+            columns: table => new
+            {
+                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
+                SeasonId = table.Column<Guid>(type: "uuid", nullable: false),
+                PlayerId = table.Column<Guid>(type: "uuid", nullable: false),
+                TeamId = table.Column<Guid>(type: "uuid", nullable: true),
+                TryoutId = table.Column<Guid>(type: "uuid", nullable: true),
+                Revision = table.Column<long>(type: "bigint", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_SeasonPlacements", x => new { x.ClubId, x.SeasonId, x.PlayerId });
+                table.ForeignKey(
+                    name: "FK_SeasonPlacements_Players_ClubId_PlayerId",
+                    columns: x => new { x.ClubId, x.PlayerId },
+                    principalTable: "Players",
+                    principalColumns: new[] { "ClubId", "Id" },
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_SeasonPlacements_Seasons_ClubId_SeasonId",
+                    columns: x => new { x.ClubId, x.SeasonId },
+                    principalTable: "Seasons",
+                    principalColumns: new[] { "ClubId", "Id" },
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_SeasonPlacements_SportTeams_ClubId_TeamId",
+                    columns: x => new { x.ClubId, x.TeamId },
+                    principalTable: "SportTeams",
+                    principalColumns: new[] { "ClubId", "Id" },
+                    onDelete: ReferentialAction.Restrict);
+                table.ForeignKey(
+                    name: "FK_SeasonPlacements_TryoutEvents_ClubId_TryoutId",
+                    columns: x => new { x.ClubId, x.TryoutId },
+                    principalTable: "TryoutEvents",
+                    principalColumns: new[] { "ClubId", "Id" },
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "DecisionEvents",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
+                PlayerId = table.Column<Guid>(type: "uuid", nullable: false),
+                TryoutId = table.Column<Guid>(type: "uuid", nullable: false),
+                TryoutName = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                SeasonName = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                Kind = table.Column<int>(type: "integer", nullable: false),
+                TeamName = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true),
+                TeamId = table.Column<Guid>(type: "uuid", nullable: true),
+                PreviousTeamId = table.Column<Guid>(type: "uuid", nullable: true),
+                Author = table.Column<string>(type: "character varying(161)", maxLength: 161, nullable: false),
+                CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                Reason = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_DecisionEvents", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_DecisionEvents_Participations_ClubId_TryoutId_PlayerId",
+                    columns: x => new { x.ClubId, x.TryoutId, x.PlayerId },
+                    principalTable: "Participations",
+                    principalColumns: new[] { "ClubId", "TryoutId", "PlayerId" },
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "PlayerNotes",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
+                TryoutId = table.Column<Guid>(type: "uuid", nullable: false),
+                PlayerId = table.Column<Guid>(type: "uuid", nullable: false),
+                Text = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: false),
+                AuthorId = table.Column<string>(type: "character varying(450)", maxLength: 450, nullable: false),
+                Author = table.Column<string>(type: "character varying(161)", maxLength: 161, nullable: false),
+                CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                CorrectsId = table.Column<Guid>(type: "uuid", nullable: true)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_PlayerNotes", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_PlayerNotes_Participations_ClubId_TryoutId_PlayerId",
+                    columns: x => new { x.ClubId, x.TryoutId, x.PlayerId },
+                    principalTable: "Participations",
+                    principalColumns: new[] { "ClubId", "TryoutId", "PlayerId" },
+                    onDelete: ReferentialAction.Restrict);
+            });
+
         migrationBuilder.CreateIndex(
             name: "IX_AspNetRoleClaims_RoleId",
             table: "AspNetRoleClaims",
@@ -346,6 +579,76 @@ internal sealed partial class InitialCreate : Migration
             table: "Clubs",
             columns: new[] { "CreatedBy", "OperationId" },
             unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_DecisionEvents_ClubId_PlayerId_CreatedAt",
+            table: "DecisionEvents",
+            columns: new[] { "ClubId", "PlayerId", "CreatedAt" });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_DecisionEvents_ClubId_TryoutId_PlayerId",
+            table: "DecisionEvents",
+            columns: new[] { "ClubId", "TryoutId", "PlayerId" });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Participations_ClubId_PlayerId",
+            table: "Participations",
+            columns: new[] { "ClubId", "PlayerId" });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Participations_ClubId_TeamId",
+            table: "Participations",
+            columns: new[] { "ClubId", "TeamId" });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Participations_ClubId_TryoutId_Bib",
+            table: "Participations",
+            columns: new[] { "ClubId", "TryoutId", "Bib" },
+            unique: true,
+            filter: "\"Bib\" <> ''");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_PlayerNotes_ClubId_TryoutId_PlayerId",
+            table: "PlayerNotes",
+            columns: new[] { "ClubId", "TryoutId", "PlayerId" });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_PlayerNotes_CorrectsId",
+            table: "PlayerNotes",
+            column: "CorrectsId",
+            unique: true,
+            filter: "\"CorrectsId\" IS NOT NULL");
+
+        migrationBuilder.CreateIndex(
+            name: "IX_Players_ClubId_PlayerReference",
+            table: "Players",
+            columns: new[] { "ClubId", "PlayerReference" },
+            unique: true);
+
+        migrationBuilder.CreateIndex(
+            name: "IX_SeasonPlacements_ClubId_PlayerId",
+            table: "SeasonPlacements",
+            columns: new[] { "ClubId", "PlayerId" });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_SeasonPlacements_ClubId_TeamId",
+            table: "SeasonPlacements",
+            columns: new[] { "ClubId", "TeamId" });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_SeasonPlacements_ClubId_TryoutId",
+            table: "SeasonPlacements",
+            columns: new[] { "ClubId", "TryoutId" });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_SportTeams_ClubId_SeasonId",
+            table: "SportTeams",
+            columns: new[] { "ClubId", "SeasonId" });
+
+        migrationBuilder.CreateIndex(
+            name: "IX_TryoutEvents_ClubId_SeasonId",
+            table: "TryoutEvents",
+            columns: new[] { "ClubId", "SeasonId" });
     }
 
     /// <inheritdoc />
@@ -379,15 +682,39 @@ internal sealed partial class InitialCreate : Migration
             name: "ClubProfiles");
 
         migrationBuilder.DropTable(
+            name: "DecisionEvents");
+
+        migrationBuilder.DropTable(
             name: "PhotoDeletions");
+
+        migrationBuilder.DropTable(
+            name: "PlayerNotes");
+
+        migrationBuilder.DropTable(
+            name: "SeasonPlacements");
 
         migrationBuilder.DropTable(
             name: "AspNetRoles");
 
         migrationBuilder.DropTable(
-            name: "Clubs");
+            name: "AspNetUsers");
 
         migrationBuilder.DropTable(
-            name: "AspNetUsers");
+            name: "Participations");
+
+        migrationBuilder.DropTable(
+            name: "Players");
+
+        migrationBuilder.DropTable(
+            name: "SportTeams");
+
+        migrationBuilder.DropTable(
+            name: "TryoutEvents");
+
+        migrationBuilder.DropTable(
+            name: "Seasons");
+
+        migrationBuilder.DropTable(
+            name: "Clubs");
     }
 }

@@ -41,11 +41,9 @@
             <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" autocomplete="new-password" aria-required="true" placeholder="password" />
             <ValidationMessage For="() => Input.ConfirmPassword" class="error-text" />
         </div>
-        <button type="submit">Register</button>
+        <button class="primary-action" type="submit">Register</button>
     </EditForm>
     <section>
-        <h3>Use another service to register.</h3>
-        <hr />
         <ExternalLoginPicker />
     </section>
 </div>

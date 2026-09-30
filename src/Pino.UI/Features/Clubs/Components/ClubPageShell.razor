@@ -13,5 +13,14 @@
             <a href="/Account/Manage">Account</a>
         </nav>
     </header>
+    @if (Club is not null)
+    {
+        <nav class="club-navigation" aria-label="Club navigation">
+            <NavLink href="@($"/clubs/{Club.Id}")" Match="NavLinkMatch.All">Overview</NavLink>
+            <NavLink href="@($"/clubs/{Club.Id}/players")">Players</NavLink>
+            <NavLink href="@($"/clubs/{Club.Id}/seasons")">Seasons &amp; teams</NavLink>
+            @if (CanManagePeople) { <NavLink href="@($"/clubs/{Club.Id}/people")">People</NavLink> }
+        </nav>
+    }
     <main id="club-content" tabindex="-1">@ChildContent</main>
 </div>

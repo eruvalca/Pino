@@ -29,8 +29,5 @@ public sealed partial class PasskeySubmit
     [Parameter(CaptureUnmatchedValues = true)]
     public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
-    protected override void OnInitialized()
-    {
-        _tokens = Services.GetService<IAntiforgery>()?.GetTokens(HttpContext);
-    }
+    protected override void OnInitialized() => _tokens = Services.GetService<IAntiforgery>()?.GetTokens(HttpContext);
 }

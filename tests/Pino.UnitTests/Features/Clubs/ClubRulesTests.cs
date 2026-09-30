@@ -70,8 +70,8 @@ public sealed class ClubRulesTests
     [Fact]
     public void StaleAndInvalidRolesAreRejected()
     {
-        ClubRules.MemberChangeError(ClubRole.Administrator, ClubRole.Coach, null, 2)!.ShouldContain("role changed");
-        ClubRules.MemberChangeError(ClubRole.Coach, (ClubRole)99, null, 2)!.ShouldContain("valid member role");
+        ClubRules.MemberChangeError(ClubRole.Administrator, ClubRole.Coach, next: null, 2)!.ShouldContain("role changed");
+        ClubRules.MemberChangeError(ClubRole.Coach, (ClubRole)99, next: null, 2)!.ShouldContain("valid member role");
         ClubRules.MemberChangeError(ClubRole.Coach, ClubRole.Coach, (ClubRole)99, 2)!.ShouldContain("valid member role");
     }
 }

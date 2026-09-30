@@ -16,7 +16,7 @@ public sealed class NavMenuTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task AuthenticationStateSelectsGuestLinksOrEncodedIdentityAndLogoutAsync(bool authenticated)
+    public async Task AuthenticationStateSelectsGuestLinksOrAccountAndLogoutAsync(bool authenticated)
     {
         await using var context = new BunitContext();
         var authorization = context.AddAuthorization();
@@ -31,7 +31,7 @@ public sealed class NavMenuTests
 
         if (authenticated)
         {
-            component.Find("a[href='Account/Manage']").TextContent.ShouldBe(userName);
+            component.Find("a[href='Account/Manage']").TextContent.ShouldBe("Account");
             component.FindAll("admin, a[href='Account/Login'], a[href='Account/Register']").ShouldBeEmpty();
             component.Find("form[action='Account/Logout']").GetAttribute("method").ShouldBe("post");
         }

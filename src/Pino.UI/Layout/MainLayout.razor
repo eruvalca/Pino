@@ -1,13 +1,14 @@
 @inherits LayoutComponentBase
 
 <div class="page">
+    <a class="account-skip" href="#account-content">Skip to content</a>
     <header class="site-header">
         <div class="content-container">
             <NavMenu />
         </div>
     </header>
 
-    <main class="content-container">
+    <main id="account-content" class="content-container" tabindex="-1">
         @Body
     </main>
 </div>

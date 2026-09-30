@@ -31,11 +31,12 @@ public sealed class PhotoCleanupServiceTests
         await service.StartAsync(cancellationToken);
         try
         {
-            var tick = await created.Task.WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+            // Test watchdogs use real time; the substitute clock only drives the worker's timer.
+            var tick = await created.Task.WaitAsync(TimeSpan.FromSeconds(5), TimeProvider.System, cancellationToken);
             for (var attempt = 0; attempt < 2; attempt++)
             {
                 tick.Callback(tick.State);
-                var logged = await failures.Reader.ReadAsync(cancellationToken).AsTask().WaitAsync(TimeSpan.FromSeconds(5), cancellationToken);
+                var logged = await failures.Reader.ReadAsync(cancellationToken).AsTask().WaitAsync(TimeSpan.FromSeconds(5), TimeProvider.System, cancellationToken);
                 logged.ShouldBeSameAs(failure);
                 service.ExecuteTask!.IsCompleted.ShouldBeFalse();
             }

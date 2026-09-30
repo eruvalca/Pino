@@ -4,8 +4,5 @@ public sealed partial class Counter
 {
     private int _currentCount;
 
-    private void IncrementCount()
-    {
-        _currentCount++;
-    }
+    private void IncrementCount() => _currentCount++;
 }

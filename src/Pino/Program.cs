@@ -1,4 +1,6 @@
+using Cropper.Blazor.Extensions;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -6,11 +8,9 @@ using Pino.Components;
 using Pino.Data;
 using Pino.Features.Account.Endpoints;
 using Pino.Features.Account.Services;
-using Pino.ServiceDefaults;
-using Cropper.Blazor.Extensions;
-using Microsoft.AspNetCore.Http.Features;
 using Pino.Features.Clubs.Endpoints;
 using Pino.Features.Clubs.Services;
+using Pino.ServiceDefaults;
 using Pino.SharedKernel.Clubs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +22,8 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton<IProfilePhotoStore, ProfilePhotoStore>();
 builder.Services.AddHostedService<PhotoCleanupService>();
 builder.Services.AddScoped<ClubService>();
+builder.Services.AddScoped<Pino.Features.Sporting.Services.SportService>();
+builder.Services.AddScoped<Pino.SharedKernel.Sporting.ISportGateway, Pino.Features.Sporting.Services.ServerSportGateway>();
 builder.Services.AddScoped<IClubGateway, ServerClubGateway>();
 builder.Services.AddAntiforgery(options => options.HeaderName = "X-Pino-CSRF");
 
@@ -80,10 +82,7 @@ builder.Services.PostConfigure<HealthCheckServiceOptions>(options =>
 {
     var databaseCheck = options.Registrations.SingleOrDefault(registration =>
         string.Equals(registration.Name, nameof(ApplicationDbContext), StringComparison.Ordinal));
-    if (databaseCheck is not null)
-    {
-        databaseCheck.Timeout = TimeSpan.FromSeconds(5);
-    }
+    databaseCheck?.Timeout = TimeSpan.FromSeconds(5);
 });
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
@@ -96,7 +95,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
+builder.Services.AddSingleton<IEmailSender<ApplicationUser>, SmtpIdentityEmailSender>();
 builder.Services.AddScoped<IUserStore<ApplicationUser>, ClubUserStore>();
 
 var app = builder.Build();
@@ -113,14 +112,17 @@ else
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+// API callers need the original status; re-executing a JSON POST as a Razor form
+// replaces authorization failures with an unrelated form-content error.
+app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase),
+    branch => branch.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
 app.UseHttpsRedirection();
 app.Use(async (context, next) =>
 {
     if (context.Request.Path.StartsWithSegments("/api/clubs", StringComparison.OrdinalIgnoreCase) &&
         context.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } limits)
     {
-        limits.MaxRequestBodySize = 2 * 1024 * 1024;
+        limits.MaxRequestBodySize = context.Request.Path.Value?.Contains("/sport/", StringComparison.Ordinal) == true ? 8 * 1024 * 1024 : 2 * 1024 * 1024;
     }
     await next(context);
 });
@@ -136,6 +138,7 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 ClubEndpoints.Map(app);
+Pino.Features.Sporting.Endpoints.SportEndpoints.Map(app);
 app.MapDefaultEndpoints();
 
 await app.RunAsync();

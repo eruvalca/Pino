@@ -1,0 +1,29 @@
+@page "/clubs/{ClubId:guid}/players"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits SportPageBase
+
+<PageTitle>Players · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    <header class="sport-heading"><div><h1>Players</h1><p>Your club's catalog, from first tryout to the next season.</p></div><div class="actions"><a class="secondary-action" href="@($"/clubs/{ClubId}/players/import")">Import CSV</a><a class="primary-action" href="@($"/clubs/{ClubId}/players/new")">Add player</a></div></header>
+    <form class="sport-toolbar" @onsubmit="SearchAsync" @onsubmit:preventDefault>
+        <div class="form-field"><label for="player-search">Find a player</label><input id="player-search" type="search" maxlength="120" placeholder="Name or player reference" @bind="_query" /></div>
+        <div class="form-field"><label for="player-status">Catalog</label><select id="player-status" @bind="_archived"><option value="false">Active players</option><option value="true">Archived players</option></select></div>
+        <button class="secondary-action" disabled="@Disabled">Search</button>
+    </form>
+    @if (_players is { } result)
+    {
+        @if (result.Players.Count == 0)
+        {
+            <section class="sport-empty"><h2>@EmptyHeading</h2><p>@(_query.Length > 0 ? "Try a different name or player reference, or check the other catalog." : "Add players individually or import a CSV. Each player's record preserves their progression across seasons.")</p></section>
+        }
+        <ul class="record-list">
+        @foreach (var player in result.Players)
+        {
+            <li class="record-row" @key="player.Id"><div><h2><a href="@($"/clubs/{ClubId}/players/{player.Id}")">@player.FullName</a></h2><p class="muted">Class of @player.GraduationYear@(player.Position.Length > 0 ? $" · {player.Position}" : "")</p><small>Reference @player.PlayerReference</small></div><a href="@($"/clubs/{ClubId}/players/{player.Id}")">Open record</a></li>
+        }
+        </ul>
+        <nav class="pagination" aria-label="Player pages"><button class="secondary-action" disabled="@(Disabled || _page == 0)" @onclick="PreviousAsync">Previous</button><span>Page @(_page + 1)</span><button class="secondary-action" disabled="@(Disabled || !result.HasMore)" @onclick="NextAsync">Next</button></nav>
+    }
+</SportFrame>

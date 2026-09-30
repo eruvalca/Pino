@@ -51,7 +51,7 @@ public sealed class ExternalLoginTests
         account.Http.Request.Method = HttpMethods.Get;
         var principal = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Email, "member@example.test")], "Provider"));
         account.SignIn.GetExternalLoginInfoAsync().Returns(new ExternalLoginInfo(principal, "Provider", "key", "Provider"));
-        account.SignIn.ExternalLoginSignInAsync("Provider", "key", false, true).Returns(result);
+        account.SignIn.ExternalLoginSignInAsync("Provider", "key", isPersistent: false, bypassTwoFactor: true).Returns(result);
         context.Services.GetRequiredService<NavigationManager>().NavigateTo("Account/ExternalLogin?Action=LoginCallback");
         return account;
     }

@@ -10,7 +10,7 @@ internal sealed class ProfilePhotoStore(BlobServiceClient blobs) : IProfilePhoto
     public async Task UploadAsync(string key, byte[] jpeg, CancellationToken cancellationToken)
     {
         await Container.CreateIfNotExistsAsync(PublicAccessType.None, cancellationToken: cancellationToken);
-        using var stream = new MemoryStream(jpeg, writable: false);
+        await using var stream = new MemoryStream(jpeg, writable: false);
         await Container.GetBlobClient(key).UploadAsync(stream, new BlobUploadOptions
         {
             HttpHeaders = new BlobHttpHeaders { ContentType = "image/jpeg", CacheControl = "no-store" },

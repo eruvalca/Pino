@@ -9,6 +9,73 @@ those files change. See [AGENTS.md](../AGENTS.md) for agent instructions and the
 [test guide](../tests/README.md) for validation commands. Run commands from the
 repository root and stop Aspire before full builds on Windows.
 
+## Pre-commit style verification
+
+Before committing any changes, including documentation-only changes, run the
+following from the repository root and resolve every failure:
+
+```powershell
+dotnet restore Pino.slnx
+dotnet format Pino.slnx --verify-no-changes --no-restore --severity warn
+```
+
+The explicit restore can be omitted after a successful restore or build with no
+subsequent dependency changes. Run verification after the final C# or
+style/project configuration edit. Check the entire solution without file or
+diagnostic filters. After code changes, also complete the build and tests in
+[AGENTS.md](../AGENTS.md#validation-and-tests).
+
+This is a required workflow step, not an installed Git hook or MSBuild target.
+`--verify-no-changes` leaves source files unchanged and returns a nonzero exit
+code when findings need attention. Without a subcommand, `dotnet format` runs
+whitespace, style, and third-party analyzer passes. `--severity warn` checks
+warning/error-level rules while leaving suggestions advisory. It also checks import ordering.
+This catches editor-only rules such as IDE0001 and IDE0003 that ordinary builds
+do not enforce; it supplements compiler/analyzer checks rather than replacing them.
+
+Fix reported issues manually or with the relevant `dotnet format` subcommand, using `--include` or
+`--diagnostics` to scope repairs when useful, then review the diff and rerun the
+full verification command. Preserve behavior, unrelated changes, generated code,
+and installed third-party skill files. Do not weaken severity settings or exclude
+source files to obtain a passing check.
+
+## Comprehensive analyzer review
+
+To inspect suggestion-level findings as well as warnings and errors, run the full
+formatter in verification mode and retain its JSON report:
+
+```powershell
+dotnet format Pino.slnx --verify-no-changes --no-restore --severity info --report TestResults/code-quality.json
+dotnet build Pino.slnx --no-incremental
+```
+
+Restore first when required, as above. This inspects enabled rules from the SDK
+and installed analyzers, using their effective EditorConfig severities. It does
+not enable rules configured as `none`, include hidden diagnostics at the `info`
+threshold, or guarantee that every reported diagnostic has a code fix. The build
+also checks compiler, Razor, and build-only diagnostics that the formatter cannot
+fully cover. Follow code changes with the repository's tests.
+
+Review suggestions before applying fixes. In particular, deprecated MA0038/MA0041
+can misidentify C# primary-constructor dependencies and extension receivers as
+unused instance state; compare the actual member accesses and CA1822 analysis.
+MA0182 cannot establish usages of EF configurations discovered by assembly scanning
+or migrations loaded by EF. Preserve these types and validate model discovery.
+Keep the documented method-length, coupling, and naming-overlap guidance below;
+an advisory count alone does not justify restructuring working code.
+
+Use diagnostic/file filters only for repairs, then rerun the unfiltered audit.
+Inspect the report even when automatic fixes complete successfully. Document why
+remaining findings are intentional or tool limitations; use narrow, justified
+suppressions only when needed, such as an explicit local type that asserts a
+compile-time API contract in a test. Do not bulk-fix generated migrations or
+third-party files. Reports belong in ignored `TestResults`, not source control.
+
+`dotnet format` is not a formatter for Razor markup, JavaScript, CSS, JSON, XML,
+or documentation. Review the applicable encoding, newline, indentation, and
+whitespace settings separately with language-aware tools; preserve literal and
+rendered whitespace. Generated files remain under their owning tools' control.
+
 ## .NET SDK
 
 `global.json` selects the highest installed stable .NET 10.0 SDK at or above
@@ -292,10 +359,11 @@ is needed to distinguish a member from a same-named parameter or local variable.
 This preference is compatible with primary constructors and does not apply to
 passing `this` as an argument.
 
-With the 10.0.401 SDK baseline, IDE0003 is an editor-only diagnostic. Its warning
-severity does not fail ordinary `dotnet build` commands, even with code-style enforcement
-and warnings-as-errors enabled. Follow this convention when authoring or reviewing
-code; generated Razor output must remain untouched.
+With the selected SDK, IDE0001 (simplify names) and IDE0003 are editor-only
+diagnostics. Their warning severity does not fail ordinary `dotnet build`
+commands, even with code-style enforcement and warnings-as-errors enabled.
+The required [pre-commit style verification](#pre-commit-style-verification)
+checks these rules. Generated Razor output must remain untouched.
 
 Methods returning awaitable types, including `Task` and `ValueTask`, must end in
 `Async` (`MA0137`, warning). This includes methods that forward an awaitable
@@ -479,8 +547,7 @@ components can retain clear C# names such as `Error`, even when those names are
 keywords in another language.
 
 Use known concrete types where reported by `CA1859` (warning) when an abstraction
-serves no purpose. `IdentityNoOpEmailSender` owns a fixed `NoOpEmailSender`, so its
-private field uses that concrete type. Preserve interfaces at dependency injection
+serves no purpose. Preserve interfaces at dependency injection
 and component contract boundaries where they provide an actual abstraction; use a
 narrow, justified exception if necessary. The same convention applies to private
 implementation details in handwritten Razor code-behind.
