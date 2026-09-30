@@ -1,14 +1,14 @@
 @inherits LayoutComponentBase
 
 <div class="page">
-    <a class="account-skip" href="#account-content">Skip to content</a>
-    <header class="site-header">
-        <div class="content-container">
+    <a class="account-skip" data-enhance-nav="false" href="@(Navigation.Uri.Split('#')[0] + "#account-content")">Skip to content</a>
+    <header class="app-masthead">
+        <div class="app-width app-masthead-inner">
             <NavMenu />
         </div>
     </header>
 
-    <main id="account-content" class="content-container" tabindex="-1">
+    <main id="account-content" class="app-width app-content content-container" tabindex="-1">
         @Body
     </main>
 </div>

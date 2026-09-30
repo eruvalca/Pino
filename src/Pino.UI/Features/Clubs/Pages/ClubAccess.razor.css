@@ -1,4 +1,4 @@
-.access-sheet { max-width: 66rem; margin-inline: auto; padding: 2.5rem 3rem; background: var(--surface); border: 1px solid var(--line); }
+.access-sheet { padding: var(--app-sheet-padding); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
 h1 { font-size: 2.75rem; letter-spacing: -0.035em; margin-bottom: 2rem; }
 h2 { font-size: 2rem; letter-spacing: -0.025em; }
 .profile-strip { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1.5rem; padding-bottom: 2rem; border-bottom: 1px solid var(--line); }
@@ -20,7 +20,6 @@ h2 { font-size: 2rem; letter-spacing: -0.025em; }
 .actions { align-items: center; margin-block: 1rem; }
 .actions a { text-align: center; text-decoration: none; }
 @media (max-width: 45rem) {
-    .access-sheet { padding: 1.5rem 1.25rem; }
     h1 { font-size: 2rem; margin-bottom: 1.5rem; } h2 { font-size: 1.5rem; }
     .profile-strip { grid-template-columns: auto minmax(0, 1fr); gap: 1rem; padding-bottom: 1.5rem; }
     .profile-strip img { width: 64px; height: 64px; }

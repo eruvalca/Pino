@@ -1,24 +1,4 @@
-.page {
-    background: var(--canvas);
-    display: grid;
-    grid-template-rows: auto 1fr;
-    min-height: 100dvh;
-}
-
-.content-container {
-    width: 100%;
-    max-width: 72rem;
-    min-width: 0;
-    margin-inline: auto;
-    padding: clamp(1rem, 3vw, 2rem);
-}
-
-.site-header {
-    background: var(--navy);
-    color: var(--surface);
-}
-
-main.content-container { background: var(--surface); align-self: start; margin-block: 2rem; width: calc(100% - 3rem); border: 1px solid var(--line); }
+.page { background: var(--canvas); display: grid; grid-template-rows: auto 1fr; min-height: 100dvh; }
+.content-container { padding: var(--app-sheet-padding); background: var(--surface); align-self: start; border: 1px solid var(--line); border-radius: var(--radius); }
 .account-skip { position: absolute; top: -5rem; left: 1rem; z-index: 10; padding: 0.75rem; background: var(--surface); }
 .account-skip:focus { top: 0.5rem; }
-@media (max-width: 40rem) { main.content-container { width: calc(100% - 1.5rem); margin-block: 1rem; } }

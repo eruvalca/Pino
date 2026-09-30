@@ -1,0 +1,10 @@
+.season-summary { font-size: 1.125rem; max-width: 65ch; }
+.review-index { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; padding-block: 1rem; border-block: 1px solid var(--line); }
+.review-index a { padding-block: 0.5rem; min-height: 2.75rem; }
+.season-rosters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2.5rem; }
+.season-team { min-width: 0; }
+.season-team header { border-bottom: 1px solid var(--line-strong); padding-bottom: 0.75rem; }
+.season-player { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1rem; padding-block: 0.875rem; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.season-player span { color: var(--muted); font-size: 0.875rem; }
+@media (max-width: 50rem) { .season-rosters, .review-index { grid-template-columns: minmax(0, 1fr); } .review-index { gap: 0; } }
+@media (max-width: 35rem) { .season-player { grid-template-columns: minmax(0, 1fr); gap: 0.25rem; } }

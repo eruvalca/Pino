@@ -14,6 +14,26 @@ namespace Pino.ComponentTests.Layout;
 public sealed class NavMenuTests
 {
     [Theory]
+    [InlineData("", true)]
+    [InlineData("club/access?editProfile=true", true)]
+    [InlineData("clubs/123/players/new", true)]
+    [InlineData("clubs/123/tryouts/456#notes", true)]
+    [InlineData("Account/Manage", false)]
+    [InlineData("Account/Manage/Email", false)]
+    [InlineData("Account/Login?ReturnUrl=/clubs/123", false)]
+    public async Task WorkspaceSelectionTracksTheCurrentModeAsync(string route, bool selected)
+    {
+        await using var context = new BunitContext();
+        context.AddAuthorization().SetAuthorized("member");
+        var navigation = context.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo("Account/Manage");
+        var menu = context.Render<NavMenu>();
+        await menu.InvokeAsync(() => navigation.NavigateTo(route));
+        menu.Find(".navigation-links a").HasAttribute("aria-current").ShouldBe(selected);
+        menu.Find(".navigation-links a").ClassList.Contains("active").ShouldBe(selected);
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public async Task AuthenticationStateSelectsGuestLinksOrAccountAndLogoutAsync(bool authenticated)

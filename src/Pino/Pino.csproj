@@ -26,6 +26,7 @@
     <PackageReference Include="SkiaSharp" />
     <PackageReference Include="CsvHelper" />
     <PackageReference Include="MailKit" />
+    <PackageReference Include="QRCoder" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
     <PackageReference Include="OneOf" />
     <PackageReference Include="OneOf.SourceGenerator" PrivateAssets="all" />

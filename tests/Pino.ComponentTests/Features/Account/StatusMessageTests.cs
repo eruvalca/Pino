@@ -23,8 +23,9 @@ public sealed class StatusMessageTests
 
         var component = context.Render<StatusMessage>(parameters => parameters.AddCascadingValue<HttpContext>(http));
 
-        component.Find("[role='alert']").TextContent.ShouldBe(message);
-        component.Find("[role='alert']").GetAttribute("data-kind").ShouldBe(kind);
+        component.Find(".notice").TextContent.ShouldBe(message);
+        component.Find(".notice").GetAttribute("data-kind").ShouldBe(kind);
+        component.Find(".notice").GetAttribute("role").ShouldBe(string.Equals(kind, "error", StringComparison.Ordinal) ? "alert" : "status");
         component.FindAll("script").ShouldBeEmpty();
         var deletion = SetCookieHeaderValue.Parse(http.Response.Headers.SetCookie.ToString());
         deletion.Name.ToString().ShouldBe(IdentityRedirectManager.StatusCookieName);
@@ -46,11 +47,11 @@ public sealed class StatusMessageTests
         component.Markup.ShouldNotContain("Old status");
         if (string.IsNullOrEmpty(message))
         {
-            component.FindAll("[role='alert']").ShouldBeEmpty();
+            component.FindAll(".notice").ShouldBeEmpty();
         }
         else
         {
-            component.Find("[role='alert']").TextContent.ShouldBe(message);
+            component.Find(".notice").TextContent.ShouldBe(message);
         }
         SetCookieHeaderValue.Parse(http.Response.Headers.SetCookie.ToString()).Name.ToString()
             .ShouldBe(IdentityRedirectManager.StatusCookieName);
@@ -67,7 +68,7 @@ public sealed class StatusMessageTests
         var component = context.Render<StatusMessage>(parameters => parameters
             .AddCascadingValue<HttpContext>(http).Add(status => status.Message, message));
 
-        component.FindAll("[role='alert']").ShouldBeEmpty();
+        component.FindAll(".notice").ShouldBeEmpty();
         http.Response.Headers.SetCookie.ShouldBeEmpty();
     }
 

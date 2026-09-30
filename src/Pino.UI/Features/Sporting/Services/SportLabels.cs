@@ -7,6 +7,7 @@ internal static class SportLabels
 {
     internal static string Progress(TryoutSummary tryout) => tryout switch
     {
+        { Closed: true } => "Closed · results recorded",
         { Players: 0 } => "Needs players",
         { Complete: true } => "All decisions recorded",
         _ => string.Create(CultureInfo.CurrentCulture, $"{tryout.Players - tryout.Decided} awaiting decision"),

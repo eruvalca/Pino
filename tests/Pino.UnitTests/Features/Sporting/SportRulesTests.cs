@@ -9,6 +9,16 @@ namespace Pino.UnitTests.Features.Sporting;
 [SuppressMessage("Design", "CA1515:Consider making public types internal", Justification = "xUnit discovers public test classes.")]
 public sealed class SportRulesTests
 {
+    [Fact]
+    public void NewPlayersReceiveDistinctValidImportReferencesWithoutManualEntry()
+    {
+        var first = new PlayerInput { FirstName = "Avery", LastName = "Morgan", GraduationYear = 2030 };
+        var second = new PlayerInput { FirstName = "Avery", LastName = "Morgan", GraduationYear = 2030 };
+        SportRules.ValidPlayer(first).ShouldBeTrue();
+        SportRules.ValidPlayer(second).ShouldBeTrue();
+        first.PlayerReference.ShouldNotBe(second.PlayerReference, StringComparer.Ordinal);
+    }
+
     [Theory]
     [InlineData(2029, 2030, false)]
     [InlineData(2030, 2030, true)]

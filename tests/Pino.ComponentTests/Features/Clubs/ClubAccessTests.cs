@@ -20,6 +20,7 @@ public sealed class ClubAccessTests
 
     private static IClubGateway Configure(BunitContext context, AccessSnapshot snapshot)
     {
+        context.AddAuthorization().SetAuthorized("member");
         var gateway = Substitute.For<IClubGateway>();
         gateway.GetAccessAsync(Arg.Any<CancellationToken>()).Returns(snapshot);
         context.Services.AddSingleton(gateway);
@@ -43,6 +44,20 @@ public sealed class ClubAccessTests
     }
 
     [Fact]
+    public async Task ProfileQueryOpensCompletedProfileAndCancelClosesItAsync()
+    {
+        await using var context = new BunitContext();
+        Configure(context, new(_profile, new(_club, ClubRole.Coach), Request: null));
+        context.Services.GetRequiredService<NavigationManager>().NavigateTo("/club/access?editProfile=true");
+        var page = context.Render<ClubAccess>();
+        page.Find("#first-name").GetAttribute("value").ShouldBe("Ana");
+        page.Find("#last-name").GetAttribute("value").ShouldBe("Diaz");
+        await page.FindAll("button").Single(button => string.Equals(button.TextContent.Trim(), "Cancel", StringComparison.Ordinal)).ClickAsync();
+        page.FindAll("#first-name").ShouldBeEmpty();
+        page.Find(".profile-strip").TextContent.ShouldContain("Ana Diaz");
+    }
+
+    [Fact]
     public async Task IncompleteProfileRequiresPhotoAndDoesNotOfferClubChoiceAsync()
     {
         await using var context = new BunitContext();
@@ -51,7 +66,7 @@ public sealed class ClubAccessTests
         page.FindAll("#club-search").ShouldBeEmpty();
         await page.Find("#first-name").ChangeAsync("Ana");
         await page.Find("#last-name").ChangeAsync("Diaz");
-        await page.Find("form").SubmitAsync();
+        await page.Find("main form").SubmitAsync();
         page.Find(".notice").TextContent.ShouldContain("photo");
         await gateway.DidNotReceiveWithAnyArgs().SaveProfileAsync(default!, default);
     }
@@ -90,7 +105,7 @@ public sealed class ClubAccessTests
         await page.Find("#club-sport").ChangeAsync("Soccer");
         await page.Find("#club-city").ChangeAsync("Chicago");
         await page.Find("#club-state").ChangeAsync("IL");
-        await page.Find("form").SubmitAsync();
+        await page.Find("main form").SubmitAsync();
         await gateway.Received(1).CreateAsync(Arg.Is<CreateClubInput>(value => value.State == "IL" && value.City == "Chicago" && value.OperationId != Guid.Empty), Arg.Any<CancellationToken>());
         page.Find("#club-name").GetAttribute("value").ShouldBe("Northside FC");
         page.Find(".notice").TextContent.ShouldBe("Try again.");

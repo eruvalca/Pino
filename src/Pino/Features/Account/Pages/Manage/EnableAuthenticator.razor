@@ -22,7 +22,7 @@
 else if (_sharedKey is not null)
 {
     <StatusMessage Message="@_message" />
-    <h3>Configure authenticator app</h3>
+    <h2>Configure authenticator app</h2>
     <div>
         <p>To use an authenticator app go through the following steps:</p>
         <ol>
@@ -37,10 +37,9 @@ else if (_sharedKey is not null)
                 </p>
             </li>
             <li>
-                <p>Scan the QR Code or enter this key <kbd>@_sharedKey</kbd> into your two factor authenticator app. Spaces and casing do not matter.</p>
-                <div class="notice" data-kind="information">Learn how to <a href="https://go.microsoft.com/fwlink/?Linkid=852423">enable QR code generation</a>.</div>
-                <div></div>
-                <div data-url="@_authenticatorUri"></div>
+                <p>Scan this QR code with your authenticator app to add your Pino account.</p>
+                <img class="authenticator-qr" src="@_qrImage" alt="Authenticator setup QR code. You can use the manual key below instead." width="240" height="240" />
+                <p>On the same phone, or unable to scan? Add a time-based account named Pino and enter this key: <kbd class="authenticator-key">@_sharedKey</kbd>. Spaces and casing do not matter.</p>
             </li>
             <li>
                 <p>
@@ -51,7 +50,7 @@ else if (_sharedKey is not null)
                     <DataAnnotationsValidator />
                     <div class="form-field">
                         <label for="Input.Code">Verification Code</label>
-                        <InputText @bind-Value="Input.Code" id="Input.Code" autocomplete="off" placeholder="Enter the code" />
+                        <InputText @bind-Value="Input.Code" id="Input.Code" inputmode="numeric" autocomplete="one-time-code" placeholder="Enter the code" />
                         <ValidationMessage For="() => Input.Code" class="error-text" />
                     </div>
                     <button class="primary-action" type="submit">Verify</button>

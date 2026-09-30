@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Pino.Data;
 using Pino.Features.Account.Extensions;
+using QRCoder;
 
 namespace Pino.Features.Account.Pages.Manage;
 
@@ -21,6 +22,7 @@ public sealed partial class EnableAuthenticator
     private ApplicationUser? _user;
     private string? _sharedKey;
     private string? _authenticatorUri;
+    private string? _qrImage;
     private string[]? _recoveryCodes;
 
     [CascadingParameter]
@@ -92,6 +94,7 @@ public sealed partial class EnableAuthenticator
                 _sharedKey = ready.Key.FormatAuthenticatorKey();
                 var email = await UserManager.GetEmailAsync(user);
                 _authenticatorUri = GenerateQrCodeUri(email!, ready.Key);
+                _qrImage = "data:image/png;base64," + Convert.ToBase64String(PngByteQRCodeHelper.GetQRCode(_authenticatorUri, QRCodeGenerator.ECCLevel.Q, 6));
             },
             _ => SetMessageAsync("Error: The authenticator key could not be initialized. Please try again."));
     }
@@ -101,7 +104,7 @@ public sealed partial class EnableAuthenticator
         return string.Format(
             CultureInfo.InvariantCulture,
             _authenticatorUriFormat,
-            UrlEncoder.Encode("Microsoft.AspNetCore.Identity.UI"),
+            UrlEncoder.Encode("Pino"),
             UrlEncoder.Encode(email),
             unformattedKey);
     }

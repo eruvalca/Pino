@@ -1,34 +1,16 @@
-.account-navigation {
-    margin-block: 1rem 2rem;
-}
-
-.account-navigation ul {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
-    gap: 0.5rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.account-navigation ::deep a {
-    display: grid;
-    align-content: center;
-    min-height: 2.75rem;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-}
-
-.account-navigation ::deep a:hover {
-    background: var(--blue-soft);
-}
-
-.account-navigation ::deep a.active {
-    background: var(--blue-soft);
-    font-weight: 700;
-}
-
-@media (max-width: 35rem) {
-    .account-navigation { margin-block: 1rem 1.5rem; }
-    .account-navigation ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.account-navigation { display: grid; gap: 1.75rem; }
+.account-nav-group h2 { font-size: 0.875rem; letter-spacing: 0; color: var(--muted); margin: 0 0 0.5rem; }
+.account-nav-group ul { display: grid; gap: 0.25rem; list-style: none; margin: 0; padding: 0; }
+.account-navigation a { display: block; min-height: 2.75rem; padding: 0.65rem 0.75rem; color: var(--navy); text-decoration: none; border-radius: var(--radius); overflow-wrap: anywhere; }
+.account-navigation a:hover { background: var(--subtle); color: var(--blue); }
+.account-navigation a[aria-current="page"] { background: var(--blue-soft); color: var(--blue); font-weight: 650; }
+.account-section-tabs { display: none; }
+@media (max-width: 48rem) {
+    .account-navigation { gap: 0.5rem; }
+    .account-section-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
+    .account-section-tabs a { text-align: center; border-radius: 0; }
+    .account-section-tabs a.selected { box-shadow: inset 0 -2px var(--blue); color: var(--blue); font-weight: 650; }
+    .account-nav-group h2, .account-nav-group[data-current="false"] { display: none; }
+    .account-nav-group ul { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.25rem; }
+    .account-nav-group a { font-size: 0.875rem; }
 }

@@ -11,9 +11,10 @@
 
 <PageTitle>Manage your passkeys</PageTitle>
 
-<h3>Manage your passkeys</h3>
+<h2>Manage your passkeys</h2>
 
 <StatusMessage />
+<p>Passkeys let you sign in with your device's fingerprint, face recognition or screen lock. Keep another sign-in method available when removing one.</p>
 
 @if (_currentPasskeys is { Count: > 0 })
 {
@@ -33,7 +34,7 @@
                                 <div class="actions">
                                     <input type="hidden" name="CredentialId" value="@credentialId" />
                                     <button class="secondary-action" type="submit" name="Action" value="rename" title="Rename this passkey">Rename</button>
-                                    <button class="secondary-action" type="submit" name="Action" value="delete" title="Remove this passkey from your account">Delete</button>
+                                    <details class="passkey-removal"><summary>Remove passkey</summary><p>Remove <strong>@(passkey.Name ?? "Unnamed passkey")</strong>? It will no longer sign in to Pino.</p><div class="actions"><button class="secondary-action" type="submit" name="Action" value="delete">Confirm removal</button><a class="text-action" href="Account/Manage/Passkeys">Keep passkey</a></div></details>
                                 </div>
                             </form>
                         </td>

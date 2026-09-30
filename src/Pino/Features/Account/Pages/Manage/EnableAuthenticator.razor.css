@@ -1,0 +1,2 @@
+.authenticator-qr { display: block; width: 15rem; max-width: 100%; height: auto; margin-block: 1rem; image-rendering: pixelated; }
+.authenticator-key { overflow-wrap: anywhere; user-select: all; }

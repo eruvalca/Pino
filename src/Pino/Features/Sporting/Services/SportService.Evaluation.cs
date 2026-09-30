@@ -12,6 +12,7 @@ internal sealed partial class SportService
         WriteAsync<SportOutcome>(actor, clubId, async (db, _, token) =>
         {
             var tryout = await TryoutAsync(db, clubId, tryoutId, token);
+            if (tryout?.Closed == true) { return new SportOutcome.Invalid("Reopen the tryout before adding players."); }
             if (tryout is null || await SeasonAsync(db, clubId, tryout.SeasonId, token) is not { Archived: false })
             {
                 return new SportOutcome.Invalid("This tryout is unavailable or its season is archived.");
@@ -35,6 +36,7 @@ internal sealed partial class SportService
                 return new SportOutcome.Invalid("This tryout has reached 2,000 players. Create another tryout for additional players.");
             }
             db.Participations.Add(new() { ClubId = clubId, TryoutId = tryoutId, PlayerId = input.PlayerId, Bib = bib, Revision = 1 });
+            tryout.Revision++;
             if (!await db.SeasonPlacements.AnyAsync(value => value.ClubId == clubId && value.SeasonId == tryout.SeasonId && value.PlayerId == input.PlayerId, token))
             {
                 db.SeasonPlacements.Add(new() { ClubId = clubId, SeasonId = tryout.SeasonId, PlayerId = input.PlayerId });
@@ -53,6 +55,7 @@ internal sealed partial class SportService
             if (saved is not null) { return ReplayedDecision(saved, input); }
             var tryout = await TryoutAsync(db, clubId, tryoutId, token);
             var season = tryout is null ? null : await SeasonAsync(db, clubId, tryout.SeasonId, token);
+            if (tryout is { Closed: true }) { return new SportOutcome.Invalid("Reopen the tryout before changing decisions."); }
             if (tryout is null || season?.Archived != false) { return new SportOutcome.Invalid("Reopen the season before changing decisions."); }
             var entry = await db.Participations.SingleOrDefaultAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == input.PlayerId, token);
             if (entry is null) { return new SportOutcome.Invalid("This player is not enrolled in this tryout."); }
@@ -83,6 +86,7 @@ internal sealed partial class SportService
         entry.Decision = input.Kind;
         entry.TeamId = team?.Id;
         entry.Revision++;
+        tryout.Revision++;
         if (team is not null || placement.TryoutId == tryout.Id)
         {
             placement.TeamId = team?.Id;
@@ -124,6 +128,7 @@ internal sealed partial class SportService
             }
             var tryout = await TryoutAsync(db, clubId, tryoutId, token);
             if (tryout is null || await SeasonAsync(db, clubId, tryout.SeasonId, token) is not { Archived: false }) { return new SportOutcome.Invalid("Reopen the season before adding notes."); }
+            if (tryout.Closed) { return new SportOutcome.Invalid("Reopen the tryout before adding or correcting notes."); }
             if (!await db.Participations.AnyAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == input.PlayerId, token))
             {
                 return new SportOutcome.Invalid("This player is not enrolled in this tryout.");
@@ -146,6 +151,7 @@ internal sealed partial class SportService
                 CreatedAt = time.GetUtcNow(),
                 CorrectsId = input.CorrectsId,
             });
+            tryout.Revision++;
             return new SportOutcome.Saved(input.CorrectsId is null ? "Shared note saved." : "Correction saved. The earlier note remains in history.", input.Id);
         }, ct);
 }

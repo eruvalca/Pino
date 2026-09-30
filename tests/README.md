@@ -17,6 +17,51 @@ verify import recovery against PostgreSQL, using a direct server-service referen
 The unit suite also covers sporting validation, CSV parsing and player image
 normalization. Component tests cover persisted-tryout draft isolation, eligible
 team selection, save failures, revoked access and archived/prerendered controls.
+Bib editing tests cover saved-value conflict checks, independent drafts, clearing
+assignments and recovery without losing notes. The browser journey also verifies
+persisted edits, duplicate/length validation, archived-season restrictions and
+bib reuse across tryouts; access tests cover the new endpoint's protection.
+Manual creation is exercised without a reference field, while CSV imports must
+still supply explicit references and reject missing or repeated keys.
+
+Tryout review component tests exercise close confirmation and the reviewed token,
+archive/incomplete/prerender restrictions, historical-edition selection, result
+filters, retention of a reopening reason after failure and safe retries after an
+uncertain close. The opt-in closeout browser journey exercises PostgreSQL locking,
+stale reviews, empty/incomplete rosters, edit restrictions, archived seasons,
+reopening, retained editions and their independence from current season rosters.
+Enrollment refresh tests cover closure and season archival, dismissal of the open
+panel and preservation of unsaved notes; the browser journey exercises closure
+from another page using keyboard controls at a phone width. A PostgreSQL query
+interceptor verifies that closing reads current results without loading historical
+rosters, while the review still returns every recorded edition.
+The maximum-roster journey seeds its own disposable club with 2,000 participants,
+checks filtering and maximum-length names/bibs at 320px, and verifies every closed
+result is preserved. This fixture targets review and closeout, not enrollment.
+Access-boundary tests exercise coach close/reopen permissions, revoked membership
+and antiforgery on the closeout endpoints.
+Account navigation tests cover nested section selection and route-preserving
+skip links; authenticator tests check the locally generated QR content alongside
+the manual key. The browser journey submits the account contact form, follows the
+name/photo link, checks keyboard skip navigation and mobile settings groups, and
+captures the review/account surfaces at desktop, phone and narrow widths.
+
+The application-shell journey compares account, club access, overview, people,
+players and seasons at 1993px, 1440px, 800px, 390px and 320px. It verifies matching
+masthead/content widths, current global navigation, long club names, keyboard
+skip navigation and protected logout from an interactive club page. Component
+tests retain Seasons & teams selection on nested team/tryout routes and keep
+People available only to administrators. Read layout dimensions after
+InteractiveAuto has replaced prerendered elements, not during that transition.
+
+`PhotoEditorTests` covers interactive readiness, file validation, cancellation,
+source cleanup, load recovery and Cropper's external ready/error callbacks.
+The browser journey verifies wheel and button zoom, keyboard movement, explicit
+crop confirmation, adjustment after confirmation, save gating and the persisted
+512 × 512 player photo. Captures cover member/player framing and preview at
+desktop, phone and 320px widths, plus navigation, player details, enrollment,
+account settings, club/season/team pages and the public sample. Internal import
+references must stay out of ordinary player and enrollment views.
 
 ## Supported stack
 

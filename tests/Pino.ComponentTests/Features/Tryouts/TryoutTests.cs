@@ -11,10 +11,22 @@ namespace Pino.ComponentTests.Features.Tryouts;
     Justification = "xUnit requires public test classes for discovery.")]
 public sealed class TryoutTests
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RosterNavigationWaitsForInteractivityAsync(bool interactive)
+    {
+        await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", interactive));
+        var page = context.Render<TryoutPage>();
+        page.Find(".roster-back").HasAttribute("disabled").ShouldBe(!interactive);
+    }
+
     [Fact]
     public async Task MissingDecisionAndTeamErrorsAreAssociatedWithTheirControlsAsync()
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         await page.Find(".decision-toggle").ClickAsync();
@@ -35,6 +47,7 @@ public sealed class TryoutTests
     public async Task FilteringPreservesWholeTryoutProgressAndSelectedPlayerAsync()
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         await page.Find("#player-search").InputAsync("Avery");
@@ -54,6 +67,7 @@ public sealed class TryoutTests
     public async Task BibSearchMatchesDisplayedAndUnpaddedNumbersAsync(string search, string expectedPlayer)
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         await page.Find("#player-search").InputAsync(search);
@@ -66,6 +80,7 @@ public sealed class TryoutTests
     public async Task FailedNoteRetainsDraftAndRetryAddsExactlyOneObservationAsync()
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         await page.Find("#shared-note").InputAsync("Keeps the passing lane open.");
@@ -85,6 +100,7 @@ public sealed class TryoutTests
     public async Task DraftStaysWithItsPlayerAcrossSelectionChangesAsync()
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         await page.Find("#shared-note").InputAsync("Avery draft");
@@ -102,6 +118,7 @@ public sealed class TryoutTests
     public async Task EveryCompletedOutcomeCompletesSinglePlayerTryoutAsync(string kind, string label)
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         await page.Find("#sample-roster").ChangeAsync("single");
@@ -129,6 +146,7 @@ public sealed class TryoutTests
     public async Task GraduationEligibilityIsCheckedEvenForForgedSelectionAsync(int row, string team, bool eligible)
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         await page.FindAll(".player-row")[row].ClickAsync();
@@ -149,6 +167,7 @@ public sealed class TryoutTests
     public async Task ReplacingPlacementKeepsHistoryAndOnlyOneCurrentTeamAsync()
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         foreach (var team in new[] { "1", "2" })
@@ -172,6 +191,7 @@ public sealed class TryoutTests
     public async Task SavingNotePreservesDecisionAndPendingConflictSimulationAsync()
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         await page.Find(".decision-toggle").ClickAsync();
@@ -202,6 +222,7 @@ public sealed class TryoutTests
     public async Task ConcurrentDecisionRequiresReviewBeforeRetryAsync()
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         await page.Find(".decision-toggle").ClickAsync();
@@ -223,6 +244,7 @@ public sealed class TryoutTests
     public async Task UnavailableWritesKeepNotesAndDraftIntactAsync(string condition, string message)
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         await page.Find("#shared-note").InputAsync("Keep this draft.");
@@ -237,6 +259,7 @@ public sealed class TryoutTests
     public async Task EmptyRosterIsNotReportedAsCompletedAndCanBeRestoredAsync()
     {
         await using var context = new BunitContext();
+        context.SetRendererInfo(new("Server", isInteractive: true));
         context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         var page = context.Render<TryoutPage>();
         await page.Find("#sample-roster").ChangeAsync("empty");

@@ -1,7 +1,7 @@
 .tryout-shell { min-height: 100dvh; background: var(--canvas); }
 .club-header { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 2rem; min-height: 5rem; padding: 1rem max(2rem, calc((100vw - 88rem) / 2)); background: var(--navy); color: white; }
-.wordmark { color: white; text-decoration: none; font-size: 2rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
-.wordmark span { color: #95b5ef; }
+.wordmark { display: inline-grid; grid-auto-flow: column; align-items: center; gap: 0.6rem; color: white; text-decoration: none; font-size: 2rem; font-weight: 800; letter-spacing: -0.035em; line-height: 1; }
+.wordmark .brand-dot { color: #95b5ef; }
 .club-name { font-size: 0.9375rem; font-weight: 650; }
 .club-name span { display: block; color: #c2d0e5; font-size: 0.75rem; font-weight: 400; }
 .sample-label { padding: 0.3rem 0.6rem; border: 1px solid #64748c; border-radius: var(--radius-small); color: #e1eafa; font-size: 0.75rem; }

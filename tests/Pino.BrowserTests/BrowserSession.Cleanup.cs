@@ -21,6 +21,7 @@ internal sealed partial class BrowserSession
               ON CONFLICT ("PhotoKey") DO UPDATE SET "NotBefore" = NOW();
             DELETE FROM "PlayerNotes" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "DecisionEvents" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
+            DELETE FROM "TryoutCloseouts" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "Participations" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "SeasonPlacements" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "Players" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);

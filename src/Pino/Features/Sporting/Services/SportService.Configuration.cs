@@ -76,6 +76,7 @@ internal sealed partial class SportService
             if (season?.Archived != false) { return new SportOutcome.Invalid("Choose an active season. Reopen an archived season to change its tryouts."); }
             if (input.Date < season.StartsOn || input.Date > season.EndsOn) { return new SportOutcome.Invalid("The tryout date must fall within the season."); }
             var tryout = await TryoutAsync(db, clubId, input.Id, token);
+            if (tryout?.Closed == true) { return new SportOutcome.Invalid("Reopen the tryout before changing its details."); }
             if ((tryout?.Revision ?? 0) != input.Revision) { return new SportOutcome.Conflict(StaleMessage); }
             if (tryout is not null && tryout.SeasonId != input.SeasonId) { return new SportOutcome.Invalid("A tryout's season cannot change. Create a new tryout in the other season."); }
             if (await db.TryoutEvents.AnyAsync(value => value.ClubId == clubId && value.SeasonId == input.SeasonId && value.Id != input.Id && EF.Functions.ILike(value.Name, SportRules.EscapeLike(input.Name.Trim()), "\\"), token))

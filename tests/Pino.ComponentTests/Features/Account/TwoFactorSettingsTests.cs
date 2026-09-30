@@ -46,7 +46,8 @@ public sealed class TwoFactorSettingsTests
 
         var component = account.Render<TwoFactorAuthentication>(context);
 
-        component.FindAll(".notice, form").ShouldBeEmpty();
+        component.FindAll(".notice[data-kind='error'], .notice[data-kind='warning'], form").ShouldBeEmpty();
+        component.Find(".notice[data-kind='success'] strong").TextContent.ShouldBe("Two-factor authentication is on.");
         component.Find("a[href='Account/Manage/GenerateRecoveryCodes']").TextContent.ShouldBe("Reset recovery codes");
         component.Find("a[href='Account/Manage/Disable2fa']").TextContent.ShouldBe("Disable 2FA");
     }
@@ -64,7 +65,8 @@ public sealed class TwoFactorSettingsTests
 
         var component = account.Render<TwoFactorAuthentication>(context);
 
-        component.FindAll(".notice, form, a[href='Account/Manage/Disable2fa'], a[href='Account/Manage/GenerateRecoveryCodes']").ShouldBeEmpty();
+        component.FindAll(".notice[data-kind='error'], .notice[data-kind='warning'], form, a[href='Account/Manage/Disable2fa'], a[href='Account/Manage/GenerateRecoveryCodes']").ShouldBeEmpty();
+        component.Find(".notice[data-kind='information'] strong").TextContent.ShouldBe("Two-factor authentication is off.");
         component.Find("a[href='Account/Manage/EnableAuthenticator']").TextContent.ShouldBe(hasKey ? "Set up authenticator app" : "Add authenticator app");
         component.FindAll("a[href='Account/Manage/ResetAuthenticator']").Count.ShouldBe(hasKey ? 1 : 0);
     }

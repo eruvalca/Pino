@@ -1,0 +1,10 @@
+.account-heading { padding-bottom: 1.5rem; margin-bottom: 2rem; border-bottom: 1px solid var(--line); }
+.account-heading h1 { font-size: clamp(2rem, 4vw, 2.75rem); letter-spacing: -0.035em; margin-bottom: 0.5rem; }
+.account-heading p { color: var(--muted); margin-bottom: 0; }
+.account-workspace { display: grid; grid-template-columns: 14rem minmax(0, 1fr); gap: 3rem; align-items: start; }
+.account-workspace ::deep .account-navigation { position: sticky; top: 1.5rem; }
+.account-task { min-width: 0; }
+.account-task ::deep h2 { margin-top: 0; font-size: 1.625rem; letter-spacing: -0.025em; }
+.account-task ::deep h3 { font-size: 1.125rem; margin-top: 1.75rem; }
+.account-return { margin-bottom: 1.5rem; }
+@media (max-width: 48rem) { .account-heading { margin-bottom: 1rem; padding-bottom: 1rem; } .account-workspace { grid-template-columns: minmax(0, 1fr); gap: 1.75rem; } .account-workspace ::deep .account-navigation { position: static; } }

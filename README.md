@@ -12,6 +12,9 @@ See the [early-development migration workflow](#ef-migrations).
 
 - [Product context](PRODUCT.md): confirmed users, workflows, requirements, and open decisions.
 - [Sporting workspace](docs/features/club-sporting-workspace.md): players, CSV import, seasons, teams, persisted tryouts and history.
+- [Season review and closeout](docs/features/season-review-closeout.md): current rosters, reviewed result editions and closing/reopening tryouts.
+- [Account navigation](docs/features/account-navigation.md): grouped settings, nested pages and notebook refinements.
+- [Application shell](docs/features/application-shell.md): shared club/account navigation, page width and responsive layout.
 - [Tryout demonstration](docs/features/tryout-evaluation.md): the separate fictional sample and its design direction.
 - [Club onboarding and access](docs/features/club-onboarding-access.md): persisted profiles, private photos, requests, roles, and membership management.
 - [Design system](DESIGN.md): the implemented Sideline notebook visual system.
@@ -33,8 +36,19 @@ From the club navigation:
 3. Open the tryout, **Add players**, then select a player to write shared notes
    and record their outcome. Each save persists to PostgreSQL. Refresh saved
    decisions before resolving a stale-save message.
-4. Follow **Player record & history** or a team link to revisit placements.
-   Archive a season when finished; reopen it to make corrections.
+   Set an optional bib number while adding each player, or assign, change or clear
+   it under **Bib number (this tryout)** in their notebook. Bibs are specific to
+   that tryout; a separate import reference is generated automatically for manual
+   player creation. CSV imports still supply their own references for duplicate checks.
+4. Use **Review season** to see current team rosters, participating players without
+   a team, and outstanding tryout decisions. Follow **Player record & history** or
+   a team link for the decisions behind current placements.
+5. Open **Review results & closeout** in a tryout. Once every player has a decision,
+   review the results and confirm **Close tryout**. Closing preserves a result
+   edition and locks that tryout's roster, bibs, notes, decisions and setup.
+   Reopen it with a reason when corrections are needed; earlier editions remain.
+6. Archive a season when finished. Restoring it permits sporting changes again
+   but leaves its closed tryouts closed until explicitly reopened.
 
 Coaches and administrators have the same sporting permissions. Administrators
 also manage **People**. All operations recheck current club membership on the
@@ -65,6 +79,12 @@ join one. `/club/access` shows the current profile and membership/request state.
 Existing members visiting `/` continue to `/clubs/{clubId}`; administrators use
 `/clubs/{clubId}/people` for requests and members. Real club workspaces contain
 no sample players or seasons.
+
+Member profiles and player records share the photo editor. Choose a JPEG/PNG,
+drag to position it and scroll/pinch to zoom, or use the labeled movement and
+zoom buttons. Select **Use this crop**, inspect the square preview, then save
+the profile or player. **Adjust crop** reopens framing; discarding restores the
+saved photo. The record cannot be saved with an unconfirmed crop.
 
 Aspire runs Azurite as `profilestorage` with a managed data volume and supplies
 the `profileblobs` connection to the server and migration resource. Profile
@@ -327,7 +347,9 @@ Feature code uses these properties (`db.Players`, `db.Seasons`, and so on).
 EF Core derives application table names from the set names: `Clubs`,
 `ClubProfiles`, `ClubMemberships`, `ClubJoinRequests`, `PhotoDeletions`, `Players`,
 `Seasons`, `SportTeams`, `TryoutEvents`, `Participations`, `SeasonPlacements`,
-`PlayerNotes`, and `DecisionEvents`. Identity retains its default `AspNet*`
+`PlayerNotes`, `DecisionEvents`, `TryoutCloseouts`, and `TryoutCloseoutPlayers`.
+Closeout player rows preserve historical values separately from current catalog
+and placement records. Identity retains its default `AspNet*`
 tables and schema version 3, including passkeys.
 
 Each entity's `IEntityTypeConfiguration<T>` class keeps its explicit mapping beside

@@ -9,4 +9,5 @@ internal sealed class TryoutEvent
     public DateOnly Date { get; set; }
     public string Location { get; set; } = "";
     public long Revision { get; set; }
+    public bool Closed { get; set; }
 }

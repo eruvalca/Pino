@@ -1,13 +1,13 @@
 <article class="player-notebook" aria-labelledby="player-heading">
-    <div class="notebook-toolbar">
-        <button type="button" class="text-action roster-back" disabled="@Session.Busy" @onclick="OnBack"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m10 5-7 7 7 7M3 12h18" /></svg> Roster</button>
-        <span class="player-bib">Bib @Player.Bib.ToString("00", System.Globalization.CultureInfo.InvariantCulture)</span>
-    </div>
+    <button type="button" class="text-action roster-back" disabled="@(Session.Busy || !RendererInfo.IsInteractive)" @onclick="OnBack"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m10 5-7 7 7 7M3 12h18" /></svg> Roster</button>
     <header class="player-heading">
+        <BibBadge Number="@(Player.Bib.ToString("00", System.Globalization.CultureInfo.InvariantCulture))" />
+        <div class="player-identity">
         <h2 id="player-heading" tabindex="-1" @ref="_heading">@Player.Name</h2>
         <p>Graduation year <strong>@Player.GraduationYear</strong><span aria-hidden="true"> · </span>@Player.Position</p>
         <span class="decision-badge" data-kind="@Player.Decision.Kind">@Player.Decision.Label</span>
         @if (Player.Decision.AssignedTeam is { } team) { <span class="assigned-team">@team.Name · Spring 2027</span> }
+        </div>
     </header>
     <NoteComposer OnChanged="OnChanged" />
     <ObservationList />

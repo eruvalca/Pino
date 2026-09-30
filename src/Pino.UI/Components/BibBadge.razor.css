@@ -1,0 +1,8 @@
+.bib-badge { display: grid; width: 5.25rem; text-align: center; border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; background: var(--surface); font-variant-numeric: tabular-nums; }
+.bib-label { padding: 0.15rem 0.35rem; background: var(--navy); color: var(--surface); font-size: 0.625rem; line-height: 1.4; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.bib-badge strong { padding: 0.55rem 0.3rem; color: var(--blue); font-size: 2.25rem; line-height: 1.1; font-weight: 750; letter-spacing: -0.035em; overflow-wrap: anywhere; }
+.bib-badge[data-long="true"] strong { font-size: 1.125rem; line-height: 1.35; letter-spacing: 0; }
+.bib-badge[data-compact="true"] { width: 3.25rem; }
+.bib-badge[data-compact="true"] .bib-label { font-size: 0.5625rem; padding-block: 0.1rem; }
+.bib-badge[data-compact="true"] strong { font-size: 1.25rem; padding: 0.35rem 0.2rem; }
+.bib-badge[data-compact="true"][data-long="true"] strong { font-size: 0.8125rem; }

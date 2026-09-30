@@ -12,8 +12,11 @@ v1 behavior without further questions. They extend the Sideline notebook system.
 - A campaign is called a tryout; it belongs to one season. Teams also belong to
   one season. Dates are inclusive, and tryout dates fall within that season.
 - Players require first name, last name and high-school graduation year. Position,
-  contact email and photo are optional. A club-local player reference distinguishes
-  people with the same name and year. Records can be archived and restored.
+  contact email and photo are optional. Manual creation generates a club-local
+  import reference automatically; CSV supplies its own reference. This separate
+  import key distinguishes people with the same name and year and prevents repeat
+  imports. It appears in CSV feedback, not ordinary player, enrollment or roster
+  views. Records can be archived and restored.
 - CSV uses PlayerReference,FirstName,LastName,GraduationYear,Position,ContactEmail.
   Imports create new players, never silently update existing ones. All rows must
   validate before any are saved; duplicate references are reported with row numbers.
@@ -21,9 +24,12 @@ v1 behavior without further questions. They extend the Sideline notebook system.
   Team and player identity are retained instead of deleting historical records.
 - Notes are shared. Authors can append a correction to their own note; the earlier
   text remains in history. Other staff cannot rewrite someone else's observation.
-- Decisions are Awaiting, Placed, Withdrawn or Not selected. Completion is derived
-  from a nonempty roster with no Awaiting decisions. Reopening one decision reopens
-  the tryout. Empty tryouts are clearly marked as needing players.
+- Decisions are Awaiting, Placed, Withdrawn or Not selected. A nonempty roster
+  with no Awaiting decisions is ready to close; it remains editable until staff
+  explicitly close the reviewed results. Empty tryouts need players. A closed
+  tryout must be reopened with a reason before editing its decisions or roster.
+  The [season review and closeout brief](season-review-closeout.md) defines the
+  lock, permissions, review conflicts and preserved result editions.
 - A new placement replaces the current team in that season and preserves history.
   Withdrawing/reopening a decision clears a current placement only when that
   tryout created it; a placement from another tryout remains. The UI explains this.
@@ -35,9 +41,12 @@ v1 behavior without further questions. They extend the Sideline notebook system.
 
 The club's **Players** page opens the catalog, individual editor and CSV import.
 **Seasons & teams** opens season configuration; each season links its team rosters
-and tryouts. Within a tryout, **Add players** enrolls catalog records, and selecting
+and tryouts. **Review season** brings current rosters, players without a team and
+tryout progress together. Within an open tryout, **Add players** enrolls catalog records, and selecting
 a roster entry opens its shared notebook. Player records and team pages retain
-current placements and the decision history that produced them.
+current placements and the decision history that produced them. **Review results
+& closeout** leads to the result ledger, explicit close confirmation and earlier
+closed editions. Closed results remain distinct from current season placements.
 
 - Catalog and enrollment searches show 50 players per page. A tryout supports up
   to 2,000 participants. Filtering an enrolled roster does not remove anyone.
@@ -49,15 +58,28 @@ current placements and the decision history that produced them.
   against current records and commits the entire valid batch together.
   Every row must contain exactly six fields. Database retries recognize a batch
   that already committed; a new submission of existing references remains invalid.
-- Player photos accept JPEG/PNG up to 5 MB and 4,096 pixels on either side.
-  The server stores only a normalized 512 × 512 center crop, with metadata
-  removed, behind club membership checks. EXIF rotation and mirroring are applied
-  before cropping. Player photos need no separate crop step.
+- The player photo editor accepts JPEG/PNG up to 5 MB. Staff drag, scroll/pinch to
+  zoom, or use keyboard-operable buttons to frame a square. **Use this crop**
+  produces a 512 × 512 JPEG preview; **Adjust crop** returns to framing and
+  **Discard photo change** restores the saved image. Save is blocked while a crop
+  is pending, and failed saves retain the confirmed preview.
+  Server image validation still bounds direct uploads to 5 MB and 4,096 pixels
+  per side, applies EXIF orientation, removes metadata and normalizes them to a
+  512 × 512 square. Images remain behind club membership checks.
 - Notes allow 4,000 characters; decision context allows 1,000. Corrections append
   a new version of the author's latest note. Earlier versions remain readable.
 - An archived player stays in existing tryouts and history but cannot be newly
   enrolled. A team with current players cannot be archived. Record names remain
   unique within their club or season even when archived.
+- **Bib number** identifies a player within one tryout. Set it when adding the
+  player, or use **Bib number (this tryout)** in the selected player's notebook
+  to assign, edit or clear it afterward. It accepts up to 20 characters, is
+  optional, and must be unique among nonempty bibs in that tryout. Other tryouts
+  may reuse the number. The club-wide player reference is a separate CSV key.
+  Bib saves compare the previously observed bib under the shared write lock;
+  conflicting changes require **Reload saved bib**. Retrying an already-saved
+  value succeeds without changing decision revisions. Bib drafts stay with their
+  player while switching notebooks, and reloading a bib preserves other drafts.
 - Unsaved drafts survive switching players and failed saves within the current
   tryout page. Navigating away or reloading loses them. After a conflict, refresh
   saved decisions, review the current result, then submit the intended revision.

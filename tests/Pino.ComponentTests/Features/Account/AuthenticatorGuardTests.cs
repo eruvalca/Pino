@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using Pino.Features.Account.Pages.Manage;
+using QRCoder;
 using Shouldly;
 using Xunit;
 
@@ -108,8 +109,8 @@ public sealed class AuthenticatorGuardTests
 
         var component = account.Render<EnableAuthenticator>(context);
 
-        component.Find("[data-url]").GetAttribute("data-url").ShouldBe(
-            "otpauth://totp/Microsoft.AspNetCore.Identity.UI:member%2Btag%26issuer%3Dother@example.test?secret=ABCDEFGHIJKL&issuer=Microsoft.AspNetCore.Identity.UI&digits=6");
+        component.Find(".authenticator-qr").GetAttribute("src").ShouldBe(
+            "data:image/png;base64," + Convert.ToBase64String(PngByteQRCodeHelper.GetQRCode("otpauth://totp/Pino:member%2Btag%26issuer%3Dother@example.test?secret=ABCDEFGHIJKL&issuer=Pino&digits=6", QRCodeGenerator.ECCLevel.Q, 6)));
     }
 
     [Theory]

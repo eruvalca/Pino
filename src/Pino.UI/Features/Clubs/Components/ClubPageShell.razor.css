@@ -1,17 +1,16 @@
-.club-shell { min-height: 100vh; background: var(--canvas); }
+.club-shell { min-height: 100dvh; background: var(--canvas); display: flow-root; }
 .skip-link { position: absolute; top: -5rem; left: 1rem; z-index: 10; padding: 0.75rem 1rem; background: var(--surface); }
 .skip-link:focus { top: 0.5rem; }
-.access-masthead { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1rem; padding: 1.25rem 2rem; background: var(--navy); color: white; }
-.masthead-identity { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1.5rem; }
-.active-club { width: fit-content; max-width: 40ch; font-weight: 650; overflow-wrap: anywhere; text-underline-offset: 0.2em; }
-.access-wordmark { font-size: 2rem; line-height: 1.2; font-weight: 800; letter-spacing: -0.035em; text-decoration: none; }
-.access-wordmark span { color: #a6c6ff; }
-.access-masthead a { color: white; }
-.access-masthead nav { display: grid; grid-template-columns: auto auto; gap: 1.5rem; }
-.access-masthead a:focus-visible { outline-color: #a6c6ff; }
-main { padding: 2.5rem 1.5rem 4rem; }
-.club-navigation { display: grid; grid-template-columns: repeat(4, max-content); gap: 1.5rem; padding: 0.75rem 2rem; background: var(--surface); border-bottom: 1px solid var(--line); overflow-x: auto; }
-.club-navigation ::deep a { padding: 0.5rem 0; color: var(--muted); text-decoration: none; font-size: 0.875rem; font-weight: 650; white-space: nowrap; }
-.club-navigation ::deep a.active { color: var(--blue); box-shadow: 0 2px var(--blue); }
-@media (max-width: 40rem) { .club-navigation { gap: 1.25rem; padding-inline: 1rem; } }
-@media (max-width: 40rem) { .access-masthead { padding: 1rem; align-items: start; } .masthead-identity { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; } .active-club { font-size: 0.875rem; } .access-masthead nav { gap: 1rem; padding-top: 0.375rem; font-size: 0.875rem; } main { padding: 1rem 0.75rem 3rem; } }
+.club-context { background: var(--surface); border-bottom: 1px solid var(--line); }
+.club-context-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1.5rem; padding-block: 0.75rem; }
+.active-club { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.75rem; justify-self: start; max-width: 36ch; min-height: 2.75rem; color: var(--navy); font-weight: 700; text-decoration: none; }
+.active-club span { overflow-wrap: anywhere; }
+.active-club svg { width: 1rem; height: 1rem; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.active-club:hover { color: var(--blue); text-decoration: underline; text-underline-offset: 0.2em; }
+.club-navigation { display: grid; grid-auto-flow: column; grid-auto-columns: auto; gap: 0.25rem; }
+.club-navigation ::deep a { display: grid; align-items: center; min-height: 2.75rem; padding: 0.65rem 1rem; color: var(--muted); text-decoration: none; font-size: 0.875rem; font-weight: 650; border-radius: var(--radius); }
+.club-navigation ::deep a:hover { color: var(--blue); background: var(--subtle); }
+.club-navigation ::deep a.active { color: var(--blue); background: var(--blue-soft); box-shadow: inset 0 -2px var(--blue); }
+@media (max-width: 60rem) { .club-context-inner { grid-template-columns: minmax(0, 1fr); gap: 0.5rem; } .club-navigation { justify-content: start; } }
+@media (max-width: 35rem) { .club-navigation { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; } .club-navigation ::deep a { padding: 0.65rem 0.75rem; } }
+@media (prefers-reduced-motion: no-preference) { .club-navigation ::deep a { transition: background-color 160ms ease-out, color 160ms ease-out; } }

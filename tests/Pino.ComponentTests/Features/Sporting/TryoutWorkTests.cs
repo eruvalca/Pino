@@ -27,6 +27,7 @@ public sealed partial class TryoutWorkTests
     }
     private static ISportGateway Configure(BunitContext context, TryoutDetail data, ClubRole role = ClubRole.Coach)
     {
+        context.AddAuthorization().SetAuthorized("member");
         var clubs = Substitute.For<IClubGateway>();
         clubs.GetAccessAsync(Arg.Any<CancellationToken>()).Returns(new AccessSnapshot(new("Avery", "Coach", new("/photo", UriKind.Relative)),
             new(new(_clubId, "Northside", "Soccer", "Chicago", "IL"), role), Request: null));
@@ -124,12 +125,12 @@ public sealed partial class TryoutWorkTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public async Task ArchivedSeasonDisablesBothMutationFormsAsync(bool archived)
+    public async Task ArchivedSeasonDisablesMutationFormsAsync(bool archived)
     {
         await using var context = new BunitContext();
         Configure(context, Data(archived));
         var page = Render(context);
-        page.FindAll(".player-notebook fieldset").Count.ShouldBe(2);
+        page.FindAll(".player-notebook fieldset").Count.ShouldBe(3);
         page.FindAll(".player-notebook fieldset").All(fieldset => fieldset.HasAttribute("disabled") == archived).ShouldBeTrue();
     }
 
@@ -141,6 +142,7 @@ public sealed partial class TryoutWorkTests
         context.SetRendererInfo(new("Static", isInteractive: false));
         var page = Render(context);
         page.Find(".note-composer fieldset").HasAttribute("disabled").ShouldBeTrue();
+        page.Find(".bib-editor fieldset").HasAttribute("disabled").ShouldBeTrue();
         page.FindAll($"a[href='/clubs/{_clubId}/people']").ShouldBeEmpty();
     }
 

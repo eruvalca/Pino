@@ -12,7 +12,7 @@ using Pino.Data;
 namespace Pino.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260929235723_InitialCreate")]
+    [Migration("20260930040030_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -695,11 +695,106 @@ namespace Pino.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Pino.Features.Sporting.Data.TryoutCloseout", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ClosedBy")
+                        .IsRequired()
+                        .HasMaxLength(161)
+                        .HasColumnType("character varying(161)");
+
+                    b.Property<Guid>("ClubId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ReopenReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTimeOffset?>("ReopenedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReopenedBy")
+                        .HasMaxLength(161)
+                        .HasColumnType("character varying(161)");
+
+                    b.Property<string>("SeasonName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateOnly>("TryoutDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("TryoutId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TryoutName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClubId", "TryoutId", "ClosedAt");
+
+                    b.ToTable("TryoutCloseouts");
+                });
+
+            modelBuilder.Entity("Pino.Features.Sporting.Data.TryoutCloseoutPlayer", b =>
+                {
+                    b.Property<Guid>("CloseoutId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Bib")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("Decision")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<int>("GraduationYear")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid?>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TeamName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("CloseoutId", "PlayerId");
+
+                    b.ToTable("TryoutCloseoutPlayers");
+                });
+
             modelBuilder.Entity("Pino.Features.Sporting.Data.TryoutEvent", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("Closed")
+                        .HasColumnType("boolean");
 
                     b.Property<Guid>("ClubId")
                         .HasColumnType("uuid");
@@ -970,6 +1065,25 @@ namespace Pino.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Pino.Features.Sporting.Data.TryoutCloseout", b =>
+                {
+                    b.HasOne("Pino.Features.Sporting.Data.TryoutEvent", null)
+                        .WithMany()
+                        .HasForeignKey("ClubId", "TryoutId")
+                        .HasPrincipalKey("ClubId", "Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Pino.Features.Sporting.Data.TryoutCloseoutPlayer", b =>
+                {
+                    b.HasOne("Pino.Features.Sporting.Data.TryoutCloseout", null)
+                        .WithMany("Players")
+                        .HasForeignKey("CloseoutId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Pino.Features.Sporting.Data.TryoutEvent", b =>
                 {
                     b.HasOne("Pino.Features.Sporting.Data.Season", null)
@@ -978,6 +1092,11 @@ namespace Pino.Migrations
                         .HasPrincipalKey("ClubId", "Id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Pino.Features.Sporting.Data.TryoutCloseout", b =>
+                {
+                    b.Navigation("Players");
                 });
 #pragma warning restore 612, 618
         }

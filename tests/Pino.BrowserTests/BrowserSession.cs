@@ -44,7 +44,7 @@ internal sealed partial class BrowserSession(IPlaywright playwright, IBrowser br
         await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(Password);
         await Page.GetByLabel("Confirm Password", new() { Exact = true }).FillAsync(Password);
         await Page.GetByRole(AriaRole.Button, new() { Name = "Register", Exact = true }).ClickAsync();
-        await Page.WaitForURLAsync("**/Account/RegisterConfirmation?**");
+        await Page.WaitForURLAsync("**/Account/RegisterConfirmation?**", new() { WaitUntil = WaitUntilState.Commit });
         await Page.GotoAsync(await EmailLinkAsync(email, "Confirm your Pino account"));
         await Page.GetByText("Thank you for confirming your email.").WaitForAsync();
         await LoginAsync(email, Password);
@@ -57,7 +57,7 @@ internal sealed partial class BrowserSession(IPlaywright playwright, IBrowser br
         await Page.GetByLabel("Email", new() { Exact = true }).FillAsync(email);
         await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(password);
         await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
-        await Page.WaitForURLAsync(url => !url.Contains("/Account/Login", StringComparison.Ordinal));
+        await Page.WaitForURLAsync(url => !url.Contains("/Account/Login", StringComparison.Ordinal), new() { WaitUntil = WaitUntilState.Commit });
     }
 
     internal async Task<string> EmailLinkAsync(string email, string subject)
@@ -104,7 +104,7 @@ internal sealed partial class BrowserSession(IPlaywright playwright, IBrowser br
         await Page.GetByLabel("First name", new() { Exact = true }).FillAsync("Avery");
         await Page.GetByLabel("Last name", new() { Exact = true }).FillAsync("Coach");
         await Page.GetByLabel("Profile photo", new() { Exact = true }).SetInputFilesAsync(new FilePayload { Name = "test-profile.png", MimeType = "image/png", Buffer = Photo() });
-        await Page.Locator(".cropper-crop-box").WaitForAsync();
+        await ConfirmPhotoAsync("Save profile", "profile-photo");
         await Page.GetByRole(AriaRole.Button, new() { Name = "Save profile", Exact = true }).ClickAsync();
         await Page.GetByRole(AriaRole.Heading, new() { Name = "Find your club" }).WaitForAsync();
     }

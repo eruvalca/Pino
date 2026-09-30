@@ -3,26 +3,26 @@
 @inject NavigationManager NavigationManager
 
 <div class="site-navigation">
-    <a class="site-name" href="">Pino<span aria-hidden="true">.</span></a>
+    <a class="site-name" href=""><PinoMark /><span>Pino<span class="brand-dot" aria-hidden="true">.</span></span></a>
 
     <nav aria-label="Main navigation">
         <ul class="navigation-links">
-            <li><NavLink href="" Match="NavLinkMatch.All">Club workspace</NavLink></li>
+            <li><a href="" class="@(IsWorkspace ? "active" : null)" aria-current="@(IsWorkspace ? "location" : null)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v11h-6v-7H9v7H3Z" /></svg><span>Club workspace</span></a></li>
 
             <AuthorizeView>
                 <Authorized>
-                    <li><NavLink href="Account/Manage">Account</NavLink></li>
+                    <li><NavLink href="Account/Manage"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4" /><path d="M4 22v-3a8 8 0 0 1 16 0v3" /></svg><span>Account</span></NavLink></li>
                     <li>
                         <form action="Account/Logout" method="post">
                             <AntiforgeryToken />
                             <input type="hidden" name="ReturnUrl" value="@_currentUrl" />
-                            <button type="submit">Logout</button>
+                            <button type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H4v16h6M9 12h12m-5-5 5 5-5 5" /></svg><span>Logout</span></button>
                         </form>
                     </li>
                 </Authorized>
                 <NotAuthorized>
-                    <li><NavLink href="Account/Register">Register</NavLink></li>
-                    <li><NavLink href="Account/Login">Login</NavLink></li>
+                    <li><NavLink href="Account/Register"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="4" /><path d="M2 21v-3a7 7 0 0 1 14 0v3M19 5v8m-4-4h8" /></svg><span>Register</span></NavLink></li>
+                    <li><NavLink href="Account/Login"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v16h-6M3 12h12m-5-5 5 5-5 5" /></svg><span>Login</span></NavLink></li>
                 </NotAuthorized>
             </AuthorizeView>
         </ul>

@@ -8,7 +8,8 @@ public sealed class PlayerInput
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public long Revision { get; set; }
-    [Required, StringLength(40)] public string PlayerReference { get; set; } = "";
+    // Manual creation supplies an automatic import key; CSV parsing supplies the file's explicit key.
+    [Required, StringLength(40)] public string PlayerReference { get; set; } = Guid.NewGuid().ToString("N").ToUpperInvariant();
     [Required, StringLength(80)] public string FirstName { get; set; } = "";
     [Required, StringLength(80)] public string LastName { get; set; } = "";
     [Range(2000, 2100)] public int GraduationYear { get; set; } = DateTime.UtcNow.Year + 5;

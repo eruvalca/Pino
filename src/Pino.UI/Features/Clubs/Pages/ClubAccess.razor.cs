@@ -22,6 +22,8 @@ public sealed partial class ClubAccess(IClubGateway gateway, NavigationManager n
     private bool _creating;
     private bool _confirmLeave;
     private bool _focusHeading;
+    private bool _editProfileRequestHandled;
+    [SupplyParameterFromQuery(Name = "editProfile")] private bool EditProfileRequested { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -30,6 +32,12 @@ public sealed partial class ClubAccess(IClubGateway gateway, NavigationManager n
         {
             navigation.NavigateTo($"/clubs/{member.Club.Id}");
         }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (EditProfileRequested && !_editProfileRequestHandled) { EditProfile(); }
+        _editProfileRequestHandled = EditProfileRequested;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

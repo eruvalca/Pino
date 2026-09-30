@@ -7,7 +7,7 @@ public sealed partial class SportingWorkflowTests
 {
     private static async Task VerifySeasonIndependenceAsync(BrowserSession session, string path, SportOverview overview)
     {
-        var player = (await session.GetAsync<PlayerPage>(path + "/players?query=NS-001&archived=false&page=0")).Players.ShouldHaveSingleItem();
+        var player = (await session.GetAsync<PlayerPage>(path + "/players?query=Jordan&archived=false&page=0")).Players.ShouldHaveSingleItem();
         var original = overview.Tryouts.Single();
         var firstTeam = overview.Teams.Single();
         await PlaceAsync(session, path, original.Id, player.Id, firstTeam.Id);

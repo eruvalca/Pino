@@ -10,19 +10,22 @@
 
 <PageTitle>Profile</PageTitle>
 
-<h3>Profile</h3>
+<h2>Profile</h2>
 <StatusMessage />
+<section class="account-identity"><h3>Your name &amp; photo</h3><p>Your club profile is how other staff recognize you. Update your first name, last name and photo in Your club.</p><a class="secondary-action" href="club/access?editProfile=true">Edit name &amp; photo</a></section>
+<h3>Account contact details</h3>
 
 <EditForm class="account-form" Model="Input" FormName="profile" OnValidSubmit="OnValidSubmitAsync" method="post">
     <DataAnnotationsValidator />
     <ValidationSummary class="error-text" role="alert" />
     <div class="form-field">
         <label for="username">Username</label>
-        <input type="text" value="@_username" id="username" placeholder="Choose your username." disabled />
+        <input type="text" value="@_username" id="username" disabled aria-describedby="username-help" />
+        <p id="username-help" class="muted">Your username is managed with your sign-in email. <a href="Account/Manage/Email">Manage email</a>.</p>
     </div>
     <div class="form-field">
         <label for="Input.PhoneNumber">Phone number</label>
-        <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" placeholder="Enter your phone number" />
+        <InputText @bind-Value="Input.PhoneNumber" id="Input.PhoneNumber" type="tel" autocomplete="tel" placeholder="Enter your phone number" />
         <ValidationMessage For="() => Input.PhoneNumber" class="error-text" />
     </div>
     <button class="primary-action" type="submit">Save</button>

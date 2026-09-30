@@ -20,6 +20,8 @@ internal sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext
     internal DbSet<SeasonPlacement> SeasonPlacements => Set<SeasonPlacement>();
     internal DbSet<PlayerNote> PlayerNotes => Set<PlayerNote>();
     internal DbSet<DecisionEvent> DecisionEvents => Set<DecisionEvent>();
+    internal DbSet<TryoutCloseout> TryoutCloseouts => Set<TryoutCloseout>();
+    internal DbSet<TryoutCloseoutPlayer> TryoutCloseoutPlayers => Set<TryoutCloseoutPlayer>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

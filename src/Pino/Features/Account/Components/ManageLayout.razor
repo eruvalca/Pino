@@ -1,10 +1,11 @@
 @inherits LayoutComponentBase
 @layout Pino.UI.Layout.MainLayout
 
-<h1>Manage your account</h1>
-
-<div>
-    <p class="muted">Change your account settings</p>
+<header class="account-heading"><h1>Your account</h1><p>Keep your details current and your sign-in secure.</p></header>
+<div class="account-workspace">
     <ManageNavMenu />
-    @Body
+    <section class="account-task" aria-label="Current account setting">
+        @if (IsChildPage) { <p class="account-return"><a href="@AccountNavigation.Href(Section)">Back to @AccountNavigation.Label(Section)</a></p> }
+        @Body
+    </section>
 </div>

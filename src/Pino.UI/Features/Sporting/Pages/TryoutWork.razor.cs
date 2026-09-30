@@ -25,7 +25,9 @@ public sealed partial class TryoutWork : SportPageBase
     private ElementReference _rosterHeading;
     private bool _focusPlayer;
     private bool _focusRoster;
+    private Guid? _savedNoteId;
 
+    private bool CanEnroll => _data is { Season.Archived: false, Tryout.Closed: false };
     private RosterEntry? Selected => _data?.Roster.FirstOrDefault(entry => entry.Player.Id == _selectedId);
     private EvaluationDraft? Draft => _drafts.GetValueOrDefault(_selectedId);
     private IEnumerable<RosterEntry> Filtered => (_data?.Roster ?? []).Where(Matches);
@@ -40,6 +42,7 @@ public sealed partial class TryoutWork : SportPageBase
         var data = await Gateway.GetTryoutAsync(ClubId, TryoutId, Token);
         if (_data?.Tryout.Id != data.Tryout.Id) { _drafts.Clear(); _selectedId = Guid.Empty; }
         _data = data;
+        if (!CanEnroll) { _enrolling = false; }
         if (!_data.Roster.Any(entry => entry.Player.Id == _selectedId)) { _selectedId = _data.Roster.Count > 0 ? _data.Roster[0].Player.Id : Guid.Empty; }
         foreach (var entry in _data.Roster) { _drafts.TryAdd(entry.Player.Id, new(entry)); }
     }
@@ -59,7 +62,7 @@ public sealed partial class TryoutWork : SportPageBase
     });
     private Task ToggleEnrollmentAsync() => ExecuteAsync(async () =>
     {
-        _enrolling = !_enrolling;
+        _enrolling = CanEnroll && !_enrolling;
         if (_enrolling) { _candidates = await Gateway.GetPlayersAsync(ClubId, _candidateQuery, archived: false, _candidatePage, Token); }
     });
     private Task SearchCandidatesAsync() { _candidatePage = 0; return LoadCandidatesAsync(); }
@@ -68,12 +71,29 @@ public sealed partial class TryoutWork : SportPageBase
     private Task LoadCandidatesAsync() => ExecuteAsync(async () => _candidates = await Gateway.GetPlayersAsync(ClubId, _candidateQuery, archived: false, _candidatePage, Token));
     private async Task EnrollAsync(Guid playerId)
     {
+        if (!CanEnroll) { return; }
         if (await SaveAsync(() => Gateway.EnrollAsync(ClubId, TryoutId, new(playerId, _bib), Token)))
         {
             _bib = "";
             await ExecuteAsync(LoadAsync);
         }
     }
+    private async Task SaveBibNumberAsync()
+    {
+        if (Selected is not { } entry || Draft is not { } draft) { return; }
+        var input = new BibNumberInput(entry.Player.Id, draft.BibNumber, draft.SavedBibNumber);
+        if (await SaveAsync(() => Gateway.SaveBibNumberAsync(ClubId, TryoutId, input, Token)))
+        {
+            draft.ReloadBibNumber(input.BibNumber.Trim());
+            await ExecuteAsync(LoadAsync);
+        }
+    }
+    private Task ReloadBibNumberAsync() => ExecuteAsync(async () =>
+    {
+        await LoadAsync();
+        if (Selected is { } entry && Draft is { } draft) { draft.ReloadBibNumber(entry.Bib); }
+        Message = "Saved bib number reloaded. Other drafts are still here."; MessageKind = "information";
+    });
     private async Task SaveNoteAsync()
     {
         if (Selected is not { } entry || Draft is not { } draft) { return; }
@@ -82,6 +102,7 @@ public sealed partial class TryoutWork : SportPageBase
         draft.LastNoteAttempt = input;
         if (await SaveAsync(() => Gateway.AddNoteAsync(ClubId, TryoutId, input, Token)))
         {
+            _savedNoteId = input.Id;
             draft.Note = ""; draft.NoteId = Guid.NewGuid(); draft.CorrectsId = null;
             draft.LastNoteAttempt = null;
             await ExecuteAsync(LoadAsync);

@@ -28,6 +28,10 @@ internal static class SportEndpoints
             catch (KeyNotFoundException) { return Results.NotFound(); }
         });
         group.MapGet("/overview", (Guid clubId, HttpContext context, SportService service, CancellationToken ct) => service.GetOverviewAsync(context.User, clubId, ct));
+        group.MapGet("/seasons/{seasonId:guid}/review", (Guid clubId, Guid seasonId, HttpContext context, SportService service, CancellationToken ct) => service.GetSeasonReviewAsync(context.User, clubId, seasonId, ct));
+        group.MapGet("/tryouts/{tryoutId:guid}/review", (Guid clubId, Guid tryoutId, HttpContext context, SportService service, CancellationToken ct) => service.GetTryoutReviewAsync(context.User, clubId, tryoutId, ct));
+        group.MapPost("/tryouts/{tryoutId:guid}/close", async (Guid clubId, Guid tryoutId, CloseTryoutInput input, HttpContext context, SportService service, CancellationToken ct) => (await service.CloseTryoutAsync(context.User, clubId, tryoutId, input, ct)).ToReply());
+        group.MapPost("/tryouts/{tryoutId:guid}/reopen", async (Guid clubId, Guid tryoutId, ReopenTryoutInput input, HttpContext context, SportService service, CancellationToken ct) => (await service.ReopenTryoutAsync(context.User, clubId, tryoutId, input, ct)).ToReply());
         group.MapGet("/teams/{teamId:guid}", (Guid clubId, Guid teamId, HttpContext context, SportService service, CancellationToken ct) => service.GetTeamAsync(context.User, clubId, teamId, ct));
         group.MapGet("/players", (Guid clubId, string query, bool archived, int page, HttpContext context, SportService service, CancellationToken ct) => service.GetPlayersAsync(context.User, clubId, query, archived, page, ct));
         group.MapGet("/players/{playerId:guid}", (Guid clubId, Guid playerId, HttpContext context, SportService service, CancellationToken ct) => service.GetPlayerAsync(context.User, clubId, playerId, ct));
@@ -37,6 +41,7 @@ internal static class SportEndpoints
         group.MapPost("/teams", async (Guid clubId, TeamInput input, HttpContext context, SportService service, CancellationToken ct) => (await service.SaveTeamAsync(context.User, clubId, input, ct)).ToReply());
         group.MapPost("/tryouts", async (Guid clubId, TryoutInput input, HttpContext context, SportService service, CancellationToken ct) => (await service.SaveTryoutAsync(context.User, clubId, input, ct)).ToReply());
         group.MapPost("/tryouts/{tryoutId:guid}/players", async (Guid clubId, Guid tryoutId, EnrollmentInput input, HttpContext context, SportService service, CancellationToken ct) => (await service.EnrollAsync(context.User, clubId, tryoutId, input, ct)).ToReply());
+        group.MapPost("/tryouts/{tryoutId:guid}/bib", async (Guid clubId, Guid tryoutId, BibNumberInput input, HttpContext context, SportService service, CancellationToken ct) => (await service.SaveBibNumberAsync(context.User, clubId, tryoutId, input, ct)).ToReply());
         group.MapPost("/tryouts/{tryoutId:guid}/decisions", async (Guid clubId, Guid tryoutId, DecisionInput input, HttpContext context, SportService service, CancellationToken ct) => (await service.DecideAsync(context.User, clubId, tryoutId, input, ct)).ToReply());
         group.MapPost("/tryouts/{tryoutId:guid}/notes", async (Guid clubId, Guid tryoutId, NoteInput input, HttpContext context, SportService service, CancellationToken ct) => (await service.AddNoteAsync(context.User, clubId, tryoutId, input, ct)).ToReply());
         group.MapPost("/import", (Guid clubId, ImportInput input, HttpContext context, SportService service, CancellationToken ct) => service.ImportAsync(context.User, clubId, input, ct));

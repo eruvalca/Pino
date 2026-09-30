@@ -1,0 +1,51 @@
+@using Cropper.Blazor.Components
+
+<section class="photo-editor" aria-label="@($"{Label} editor")">
+    <div class="photo-selection">
+        <div class="photo-result" data-ready="@(_preview is not null ? "true" : "false")">
+            @if (_preview is not null || SavedPhotoUrl is not null)
+            {
+                <img src="@(_preview ?? SavedPhotoUrl?.ToString())" alt="@(_preview is not null ? $"Selected {Label.ToLowerInvariant()} crop" : $"Saved {Label.ToLowerInvariant()}")" width="192" height="192" />
+            }
+            else
+            {
+                <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="32" cy="23" r="10" /><path d="M13 54v-4a19 19 0 0 1 38 0v4M5 15V5h10M49 5h10v10M59 49v10H49M15 59H5V49" /></svg>
+                <span>No photo selected</span>
+            }
+        </div>
+        <div class="photo-upload">
+            <div class="form-field">
+                <label for="@InputId">@Label</label>
+                <InputFile id="@InputId" OnChange="ChooseAsync" accept="image/jpeg,image/png" disabled="@Unavailable" aria-describedby="@($"{InputId}-help")" />
+                <p id="@($"{InputId}-help")" class="muted">JPEG or PNG, up to 5 MB. @HelpText</p>
+            </div>
+            @if (_preview is not null && !_editing)
+            {
+                <p class="photo-confirmation" role="status"><strong>Crop ready to save</strong><span>This is the square photo that will be saved with your record.</span></p>
+                <div class="photo-actions"><button type="button" class="secondary-action" disabled="@Unavailable" @onclick="AdjustAsync">Adjust crop</button><button type="button" class="text-action" disabled="@Unavailable" @onclick="CancelAsync">Discard photo change</button></div>
+            }
+            else if (!_editing)
+            {
+                <p class="photo-guidance">A familiar face makes field-side recognition easier. Choose a photo, frame it, then check your crop before saving.</p>
+            }
+        </div>
+    </div>
+    @if (_error is not null) { <p class="notice" data-kind="error" role="alert">@_error</p> }
+    @if (_source is not null && _editing)
+    {
+        <div class="crop-editor">
+            <div class="crop-stage"><CropperComponent @key="_source" @ref="_cropper" Src="@_source" Options="_options" Class="photo-cropper" InputAttributes="_imageAttributes" OnReadyEvent="_ => PhotoStateChanged(true)" OnErrorLoadImageEvent="_ => PhotoStateChanged(false)" /></div>
+            <div class="crop-tools">
+                <h3>Frame your photo</h3>
+                <p>Drag to position. Scroll or pinch to zoom. The square is your crop.</p>
+                <fieldset disabled="@(Unavailable || !_ready)" class="crop-controls">
+                    <legend>Position and zoom</legend>
+                    <div class="crop-zoom"><button type="button" class="secondary-action" @onclick="() => _cropper?.Zoom(-0.1m)">Zoom out</button><button type="button" class="secondary-action" @onclick="() => _cropper?.Zoom(0.1m)">Zoom in</button></div>
+                    <div class="crop-move"><button type="button" class="secondary-action" @onclick="() => _cropper?.Move(-20, 0)">Move left</button><button type="button" class="secondary-action" @onclick="() => _cropper?.Move(20, 0)">Move right</button><button type="button" class="secondary-action" @onclick="() => _cropper?.Move(0, -20)">Move up</button><button type="button" class="secondary-action" @onclick="() => _cropper?.Move(0, 20)">Move down</button></div>
+                    <button type="button" class="primary-action" @onclick="ApplyAsync">@(Processing ? "Preparing crop…" : "Use this crop")</button>
+                </fieldset>
+                <button type="button" class="text-action" disabled="@Unavailable" @onclick="CancelAsync">Cancel photo change</button>
+            </div>
+        </div>
+    }
+</section>
