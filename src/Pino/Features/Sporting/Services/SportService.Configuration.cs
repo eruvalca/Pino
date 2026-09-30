@@ -23,7 +23,7 @@ internal sealed partial class SportService
             }
             if (await db.TryoutEvents.AnyAsync(value => value.ClubId == clubId && value.SeasonId == input.Id && (value.Date < input.StartsOn || value.Date > input.EndsOn), token))
             {
-                return new SportOutcome.Invalid("Season dates must include every existing tryout. Adjust those tryouts first.");
+                return new SportOutcome.Invalid("Season dates must include all its tryouts. Change the tryout dates first.");
             }
             if (season is null)
             {
@@ -42,23 +42,21 @@ internal sealed partial class SportService
         WriteAsync<SportOutcome>(actor, clubId, async (db, _, token) =>
         {
             if (!SportRules.Valid(input) || input.Id == Guid.Empty) { return new SportOutcome.Invalid("Enter a team name and graduation year between 2000 and 2100."); }
-            var season = await SeasonAsync(db, clubId, input.SeasonId, token);
-            if (season?.Archived != false) { return new SportOutcome.Invalid("Choose an active season. Reopen an archived season to change its teams."); }
             var team = await db.SportTeams.SingleOrDefaultAsync(value => value.ClubId == clubId && value.Id == input.Id, token);
             if ((team?.Revision ?? 0) != input.Revision) { return new SportOutcome.Conflict(StaleMessage); }
-            if (team is not null && team.SeasonId != input.SeasonId) { return new SportOutcome.Invalid("A team's season cannot be changed. Create a new team in the other season."); }
-            if (await db.SportTeams.AnyAsync(value => value.ClubId == clubId && value.SeasonId == input.SeasonId && value.Id != input.Id && EF.Functions.ILike(value.Name, SportRules.EscapeLike(input.Name.Trim()), "\\"), token))
+            if (await db.SportTeams.AnyAsync(value => value.ClubId == clubId && value.Id != input.Id && EF.Functions.ILike(value.Name, SportRules.EscapeLike(input.Name.Trim()), "\\"), token))
             {
-                return new SportOutcome.Invalid("This season already has a team with that name.");
+                return new SportOutcome.Invalid("This club already has a team with that name.");
             }
             var ineligible = await (from placement in db.SeasonPlacements
                                     join player in db.Players on placement.PlayerId equals player.Id
-                                    where placement.ClubId == clubId && placement.TeamId == input.Id && (input.Archived || player.GraduationYear < input.GraduationYear)
+                                    join season in db.Seasons on placement.SeasonId equals season.Id
+                                    where placement.ClubId == clubId && placement.TeamId == input.Id && !season.Archived && (input.Archived || player.GraduationYear < input.GraduationYear)
                                     select player.Id).AnyAsync(token);
-            if (ineligible) { return new SportOutcome.Invalid("Move current players before archiving this team or raising its graduation-year requirement."); }
+            if (ineligible) { return new SportOutcome.Invalid("Move affected players in active seasons before archiving this team or raising its graduation-year requirement. Archived seasons remain unchanged."); }
             if (team is null)
             {
-                team = new() { Id = input.Id, ClubId = clubId, SeasonId = input.SeasonId };
+                team = new() { Id = input.Id, ClubId = clubId };
                 db.SportTeams.Add(team);
             }
             team.Name = input.Name.Trim();
@@ -69,7 +67,7 @@ internal sealed partial class SportService
         }, ct);
 
     internal Task<SportOutcome> SaveTryoutAsync(ClaimsPrincipal actor, Guid clubId, TryoutInput input, CancellationToken ct) =>
-        WriteAsync<SportOutcome>(actor, clubId, async (db, _, token) =>
+        WriteAsync(actor, clubId, async (db, _, token) =>
         {
             if (!SportRules.Valid(input) || input.Id == Guid.Empty) { return new SportOutcome.Invalid("Enter a tryout name and location of up to 160 characters."); }
             var season = await SeasonAsync(db, clubId, input.SeasonId, token);
@@ -83,15 +81,25 @@ internal sealed partial class SportService
             {
                 return new SportOutcome.Invalid("This season already has a tryout with that name.");
             }
-            if (tryout is null)
-            {
-                tryout = new() { Id = input.Id, ClubId = clubId, SeasonId = input.SeasonId };
-                db.TryoutEvents.Add(tryout);
-            }
-            tryout.Name = input.Name.Trim();
-            tryout.Date = input.Date;
-            tryout.Location = input.Location?.Trim() ?? "";
-            tryout.Revision++;
-            return new SportOutcome.Saved("Tryout saved.", tryout.Id);
+            return await SaveTryoutDetailsAsync(db, clubId, input, tryout, token);
         }, ct);
+
+    private static async Task<SportOutcome> SaveTryoutDetailsAsync(Pino.Data.ApplicationDbContext db, Guid clubId, TryoutInput input, TryoutEvent? tryout, CancellationToken token)
+    {
+        if (tryout is null)
+        {
+            var players = await db.Players.Where(value => value.ClubId == clubId && !value.Archived).OrderBy(value => value.Id).Select(value => value.Id).Take(2001).ToListAsync(token);
+            if (players.Count > 2000) { return new SportOutcome.Invalid("This club has more than 2,000 active players. Review the player list before creating a tryout. No players have been left out."); }
+            var existingPlacements = (await db.SeasonPlacements.Where(value => value.ClubId == clubId && value.SeasonId == input.SeasonId).Select(value => value.PlayerId).ToListAsync(token)).ToHashSet();
+            tryout = new() { Id = input.Id, ClubId = clubId, SeasonId = input.SeasonId };
+            db.TryoutEvents.Add(tryout);
+            db.Participations.AddRange(players.Select(playerId => new Participation { ClubId = clubId, TryoutId = input.Id, PlayerId = playerId, Revision = 1 }));
+            db.SeasonPlacements.AddRange(players.Where(playerId => !existingPlacements.Contains(playerId)).Select(playerId => new SeasonPlacement { ClubId = clubId, SeasonId = input.SeasonId, PlayerId = playerId }));
+        }
+        tryout.Name = input.Name.Trim();
+        tryout.Date = input.Date;
+        tryout.Location = input.Location?.Trim() ?? "";
+        tryout.Revision++;
+        return new SportOutcome.Saved("Tryout saved.", tryout.Id);
+    }
 }

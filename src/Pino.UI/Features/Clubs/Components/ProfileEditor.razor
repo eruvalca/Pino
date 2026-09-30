@@ -1,6 +1,6 @@
 <section aria-labelledby="profile-heading">
     <h2 id="profile-heading">@(Profile.IsComplete ? "Edit your profile" : "Complete your profile")</h2>
-    <p class="muted">Help club staff recognize you. Your photo is shared with your club and administrators reviewing your request.</p>
+    <p class="muted">Help staff recognize you. Your club can see your photo, as can administrators reviewing your request to join.</p>
     <EditForm Model="_model" OnValidSubmit="SaveAsync" FormName="club-profile">
         <DataAnnotationsValidator />
         <fieldset disabled="@(!RendererInfo.IsInteractive || Busy)" class="profile-fields">

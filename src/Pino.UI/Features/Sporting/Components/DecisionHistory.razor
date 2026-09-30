@@ -10,7 +10,7 @@ else
             <li @key="entry.Id">
                 <strong>@SportLabels.Decision(entry.Kind)@(entry.Team is null ? "" : $" · {entry.Team}")</strong>
                 <p>@entry.Season · @entry.Tryout</p>
-                <p class="muted">@entry.Author · <time datetime="@entry.CreatedAt.ToString("O")">@entry.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</time></p>
+                <p class="muted"><span class="staff-attribution"><StaffAvatar Name="@entry.Author" PhotoUrl="entry.AuthorPhotoUrl" Compact="true" /><span>@entry.Author</span></span> · <time datetime="@entry.CreatedAt.ToString("O")">@entry.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</time></p>
                 @if (entry.Reason.Length > 0) { <p class="note-text">@entry.Reason</p> }
             </li>
         }

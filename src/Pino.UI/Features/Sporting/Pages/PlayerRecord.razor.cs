@@ -11,10 +11,15 @@ public sealed partial class PlayerRecord : SportPageBase
     private PlayerInput _model = new();
     private bool _editing;
     private bool _photoPending;
+    private Guid? _historyTryoutId;
+    private PlayerNotebook? _notebook;
+    private PlayerTryoutSummary? HistoryTryout => _detail?.Tryouts?.FirstOrDefault(value => value.Id == _historyTryoutId);
 
     protected override async Task LoadAsync()
     {
-        _detail = PlayerId == Guid.Empty ? null : await Gateway.GetPlayerAsync(ClubId, PlayerId, Token);
+        _detail = PlayerId == Guid.Empty ? null : await ReadInitialAsync("GetPlayerAsync", () => Gateway.GetPlayerAsync(ClubId, PlayerId, Token));
+        _historyTryoutId = null;
+        _notebook = null;
         ResetModel();
         _editing = false;
     }
@@ -29,9 +34,11 @@ public sealed partial class PlayerRecord : SportPageBase
             Revision = _detail.Player.Revision,
             PlayerReference = _detail.Player.PlayerReference,
             FirstName = _detail.Player.FirstName,
+            MiddleName = _detail.Player.MiddleName,
             LastName = _detail.Player.LastName,
             GraduationYear = _detail.Player.GraduationYear,
             Position = _detail.Player.Position,
+            SecondaryPosition = _detail.Player.SecondaryPosition,
             ContactEmail = string.IsNullOrEmpty(_detail.Player.ContactEmail) ? null : _detail.Player.ContactEmail,
             Archived = _detail.Player.Archived,
         };
@@ -53,5 +60,20 @@ public sealed partial class PlayerRecord : SportPageBase
     {
         _model.Photo = photo;
         if (photo is not null) { _model.RemovePhoto = false; }
+    }
+
+    private async Task ChangeHistoryAsync(ChangeEventArgs args)
+    {
+        if (Disabled) { return; }
+        _historyTryoutId = Guid.TryParse(args.Value?.ToString(), out var id) ? id : null;
+        await ReloadHistoryAsync();
+    }
+
+    private async Task ReloadHistoryAsync()
+    {
+        if (Disabled) { return; }
+        _notebook = null;
+        if (HistoryTryout is not { } selected) { return; }
+        await ExecuteAsync(async () => _notebook = await ReadInitialAsync("GetNotebookAsync", () => Gateway.GetNotebookAsync(ClubId, selected.Id, PlayerId, Token)));
     }
 }

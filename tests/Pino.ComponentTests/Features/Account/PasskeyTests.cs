@@ -104,7 +104,7 @@ public sealed class PasskeyTests
 
         await component.FindAll("form")[0].SubmitAsync();
 
-        account.StatusCookie.ShouldContain("specified passkey ID had an invalid format");
+        account.StatusCookie.ShouldContain("We couldn't delete that passkey. Reload the list and try again.");
         await account.Users.DidNotReceiveWithAnyArgs().RemovePasskeyAsync(default!, default!);
     }
 
@@ -123,7 +123,7 @@ public sealed class PasskeyTests
         await component.Find("form").SubmitAsync();
 
         context.Services.GetRequiredService<NavigationManager>().Uri.ShouldBe("http://localhost/Account/Manage/Passkeys");
-        account.StatusCookie.ShouldContain(string.Equals(id, "AQID", StringComparison.Ordinal) ? "could not be found" : "invalid format");
+        account.StatusCookie.ShouldContain(string.Equals(id, "AQID", StringComparison.Ordinal) ? "We couldn't find that passkey" : "We couldn't open that passkey");
         await account.Users.DidNotReceiveWithAnyArgs().AddOrUpdatePasskeyAsync(default!, default!);
     }
 

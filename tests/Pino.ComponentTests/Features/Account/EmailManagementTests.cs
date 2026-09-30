@@ -84,7 +84,7 @@ public sealed class EmailManagementTests
         await account.Users.Received(1).GenerateChangeEmailTokenAsync(user, newEmail);
         await account.Emails.Received(1).SendConfirmationLinkAsync(user, newEmail, Arg.Any<string>());
         AssertConfirmationLink(callback, "ConfirmEmailChange", UserId, Token, newEmail);
-        component.Find(".notice").TextContent.ShouldContain("Confirmation link to change email sent");
+        component.Find(".notice").TextContent.ShouldContain("Email change confirmation requested");
         await account.Users.DidNotReceiveWithAnyArgs().SetEmailAsync(default!, default);
         await account.Users.DidNotReceiveWithAnyArgs().ChangeEmailAsync(default!, default!, default!);
         await account.SignIn.DidNotReceiveWithAnyArgs().RefreshSignInAsync(default!);
@@ -130,7 +130,7 @@ public sealed class EmailManagementTests
         await account.Users.Received(1).GenerateEmailConfirmationTokenAsync(user);
         await account.Emails.Received(1).SendConfirmationLinkAsync(user, "current@example.test", Arg.Any<string>());
         AssertConfirmationLink(callback, "ConfirmEmail", UserId, Token);
-        component.Find(".notice").TextContent.ShouldContain("Verification email sent");
+        component.Find(".notice").TextContent.ShouldContain("Verification email requested");
         await account.Users.DidNotReceiveWithAnyArgs().GenerateChangeEmailTokenAsync(default!, default!);
         await account.Users.DidNotReceiveWithAnyArgs().SetEmailAsync(default!, default);
     }

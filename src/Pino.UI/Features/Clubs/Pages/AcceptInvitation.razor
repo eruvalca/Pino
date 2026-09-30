@@ -1,0 +1,43 @@
+@page "/club/invitations/{InvitationId:guid}"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+
+<PageTitle>Join your club · Pino</PageTitle>
+<ClubPageShell Club="_access?.Membership?.Club" CanManagePeople="@(_access?.Membership?.Role == ClubRole.Administrator)">
+    <article class="invitation-sheet" aria-busy="@(IsBusy ? "true" : "false")">
+        <h1>Join your club</h1>
+        <p>Pino accounts are for adults acting as club staff. Accepting this invitation gives you the club role shown below.</p>
+        @if (_message is not null) { <p class="notice" data-kind="@_kind" role="status">@_message</p> }
+        @if (_preview is null || _access is null)
+        {
+            <p>@(_failed ? "We couldn't load this invitation." : "Loading invitation…")</p>
+            @if (_failed) { <button class="secondary-action" disabled="@IsBusy" @onclick="LoadAsync">Try again</button> }
+        }
+        else
+        {
+            @if (_preview.Club is { } club)
+            {
+                <section class="sport-section"><h2>@club.Name</h2><p>@club.Sport · @club.City, @club.State</p><p>Invited role: <strong>@_preview.Role</strong></p></section>
+            }
+            <p class="notice" data-kind="information">@_preview.Message</p>
+            @if (_preview.Club is not null && !_access.Profile.IsComplete)
+            {
+                <ProfileEditor Profile="_access.Profile" Save="SaveProfileAsync" Busy="IsBusy" />
+            }
+            else if (_preview.CanAccept)
+            {
+                <button class="primary-action" disabled="@IsBusy" @onclick="AcceptAsync">Accept invitation</button>
+            }
+            @if (_access.Membership is { } membership)
+            {
+                <a class="primary-action" href="@($"/clubs/{membership.Club.Id}")">Open your club</a>
+            }
+            else if (_access.Request is { Status: JoinRequestStatus.Pending })
+            {
+                <p>Open Your club to cancel the pending request, then return to this invitation.</p>
+            }
+            <div class="actions invitation-navigation"><a href="/club/access">Your club</a><button class="text-action" disabled="@IsBusy" @onclick="LoadAsync">Refresh invitation</button></div>
+        }
+    </article>
+</ClubPageShell>

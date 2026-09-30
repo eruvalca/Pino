@@ -24,6 +24,7 @@ public sealed class TryoutReviewPageTests
 
     private static (ISportGateway Gateway, IRenderedComponent<TryoutReviewPage> Page) Render(BunitContext context, TryoutReview data, bool interactive = true)
     {
+        context.AddBunitPersistentComponentState();
         context.AddAuthorization().SetAuthorized("member");
         var club = Guid.NewGuid();
         var clubs = Substitute.For<IClubGateway>();
@@ -32,6 +33,7 @@ public sealed class TryoutReviewPageTests
         gateway.GetTryoutReviewAsync(club, data.Tryout.Id, Arg.Any<CancellationToken>()).Returns(data);
         context.Services.AddSingleton(clubs);
         context.Services.AddSingleton(gateway);
+        context.JSInterop.SetupVoid("Blazor._internal.domWrapper.focus", _ => true).SetVoidResult();
         context.SetRendererInfo(new("Server", interactive));
         return (gateway, context.Render<TryoutReviewPage>(parameters => parameters.Add(page => page.ClubId, club).Add(page => page.TryoutId, data.Tryout.Id)));
     }
@@ -43,6 +45,7 @@ public sealed class TryoutReviewPageTests
         var data = Data();
         var (gateway, page) = Render(context, data);
         gateway.CloseTryoutAsync(Arg.Any<Guid>(), data.Tryout.Id, Arg.Any<CloseTryoutInput>(), Arg.Any<CancellationToken>()).Returns(new SportReply(SportReplyKind.Conflict, "Review changed; reload."));
+        await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Continue to confirmation", StringComparison.Ordinal)).ClickAsync();
         page.Find(".closeout-action button").HasAttribute("disabled").ShouldBeTrue();
         await page.Find(".closeout-action").SubmitAsync();
         await gateway.DidNotReceiveWithAnyArgs().CloseTryoutAsync(Guid.Empty, Guid.Empty, default!, default);
@@ -60,7 +63,8 @@ public sealed class TryoutReviewPageTests
     {
         await using var context = new BunitContext();
         var (_, page) = Render(context, Data(archived: archived, complete: complete), interactive);
-        page.Find(".closeout-action fieldset").HasAttribute("disabled").ShouldBeTrue();
+        page.FindAll(".closeout-action").ShouldBeEmpty();
+        page.FindAll("button").Single(value => string.Equals(value.TextContent, "Continue to confirmation", StringComparison.Ordinal)).HasAttribute("disabled").ShouldBeTrue();
     }
 
     [Fact]
@@ -112,6 +116,7 @@ public sealed class TryoutReviewPageTests
         var edition = Data(closed: true).Closeouts[0];
         gateway.GetTryoutReviewAsync(Arg.Any<Guid>(), data.Tryout.Id, Arg.Any<CancellationToken>())
             .Returns(data with { Tryout = data.Tryout with { Closed = true }, Closeouts = [edition] });
+        await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Continue to confirmation", StringComparison.Ordinal)).ClickAsync();
         await page.Find("input[type='checkbox']").ChangeAsync(true);
         await page.Find("form.closeout-action").SubmitAsync();
         page.Find(".notice[data-kind='error']").TextContent.ShouldNotBeNullOrWhiteSpace();

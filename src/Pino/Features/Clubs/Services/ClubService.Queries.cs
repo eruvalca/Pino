@@ -10,7 +10,7 @@ internal sealed partial class ClubService
 {
     private const int PageSize = 20;
 
-    private static ClubSummary Summary(Club club) => new(club.Id, club.Name, club.Sport, club.City, club.State);
+    private static ClubSummary Summary(Club club) => new(club.Id, club.Name, club.Sport, club.City, club.State, club.Revision);
     private static Uri PhotoUrl(string userId, string key) => new($"/api/clubs/photos/{Uri.EscapeDataString(userId)}?v={Uri.EscapeDataString(key)}", UriKind.Relative);
 
     internal async Task<AccessSnapshot> GetAccessAsync(ClaimsPrincipal actor, CancellationToken cancellationToken)

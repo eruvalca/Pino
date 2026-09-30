@@ -41,6 +41,8 @@
             <InputText type="password" @bind-Value="Input.ConfirmPassword" id="Input.ConfirmPassword" autocomplete="new-password" aria-required="true" placeholder="password" />
             <ValidationMessage For="() => Input.ConfirmPassword" class="error-text" />
         </div>
+        <label class="checkbox-field" for="Input.AdultStaff"><InputCheckbox id="Input.AdultStaff" @bind-Value="Input.AdultStaff" /> I am an adult acting as club staff.</label>
+        <ValidationMessage For="() => Input.AdultStaff" class="error-text" />
         <button class="primary-action" type="submit">Register</button>
     </EditForm>
     <section>

@@ -28,20 +28,26 @@ public sealed partial class SportingWorkflowTests
         var notebook = await session.Context.NewPageAsync();
         await notebook.SetViewportSizeAsync(390, 844);
         await notebook.GotoAsync($"/clubs/{data.ClubId}/tryouts/{data.Tryout.Id}");
-        await notebook.Locator(".tryout-heading .primary-action:not([disabled])").WaitForAsync();
+        await notebook.Locator(".roster-record:enabled").First.WaitForAsync();
+        await notebook.Locator(".supporting-tools > summary").ClickAsync();
         await notebook.GetByRole(AriaRole.Button, new() { Name = "Add players", Exact = true }).FocusAsync();
         await notebook.Keyboard.PressAsync("Enter");
-        await notebook.GetByRole(AriaRole.Heading, new() { Name = "Add players from your catalog", Exact = true }).WaitForAsync();
+        await notebook.GetByRole(AriaRole.Heading, new() { Name = "Add players from your player list", Exact = true }).WaitForAsync();
         await notebook.Locator(".roster-record").Filter(new() { HasText = "Jordan Rivera" }).ClickAsync();
         await notebook.GetByLabel("Add shared note", new() { Exact = true }).FillAsync("Keep this draft when another coach closes the tryout.");
 
         var page = session.Page;
+        // Model switching back to the review tab before waiting for its interactive renderer.
+        await page.BringToFrontAsync();
         await page.GotoAsync($"/clubs/{data.ClubId}/tryouts/{data.Tryout.Id}/review");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Continue to confirmation", Exact = true }).ClickAsync();
         await page.Locator(".closeout-action fieldset:not([disabled])").WaitForAsync();
+        await CapturePreparationAsync(session, "closeout-confirmation");
         (await page.GetByRole(AriaRole.Button, new() { Name = "Close tryout & record results", Exact = true }).IsEnabledAsync()).ShouldBeFalse();
-        await page.GetByLabel("I have reviewed all 3 player outcomes.").CheckAsync();
+        await page.GetByLabel("I have reviewed all 3 player results.").CheckAsync();
         await page.GetByRole(AriaRole.Button, new() { Name = "Close tryout & record results", Exact = true }).ClickAsync();
         await page.GetByRole(AriaRole.Heading, new() { Name = "Results recorded", Exact = true }).WaitForAsync();
+        await notebook.BringToFrontAsync();
         await notebook.GetByRole(AriaRole.Button, new() { Name = "Refresh saved decisions", Exact = true }).FocusAsync();
         await notebook.Keyboard.PressAsync("Enter");
         await notebook.Locator("#enrollment-heading").WaitForAsync(new() { State = WaitForSelectorState.Detached });
@@ -68,8 +74,8 @@ public sealed partial class SportingWorkflowTests
         var clubId = (await session.GetAsync<AccessSnapshot>("/api/clubs/access")).Membership.ShouldNotBeNull().Club.Id;
         var path = $"/api/clubs/{clubId}/sport";
         var season = new SeasonInput { Name = "Spring 2027", StartsOn = new(2027, 1, 1), EndsOn = new(2027, 6, 30) };
-        var blue = new TeamInput { SeasonId = season.Id, Name = "Northside Blue", GraduationYear = 2030 };
-        var silver = new TeamInput { SeasonId = season.Id, Name = "Northside Silver", GraduationYear = 2030 };
+        var blue = new TeamInput { Name = "Northside Blue", GraduationYear = 2030 };
+        var silver = new TeamInput { Name = "Northside Silver", GraduationYear = 2030 };
         var tryout = new TryoutInput { SeasonId = season.Id, Name = "Spring field evaluations", Date = new(2027, 2, 20), Location = "Lincoln Park · Field 3" };
         var player = new PlayerInput { FirstName = "Jordan", LastName = "Rivera", GraduationYear = 2030 };
         (await session.PostAsync<SportReply>(path + "/seasons", season)).Kind.ShouldBe(SportReplyKind.Saved);

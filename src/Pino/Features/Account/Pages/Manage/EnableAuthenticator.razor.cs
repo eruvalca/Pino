@@ -60,7 +60,7 @@ public sealed partial class EnableAuthenticator
         _recoveryCodes = null;
         var result = await AccountTwoFactor.EnableAsync(_user, Input.Code);
         await result.Match(
-            _ => SetMessageAsync("Error: Verification code is invalid."),
+            _ => SetMessageAsync("Error: That code did not work. Enter the latest code from your authenticator app."),
             _ => CompleteEnableAsync(_user, codes: null),
             enabled => CompleteEnableAsync(_user, enabled.Codes),
             _ => SetMessageAsync("Error: Two-factor authentication could not be enabled. Please try again."),
@@ -96,7 +96,7 @@ public sealed partial class EnableAuthenticator
                 _authenticatorUri = GenerateQrCodeUri(email!, ready.Key);
                 _qrImage = "data:image/png;base64," + Convert.ToBase64String(PngByteQRCodeHelper.GetQRCode(_authenticatorUri, QRCodeGenerator.ECCLevel.Q, 6));
             },
-            _ => SetMessageAsync("Error: The authenticator key could not be initialized. Please try again."));
+            _ => SetMessageAsync("Error: We couldn't start authenticator setup. Reload this page and try again."));
     }
 
     private string GenerateQrCodeUri(string email, string unformattedKey)
@@ -115,7 +115,7 @@ public sealed partial class EnableAuthenticator
     private sealed class InputModel
     {
         [Required]
-        [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [StringLength(7, ErrorMessage = "{0} must be {2} to {1} characters long.", MinimumLength = 6)]
         [DataType(DataType.Text)]
         [Display(Name = "Verification Code")]
         public string Code { get; set; } = "";

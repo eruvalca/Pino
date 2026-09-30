@@ -92,7 +92,7 @@ public sealed partial class Passkeys
                 var result = await UserManager.RemovePasskeyAsync(_user, decoded.Bytes);
                 ShowStatus(result.Succeeded ? "Passkey deleted successfully." : "Error: The passkey could not be deleted.");
             },
-            _ => CompleteWithStatusAsync("Error: The specified passkey ID had an invalid format."));
+            _ => CompleteWithStatusAsync("Error: We couldn't delete that passkey. Reload the list and try again."));
     }
 
     private void ShowStatus(string message) => RedirectManager.RedirectToCurrentPageWithStatus(message, HttpContext);

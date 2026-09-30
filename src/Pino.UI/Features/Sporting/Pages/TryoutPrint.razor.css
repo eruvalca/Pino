@@ -1,0 +1,33 @@
+.print-controls { margin-block-end: 2rem; }
+.roster-sheet { color: var(--navy); }
+.roster-sheet header { border-block-end: 2px solid var(--navy); padding-block-end: 1rem; }
+.roster-sheet h2 { margin-block: .4rem; }
+.roster-sheet header p { margin-block: .4rem; }
+.sheet-club { font-weight: 650; }
+.roster-table { width: 100%; min-width: 0; border-collapse: collapse; table-layout: fixed; }
+.roster-table caption { text-align: start; padding-block: 1rem; font-weight: 650; }
+.roster-table th, .roster-table td { text-align: start; padding: .75rem .4rem; border-block-end: 1px solid var(--line); overflow-wrap: anywhere; vertical-align: top; }
+.roster-table thead th { font-size: .8rem; }
+.roster-table th:first-child { width: 3.4rem; }
+.roster-table th:nth-child(3) { width: 4.4rem; }
+.roster-table tbody th { background: transparent; color: inherit; font-size: inherit; font-weight: 550; }
+.sheet-footer { font-size: .85rem; margin-block-start: 1.5rem; }
+@media (max-width: 40rem) {
+    .roster-table { font-size: .8rem; }
+    .roster-table th, .roster-table td { padding-inline: .2rem; }
+    .roster-table th:first-child { width: 2.2rem; }
+    .roster-table th:nth-child(3) { width: 2.8rem; }
+}
+@media print {
+    .print-controls { display: none; }
+    .print-workspace ::deep .app-masthead, .print-workspace ::deep .club-context, .print-workspace ::deep .skip-link { display: none; }
+    .print-workspace ::deep .app-width { width: 100%; max-width: none; margin: 0; }
+    .print-workspace ::deep .app-content, .print-workspace ::deep .sport-sheet { padding: 0; margin: 0; border: 0; box-shadow: none; background: white; }
+    .roster-sheet { color: black; font-size: 10pt; }
+    .roster-sheet header { break-after: avoid; border-color: black; }
+    .roster-table { font-size: 10pt; }
+    .roster-table thead { display: table-header-group; }
+    .roster-table tr { break-inside: avoid; }
+    .roster-table th, .roster-table td { padding: 6pt; border-color: #777; }
+    .roster-table caption, .sheet-footer { break-inside: avoid; }
+}

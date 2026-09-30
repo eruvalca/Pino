@@ -26,7 +26,7 @@ public sealed partial class ResetAuthenticator
                 LogAuthenticatorReset(Logger, userId);
                 RedirectManager.RedirectToWithStatus(
                     "Account/Manage/EnableAuthenticator",
-                    "Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.", HttpContext);
+                    "Your authenticator key has been reset. Follow the steps below to set up your app again.", HttpContext);
             },
             _ => ShowFailureAsync("Error: Two-factor authentication could not be disabled. Your authenticator key was not reset."),
             _ => ShowFailureAsync("Error: Two-factor authentication was disabled, but your authenticator key could not be reset. Retry resetting your authenticator before enabling two-factor authentication again."));

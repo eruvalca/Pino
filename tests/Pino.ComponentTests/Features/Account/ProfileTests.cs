@@ -91,7 +91,7 @@ public sealed class ProfileTests
 
         await account.Users.Received(1).SetPhoneNumberAsync(user, "312-555-0123");
         await account.SignIn.DidNotReceiveWithAnyArgs().RefreshSignInAsync(default!);
-        account.StatusCookie.ShouldContain("Error: Failed to set phone number.");
+        account.StatusCookie.ShouldContain("Error: We couldn't save your phone number. Try again.");
         account.StatusCookie.ShouldNotContain("Your profile has been updated");
         navigation.Uri.ShouldBe("http://localhost/Account/Manage");
     }

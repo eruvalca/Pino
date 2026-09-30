@@ -11,6 +11,7 @@ internal sealed class DecisionEventConfiguration : IEntityTypeConfiguration<Deci
         builder.Property(value => value.TryoutName).HasMaxLength(120);
         builder.Property(value => value.SeasonName).HasMaxLength(120);
         builder.Property(value => value.TeamName).HasMaxLength(120);
+        builder.Property(value => value.AuthorId).HasMaxLength(450);
         builder.Property(value => value.Author).HasMaxLength(161);
         builder.Property(value => value.Reason).HasMaxLength(1000);
         builder.HasIndex(value => new { value.ClubId, value.PlayerId, value.CreatedAt });

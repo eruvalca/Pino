@@ -5,9 +5,13 @@
 
 <PageTitle>People · Pino</PageTitle>
 <ClubPageShell Club="_data?.Club" CanManagePeople="@(_data is not null)">
-<article class="people-sheet" aria-busy="@IsBusy">
+<article class="people-sheet" aria-busy="@(IsBusy ? "true" : "false")">
     <a href="@($"/clubs/{ClubId}")">Back to club</a>
     <h1 @ref="_heading" tabindex="-1">People</h1>
+    @if (_data is not null)
+    {
+        <nav class="workflow-actions" aria-label="Staff administration"><a class="primary-action" href="@($"/clubs/{ClubId}/invitations")">Staff invitations</a><a class="secondary-action" href="@($"/clubs/{ClubId}/emails")">Email delivery</a><a class="secondary-action" href="@($"/clubs/{ClubId}/settings")">Club details</a></nav>
+    }
     @if (_data is not null) { <p class="club-identity">@_data.Club.Name · @_data.Club.City, @UsStates.All[_data.Club.State]</p> }
     @if (_message is not null) { <p class="notice" data-kind="@_kind" role="status">@_message</p> }
     <nav class="people-views" aria-label="People views"><button class="text-action" aria-current="@(_requests ? "page" : null)" @onclick="ShowRequestsAsync" disabled="@IsBusy">Requests</button><button class="text-action" aria-current="@(!_requests ? "page" : null)" @onclick="ShowMembersAsync" disabled="@IsBusy">Members</button><button class="text-action" @onclick="RefreshQuietlyAsync" disabled="@IsBusy">Refresh</button></nav>

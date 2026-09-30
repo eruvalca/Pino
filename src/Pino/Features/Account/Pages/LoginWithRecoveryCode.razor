@@ -16,8 +16,9 @@
 <hr />
 <StatusMessage Message="@_message" />
 <p>
-    You have requested to log in with a recovery code. This login will not be remembered until you provide
-    an authenticator app code at log in or disable 2FA and log in again.
+    Enter one of your saved recovery codes. Each code works once.
+    This sign-in will not be remembered on this device. Next time, use an authenticator code
+    or another unused recovery code.
 </p>
 <EditForm class="account-form" Model="Input" FormName="login-with-recovery-code" OnValidSubmit="OnValidSubmitAsync" method="post">
     <DataAnnotationsValidator />

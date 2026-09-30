@@ -104,6 +104,13 @@ components:
     textColor: "{colors.navy}"
     rounded: "{rounded.radius}"
     padding: "0.65rem 0.75rem"
+  workflow-step:
+    textColor: "{colors.muted}"
+    padding: "0.65rem 0"
+  workflow-step-current:
+    textColor: "{colors.blue}"
+  workflow-step-complete:
+    textColor: "{colors.navy}"
   badge-awaiting:
     backgroundColor: "{colors.blue-soft}"
     textColor: "{colors.blue}"
@@ -137,6 +144,18 @@ components:
     backgroundColor: "{colors.blue-soft}"
     textColor: "{colors.navy}"
     padding: "1rem 1.25rem"
+  staff-avatar:
+    backgroundColor: "{colors.blue-soft}"
+    textColor: "{colors.navy}"
+    rounded: "{rounded.radius}"
+    width: "2.25rem"
+    height: "2.25rem"
+  staff-avatar-compact:
+    backgroundColor: "{colors.blue-soft}"
+    textColor: "{colors.navy}"
+    rounded: "{rounded.radius}"
+    width: "1.5rem"
+    height: "1.5rem"
 ---
 
 # Design System: Pino
@@ -169,7 +188,9 @@ are defined in the [tryout brief](docs/features/tryout-evaluation.md) and
 extensions of this system. The [visual refinement brief](docs/features/visual-refinement.md)
 records the stronger identity, navigation and shared photo workflow. The
 [application shell brief](docs/features/application-shell.md) records the shared
-navigation and page envelope for club and account modes.
+navigation and page envelope for club and account modes. The
+[simple tryouts and staff activity brief](docs/features/simple-tryouts-and-staff-activity.md)
+records the shared staff avatar and plain-language refinement.
 
 **Key Characteristics:**
 
@@ -280,8 +301,14 @@ retains its separately labelled workspace and measurements above.
 Persisted sporting catalogs put labelled search and filters directly above
 ruled records; forms cap their reading and input area at 44rem. At 50rem,
 headings and split content stack; at 35rem, paired fields, toolbars and record
-actions become single-column groups. Import previews remain semantic tables in
-a keyboard-focusable horizontally scrolling region.
+actions become single-column groups. Import previews use a paged, ruled review
+list with player identity beside the row's status and actions on desktop. These
+sections stack in reading order on phones, keeping mapping and confirmation
+controls within the viewport.
+
+Guided preparation places its numbered progress list above the current task.
+Steps occupy equal-width columns on desktop; at 40rem and below they reflow
+into two columns in reading order. Labels wrap within their columns.
 
 Player records align a portrait or initials and the name in one header, with
 the edit action beside it on wide screens. Placements and history occupy the
@@ -338,8 +365,9 @@ fine rules and spacing; keep writing surfaces flat.
 
 Controls, sporting and account sheets, bibs, photo previews and player fact panels
 use the shared gently rounded `radius`; status badges use `radius-small`.
-Evaluation workspace frames and roster rows stay square. Public sample author initials are
-circular marks. Club profile photos use circular display crops beside names; their
+Evaluation workspace frames and roster rows stay square. Staff activity avatars
+use the shared rounded-square shape, including initials in the public sample.
+Club profile photos use circular display crops beside names; their
 editing preview retains the square crop that is saved. Navigation and row icons
 are small authored outline SVGs (14–18px); the closeout receipt uses a larger
 check (28px). Icons are paired with text or hidden from assistive technology when
@@ -364,6 +392,22 @@ outlined secondary actions. Masthead logout remains a quiet navigation action.
 Primary and secondary backgrounds and borders transition over 150ms ease-out
 when reduced motion is not requested. Pressing either offsets it down by 1px.
 
+### Guided preparation
+
+The shared `WorkflowProgress` is a labelled ordered list, with numbered steps
+and equal-width columns on desktop. Fine top rules separate the stages:
+upcoming steps use muted text and the neutral line, the current step uses
+cobalt text and rule with bold weight (700), and completed steps use navy. The
+current stage also has `aria-current="step"`; color does not carry progress
+alone. Step numbers use tabular numerals.
+
+Preparation pages show one task at a time and move keyboard focus to the
+new task heading after Next or Back. Club setup keeps its page identity and
+profile context above the focused task heading. Back retains the current
+input, and explicit review actions precede consequential writes. Progress
+steps are indicators, not navigation links. Daily notebook actions retain
+their direct controls. See the [guided workflow brief](docs/features/guided-workflows-and-navigation.md).
+
 ### Inputs / Fields
 
 Native fields use white fill, a strong neutral border, visible labels and a
@@ -371,6 +415,9 @@ Native fields use white fill, a strong neutral border, visible labels and a
 with a 6.5rem minimum height; persisted notes use a four-row native textarea.
 Field-specific help and feedback remain associated with their controls. Notices retain meaningful text
 and semantic success, error, warning or information kinds.
+Help, validation and recovery messages use short sentences and familiar words.
+Warnings retain the consequence and the next step, as in resetting an
+authenticator key and setting up the authenticator app again.
 
 ### Navigation
 
@@ -416,6 +463,23 @@ readable supporting details and explicit actions aligned beside each record on
 wide screens, then below it on phones. Confirmations appear inline on a subtly
 tinted, bordered surface.
 
+### Staff activity
+
+The shared staff avatar sits beside the recorded name in notes and activity
+history. Notes use the regular size; decision, roster-change,
+private-text-removal and closeout attribution use the compact size. Both use
+navy initials on pale blue when a photo is missing, inaccessible or fails to load.
+Initials use weight 700, with regular text at 0.75rem and compact text at
+0.625rem. Photos fill the same square using a cover crop.
+
+The avatar shows the current protected profile photo while the adjacent name
+stays as recorded. It is decorative and hidden from assistive technology; the
+visible name provides attribution. Persisted attribution and public-sample
+history align avatar and name in an inline grid with a 0.5rem gap and a shrinking
+name column. Public-sample notes retain their author-and-time grid. The public
+sample uses fictional names and initials in this same component, with no real
+staff photos.
+
 ### Shared photo editor
 
 Member profiles and player records use the same choose, frame, confirm and save
@@ -456,9 +520,10 @@ The notebook is one continuous white writing surface, not a stack of elevated
 cards. Persisted observations follow the composer directly and carry an author,
 timestamp, preserved line breaks and labelled correction history. Each player's
 unsaved note and decision drafts remain available while switching within the
-tryout. The public sample additionally has circular author marks and open line
-spacing. Saved observations in both workspaces receive a pale-blue-to-transparent
-highlight over 650ms with `cubic-bezier(0.16, 1, 0.3, 1)`. The persisted notebook
+tryout. Both workspaces use the shared staff avatar beside note authors; the
+public sample retains its open line spacing. Saved observations in both
+workspaces receive a pale-blue-to-transparent highlight over 650ms with
+`cubic-bezier(0.16, 1, 0.3, 1)`. The persisted notebook
 opens with a 180ms transition from 0.5rem to the right; returning to the phone
 roster uses the opposite direction. Both use the same easing as the save
 highlight. Reduced-motion preference removes these animations while preserving
@@ -478,15 +543,19 @@ a written outcome and team, when applicable.
 The receipt settles upward from 0.4rem over 400ms using
 `cubic-bezier(0.16, 1, 0.3, 1)` when an edition appears. The effect runs only under
 `prefers-reduced-motion: no-preference`; receipt content is immediately available
-in either motion preference. A confirmation checkbox and primary close action
-follow the results; reopening uses a separate native disclosure and reason field.
+in either motion preference. A separate confirmation step follows results review,
+with the player total and counts by outcome above an acknowledgement checkbox,
+primary close action and outlined Back to results action. Reopening uses a
+separate native disclosure and reason field.
 
 ### Decision choices
 
 Persisted decision editing uses a native details disclosure, initially collapsed,
-labelled Record or revise decision before the note composer. Outcome and eligible
-team use labelled native selects; context has a separate textarea. Save decision
-is secondary to Save note. The later Decision history disclosure is independent.
+labelled Save or change a decision before the note composer. Result and Eligible
+team use labelled native selects; Reason for this decision (optional) labels a
+separate textarea. Save decision uses the filled primary action within its
+disclosure; Save note remains the visible notebook action. The later Decision
+history disclosure is independent.
 
 In the public sample, native radio inputs sit in outlined labels. A selected
 choice uses pale blue and a blue border. The editor expands inline and receives heading focus;

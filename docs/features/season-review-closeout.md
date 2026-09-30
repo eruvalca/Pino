@@ -33,7 +33,10 @@ reopening, with author and time, and never silently display live catalog values.
 Empty seasons explain the next setup action; empty tryouts cannot close. Archived
 seasons remain readable. Loading, revoked access, stale review and transport
 failure preserve a clear recovery path. Long names and the existing 2,000-entry
-tryout limit must remain usable with filters and normal document flow.
+tryout limit must remain usable with filters and normal document flow. Results
+are paged in groups of 50; exports and closeout always include the complete set.
+The review continues to a separate confirmation step with outcome totals and an
+explicit acknowledgement. Back preserves the result filters and page.
 When a notebook refresh discovers closure or season archival, it dismisses any
 open enrollment panel and disables enrollment while preserving unsaved notes.
 After the tryout or season reopens, enrollment stays dismissed until Add players

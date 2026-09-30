@@ -37,7 +37,7 @@ internal sealed class SampleTryoutSession
         var text = player.Draft.Trim();
         if (text.Length is 0 or > 2000)
         {
-            return new SampleWriteOutcome.Failed("Enter an observation between 1 and 2,000 characters.");
+            return new SampleWriteOutcome.Failed("Write a note of 1 to 2,000 characters.");
         }
 
         var failure = await PrepareWriteAsync();
@@ -48,7 +48,7 @@ internal sealed class SampleTryoutSession
 
         player.Notes.Insert(0, new("Coach Sam (you)", DateTimeOffset.Now, text));
         player.Draft = "";
-        return new SampleWriteOutcome.Saved("Note saved in this sample session.");
+        return new SampleWriteOutcome.Saved("Note saved in this sample. Reloading or leaving clears it.");
     }
 
     internal async Task<SampleWriteOutcome> SaveDecisionAsync(SamplePlayer player, string kind, int? teamId, int expectedVersion)
@@ -90,7 +90,7 @@ internal sealed class SampleTryoutSession
         }
 
         RecordDecision(player, decision, "Coach Sam (you)");
-        return new SampleWriteOutcome.Saved("Decision saved in this sample session.");
+        return new SampleWriteOutcome.Saved("Decision saved in this sample. Reloading or leaving clears it.");
     }
 
     private async Task<SampleWriteOutcome?> PrepareWriteAsync()

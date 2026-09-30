@@ -1,0 +1,4 @@
+.comparison-player { display: grid; width: 100%; gap: 0.25rem; padding: 0.875rem 0.5rem; text-align: left; color: var(--navy); background: transparent; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; overflow-wrap: anywhere; }
+.comparison-player span { color: var(--muted); font-size: 0.875rem; }
+.comparison-player:hover, .comparison-player[aria-pressed="true"] { background: var(--blue-soft); }
+.comparison-player[aria-pressed="true"] { box-shadow: inset 0 0 0 1px var(--blue); }

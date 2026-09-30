@@ -7,7 +7,6 @@ namespace Pino.SharedKernel.Sporting;
 public sealed class TeamInput
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public Guid SeasonId { get; set; }
     public long Revision { get; set; }
     [Required, StringLength(120)] public string Name { get; set; } = "";
     [Range(2000, 2100)] public int GraduationYear { get; set; } = DateTime.UtcNow.Year + 5;

@@ -61,7 +61,21 @@ internal sealed partial class ClubService
             {
                 return new ClubOperationOutcome.Invalid("That club is no longer available. Search again.");
             }
+            var recent = time.GetUtcNow().AddHours(-1);
+            if (await db.ClubJoinRequests.CountAsync(value => value.UserId == id && value.CreatedAt > recent, ct) >= 5)
+            {
+                return new ClubOperationOutcome.Invalid("You've made several join requests recently. Wait an hour before requesting again.");
+            }
             db.ClubJoinRequests.Add(new() { Id = Guid.NewGuid(), UserId = id, ClubId = clubId, Status = JoinRequestStatus.Pending, CreatedAt = time.GetUtcNow() });
+            var club = await db.Clubs.SingleAsync(value => value.Id == clubId, ct);
+            var administrators = await db.ClubMemberships.Where(value => value.ClubId == clubId && value.Role == ClubRole.Administrator)
+                .Join(db.Users.Where(user => user.EmailConfirmed && user.Email != null), member => member.UserId, user => user.Id,
+                    (member, user) => new { user.Id, user.Email }).ToArrayAsync(ct);
+            foreach (var administrator in administrators)
+            {
+                db.StaffEmails.Add(mail.Compose(clubId, administrator.Email!, administrator.Id, "New Pino club join request",
+                    $"A staff member has asked to join {club.Name}. Sign in to Pino and open People & requests to review their profile and decide."));
+            }
             return new ClubOperationOutcome.Saved("Request sent. A club administrator will review it.");
         }, cancellationToken);
 
@@ -97,6 +111,14 @@ internal sealed partial class ClubService
             }
             request.Status = input.Approve ? JoinRequestStatus.Approved : JoinRequestStatus.Denied;
             request.DecidedAt = time.GetUtcNow();
+            var recipient = await db.Users.SingleAsync(value => value.Id == request.UserId, ct);
+            if (recipient.EmailConfirmed && recipient.Email is { } email)
+            {
+                var club = await db.Clubs.SingleAsync(value => value.Id == clubId, ct);
+                var outcome = input.Approve ? "approved. You now have coach access" : "denied. You may apply again";
+                db.StaffEmails.Add(mail.Compose(clubId, email, recipient.Id, "Your Pino club join request",
+                    $"Your request to join {club.Name} was {outcome}. Sign in to Pino to see your current access."));
+            }
             return new ClubOperationOutcome.Saved(input.Approve ? "Approved as coach." : "Request denied. This person may reapply.");
         }, cancellationToken);
 
@@ -126,7 +148,7 @@ internal sealed partial class ClubService
             return new ClubOperationOutcome.Saved($"Role changed to {role}.");
         }
         db.ClubMemberships.Remove(member);
-        return new ClubOperationOutcome.Saved("Club access ended. The Pino account and club records are retained.");
+        return new ClubOperationOutcome.Saved("Club access ended. The Pino account and club records are kept.");
     }
 
     internal Task<ClubOperationOutcome> LeaveAsync(ClaimsPrincipal actor, Guid clubId, CancellationToken cancellationToken) =>

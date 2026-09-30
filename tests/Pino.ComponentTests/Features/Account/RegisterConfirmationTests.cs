@@ -29,6 +29,7 @@ public sealed class RegisterConfirmationTests
     [InlineData("member%40example.test&returnUrl=%2Fevents")]
     public async Task ConfirmationInstructionsNeverLookUpOrExposeAccountTokensAsync(string query)
     {
+        ArgumentNullException.ThrowIfNull(query);
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
         context.Services.GetRequiredService<NavigationManager>().NavigateTo("Account/RegisterConfirmation?email=" + query);
@@ -36,7 +37,9 @@ public sealed class RegisterConfirmationTests
         component.Find("p[role='status']").TextContent.ShouldBe("Please check your email to confirm your account.");
         component.FindAll("a[href*='ConfirmEmail?']").ShouldBeEmpty();
         component.Markup.ShouldNotContain("@example.test");
-        component.Find("a[href='Account/ResendEmailConfirmation']").TextContent.ShouldBe("request another confirmation email");
+        var expectedReturn = query.Contains("returnUrl", StringComparison.Ordinal) ? "%2Fevents" : "%2Fclub%2Faccess";
+        component.Find("a[href^='/Account/ResendEmailConfirmation']").GetAttribute("href").ShouldBe("/Account/ResendEmailConfirmation?returnUrl=" + expectedReturn);
+        component.Find("a[href^='/Account/Login']").GetAttribute("href").ShouldBe("/Account/Login?returnUrl=" + expectedReturn);
         account.Http.Response.StatusCode.ShouldBe(200);
         await account.Users.DidNotReceiveWithAnyArgs().FindByEmailAsync(default!);
         await account.Users.DidNotReceiveWithAnyArgs().GenerateEmailConfirmationTokenAsync(default!);

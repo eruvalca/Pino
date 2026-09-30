@@ -1,0 +1,18 @@
+@page "/"
+@layout Pino.UI.Features.Clubs.Layout.ClubLayout
+@using Pino.UI.Features.Clubs.Components
+
+<PageTitle>Pino · Your club's tryout notebook</PageTitle>
+<ClubPageShell>
+    <article class="introduction">
+        <header class="introduction-heading"><h1>Your club's tryout notebook.</h1><p>Keep your club's players, notes and team decisions in one place, season after season.</p><div class="actions"><a class="primary-action" href="/Account/Register?returnUrl=%2Fclub%2Faccess">Create a staff account</a><a class="secondary-action" href="/tryouts/spring-2027">Try the sample tryout</a></div><p class="muted">For adults working as club administrators and coaches. Already a member? <a href="/club/access">Open your club</a>.</p></header>
+        <section class="introduction-workflow" aria-labelledby="workflow-heading"><h2 id="workflow-heading">One season, a shared record</h2><ol>
+            <li><h3>Prepare the players</h3><p>Keep your player list from year to year. Import a CSV, check possible matches and place returning players on their previous teams.</p></li>
+            <li><h3>Work together at tryouts</h3><p>Use one player list and one bib per player. Share notes with the club's staff.</p></li>
+            <li><h3>Choose teams with confidence</h3><p>Compare teams, read staff notes and save a result for each player in the tryout.</p></li>
+            <li><h3>Save the results</h3><p>Close the tryout to save its results. Download team lists and look back at player history next season.</p></li>
+        </ol></section>
+        <aside class="introduction-sample"><h2>Try the workflow before signing up</h2><p>The sample uses made-up players. Choose a player, add a note and try placing them on a team. Changes disappear when you leave or reload.</p><a href="/tryouts/spring-2027">Open the sample notebook</a></aside>
+        <footer><p>Pino is the product and company behind this club workspace.</p><a href="/guide">Read the staff guide</a></footer>
+    </article>
+</ClubPageShell>

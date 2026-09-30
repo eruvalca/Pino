@@ -18,6 +18,7 @@ public sealed class ClubPeopleTests
 
     private static IClubGateway Configure(BunitContext context)
     {
+        context.AddBunitPersistentComponentState();
         context.AddAuthorization().SetAuthorized("member");
         var gateway = Substitute.For<IClubGateway>();
         gateway.GetPeopleAsync(_club.Id, Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(new PeoplePage(_club, [_person], 0, HasMore: false));

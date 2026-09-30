@@ -14,7 +14,8 @@ namespace Pino.ComponentTests.Layout;
 public sealed class NavMenuTests
 {
     [Theory]
-    [InlineData("", true)]
+    [InlineData("", false)]
+    [InlineData("club", true)]
     [InlineData("club/access?editProfile=true", true)]
     [InlineData("clubs/123/players/new", true)]
     [InlineData("clubs/123/tryouts/456#notes", true)]

@@ -1,0 +1,10 @@
+<span class="staff-avatar" data-size="@(Compact ? "small" : "regular")" aria-hidden="true">
+    @if (PhotoUrl is not null && !_failed)
+    {
+        <img src="@PhotoUrl" alt="" width="36" height="36" loading="lazy" @onerror="() => _failed = true" />
+    }
+    else
+    {
+        <span>@Initials</span>
+    }
+</span>

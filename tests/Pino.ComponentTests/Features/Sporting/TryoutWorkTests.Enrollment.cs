@@ -20,7 +20,7 @@ public sealed partial class TryoutWorkTests
         gateway.GetPlayersAsync(_clubId, "", false, 0, Arg.Any<CancellationToken>()).Returns(new PlayerPage([candidate], 0, HasMore: false));
         var page = Render(context);
         await page.Find("#player-note").InputAsync("Keep this draft through refresh.");
-        await page.Find(".tryout-heading .primary-action").ClickAsync();
+        await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Add players", StringComparison.Ordinal)).ClickAsync();
         await page.WaitForAssertionAsync(() => page.Find("button[aria-label='Add Morgan Rivera to tryout']").HasAttribute("disabled").ShouldBeFalse());
 
         gateway.GetTryoutAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(data with
@@ -28,24 +28,24 @@ public sealed partial class TryoutWorkTests
             Tryout = data.Tryout with { Closed = !archived },
             Season = data.Season with { Archived = archived },
         });
-        await page.Find(".tryout-heading .secondary-action").ClickAsync();
+        await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Refresh saved decisions", StringComparison.Ordinal)).ClickAsync();
         await page.WaitForAssertionAsync(() =>
         {
             page.FindAll("#enrollment-heading").ShouldBeEmpty();
             page.FindAll("button[aria-label='Add Morgan Rivera to tryout']").ShouldBeEmpty();
-            page.Find(".tryout-heading .primary-action").HasAttribute("disabled").ShouldBeTrue();
+            page.FindAll("button").Single(value => string.Equals(value.TextContent, "Add players", StringComparison.Ordinal)).HasAttribute("disabled").ShouldBeTrue();
             page.FindAll(".player-notebook fieldset").ShouldAllBe(fieldset => fieldset.HasAttribute("disabled"));
             page.Find("#player-note").GetAttribute("value").ShouldBe("Keep this draft through refresh.");
         });
 
         gateway.GetTryoutAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(data);
-        await page.Find(".tryout-heading .secondary-action").ClickAsync();
+        await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Refresh saved decisions", StringComparison.Ordinal)).ClickAsync();
         await page.WaitForAssertionAsync(() =>
         {
             page.FindAll("#enrollment-heading").ShouldBeEmpty();
-            page.Find(".tryout-heading .primary-action").HasAttribute("disabled").ShouldBeFalse();
+            page.FindAll("button").Single(value => string.Equals(value.TextContent, "Add players", StringComparison.Ordinal)).HasAttribute("disabled").ShouldBeFalse();
         });
-        await page.Find(".tryout-heading .primary-action").ClickAsync();
+        await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Add players", StringComparison.Ordinal)).ClickAsync();
         await page.WaitForAssertionAsync(() => page.Find("button[aria-label='Add Morgan Rivera to tryout']").HasAttribute("disabled").ShouldBeFalse());
         await gateway.DidNotReceive().EnrollAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<EnrollmentInput>(), Arg.Any<CancellationToken>());
     }

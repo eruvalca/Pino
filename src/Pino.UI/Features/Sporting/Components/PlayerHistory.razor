@@ -1,0 +1,22 @@
+<div class="player-tryout-history">
+    <h3>Notes &amp; earlier versions</h3>
+    @if (Notebook.Notes.Count == 0) { <p class="muted">No saved notes.</p> }
+    <ul class="record-history">@foreach (var note in Notebook.Notes)
+    {
+        <li @key="note.Id"><strong>Note</strong><p class="muted"><span class="staff-attribution"><StaffAvatar Name="@note.Author" PhotoUrl="note.AuthorPhotoUrl" /><span>@note.Author</span></span> · @note.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</p>
+            @if (note.RedactedAt is { } redacted) { <p><strong>Private text removed</strong> by <span class="staff-attribution"><StaffAvatar Name="@note.RedactedBy" PhotoUrl="note.RedactedByPhotoUrl" Compact="true" /><span>@note.RedactedBy</span></span> on @redacted.ToLocalTime().ToString("MMM d, yyyy · h:mm tt").</p><p class="note-text">Reason: @note.RedactionReason</p> }
+            else
+            {
+                @if (Superseded.Contains(note.Id)) { <p class="muted">Earlier version · a newer note corrects this one.</p> }
+                else if (note.CorrectsId is not null) { <p class="muted">Corrected note</p> }
+                <p class="note-text">@note.Text</p>
+            }
+        </li>
+    }</ul>
+    <h3>Roster changes</h3>
+    @if (Notebook.EnrollmentChanges is not { Count: > 0 }) { <p class="muted">No roster changes recorded.</p> }
+    <ul class="record-history">@foreach (var change in Notebook.EnrollmentChanges ?? [])
+    {
+        <li @key="change.Id"><strong>@(change.Removed ? "Removed from active roster" : "Restored to active roster")</strong><p class="muted"><span class="staff-attribution"><StaffAvatar Name="@change.Author" PhotoUrl="change.AuthorPhotoUrl" Compact="true" /><span>@change.Author</span></span> · @change.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt") · Bib @(change.Bib.Length == 0 ? "not assigned" : change.Bib)</p><p class="note-text">@change.Reason</p></li>
+    }</ul>
+</div>

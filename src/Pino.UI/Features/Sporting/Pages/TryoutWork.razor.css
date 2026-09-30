@@ -1,10 +1,15 @@
 .tryout-heading h1 { font-size: 1.5rem; letter-spacing: -0.02em; }
+.tryout-breadcrumb { margin-bottom: .5rem; font-size: .875rem; }
+.tryout-heading { grid-template-columns: minmax(0, 1fr); margin-bottom: 1rem; }
+.tryout-heading p { font-size: .875rem; }
+.supporting-tools { margin-block: .75rem 1rem; }
+.supporting-tools > summary { padding-block: .5rem; color: var(--blue); font-size: .875rem; }
 .enrollment-toolbar { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(9rem, 1fr) auto; align-items: end; gap: 0.5rem 1rem; margin-top: 1.5rem; }
 .enrollment-toolbar > p { grid-column: 1 / -1; margin: 0; font-size: 0.8125rem; max-width: 75ch; }
 .enrollment-toolbar label { font-size: 0.875rem; font-weight: 600; }
 @media (max-width: 45rem) { .enrollment-toolbar { grid-template-columns: minmax(0, 1fr); gap: 1rem; } .enrollment-toolbar > p { grid-row: 3; } }
 .decision-editor .sport-form { margin-top: 1rem; }
-.tryout-progress { display: grid; grid-template-columns: 1fr auto; gap: 1rem; padding: 1rem 1.25rem; margin-bottom: 1.5rem; background: var(--blue-soft); color: var(--navy); font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.tryout-progress { display: grid; gap: .25rem; padding: .65rem 1rem; background: var(--blue-soft); color: var(--navy); font-size: .8125rem; font-variant-numeric: tabular-nums; }
 .evaluation-workspace { display: grid; grid-template-columns: minmax(16rem, 0.85fr) minmax(0, 1.8fr); border: 1px solid var(--line); }
 .evaluation-roster { background: var(--subtle); border-right: 1px solid var(--line); min-width: 0; }
 .evaluation-roster h2 { display: grid; grid-template-columns: 1fr auto; align-items: center; padding: 1.25rem 1.25rem 0; font-size: 1rem; }
@@ -14,6 +19,8 @@
 .roster-filters input, .roster-filters select { padding: 0.6rem; font-size: 0.8125rem; }
 .roster-filters .field-pair { gap: 0.75rem; }
 .roster-records { max-height: 42rem; overflow-y: auto; scrollbar-color: var(--line-strong) var(--subtle); scrollbar-width: thin; }
+.roster-pages { margin: 0; padding: 0 1.25rem 1.25rem; gap: 0.5rem; font-size: 0.8125rem; }
+.roster-pages-bottom { display: none; }
 .roster-record { width: 100%; display: grid; grid-template-columns: 3.25rem minmax(0, 1fr); gap: 0.75rem; padding: 1.1rem 1.25rem; text-align: left; color: var(--navy); border: 0; border-top: 1px solid var(--line); background: transparent; border-radius: 0; }
 .roster-record[aria-pressed="true"] { background: var(--blue-soft); }
 .roster-record:hover { background: var(--blue-soft); }
@@ -43,6 +50,7 @@
     .evaluation-workspace[data-view="notebook"] .evaluation-roster { display: none; }
     .evaluation-roster { border-right: 0; }
     .roster-records { max-height: none; }
+    .roster-pages-bottom { display: grid; padding-top: 1.25rem; }
     .player-notebook { padding: 1.25rem; }
     .notebook-heading { grid-template-columns: minmax(0, 1fr); }
     .notebook-heading h2 { font-size: 1.75rem; }
@@ -57,3 +65,7 @@
     @media (max-width: 48rem) { .evaluation-workspace[data-view="roster"] .evaluation-roster { animation: return-roster 180ms cubic-bezier(0.16, 1, 0.3, 1); } }
     @keyframes return-roster { from { transform: translateX(-0.5rem); } to { transform: translateX(0); } }
 }
+.planning-filters summary { padding-block: 0.5rem; }
+.planning-filters .form-field { margin-block: 0.75rem; }
+.bib-details { margin-bottom: 1rem; }
+.bib-details .bib-editor { max-width: 26rem; padding-top: .75rem; }

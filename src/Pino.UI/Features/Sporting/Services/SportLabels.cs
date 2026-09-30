@@ -5,6 +5,19 @@ namespace Pino.UI.Features.Sporting.Services;
 
 internal static class SportLabels
 {
+    internal static string ProgressKind(TryoutSummary tryout) => tryout switch
+    {
+        { Closed: true } => "closed",
+        { Complete: true } => "placed",
+        _ => "awaiting",
+    };
+    internal static string TeamState(TeamSummary team) => team switch
+    {
+        { Archived: true } => "Archived club team",
+        { Excluded: true } => "Excluded this season",
+        _ => "Included",
+    };
+
     internal static string Progress(TryoutSummary tryout) => tryout switch
     {
         { Closed: true } => "Closed · results recorded",
@@ -17,6 +30,7 @@ internal static class SportLabels
         DecisionKind.Placed => "Placed",
         DecisionKind.Withdrawn => "Withdrawn",
         DecisionKind.NotSelected => "Not selected",
+        DecisionKind.DidNotAttend => "Did not attend",
         _ => "Awaiting decision",
     };
     internal static string Kind(DecisionKind kind) => kind switch
@@ -24,6 +38,7 @@ internal static class SportLabels
         DecisionKind.Placed => "placed",
         DecisionKind.Withdrawn => "withdrawn",
         DecisionKind.NotSelected => "not-selected",
+        DecisionKind.DidNotAttend => "withdrawn",
         _ => "awaiting",
     };
 }

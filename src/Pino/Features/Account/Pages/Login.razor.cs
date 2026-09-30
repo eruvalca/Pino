@@ -59,7 +59,7 @@ public sealed partial class Login
             _ =>
             {
                 LogUserLoggedIn(Logger);
-                RedirectManager.RedirectTo(ReturnUrl);
+                RedirectManager.RedirectTo(Pino.Features.Account.Services.AccountReturnPath.Local(ReturnUrl));
             },
             _ => RedirectManager.RedirectTo(
                 "Account/LoginWith2fa",
@@ -69,8 +69,8 @@ public sealed partial class Login
                 LogUserLockedOut(Logger);
                 RedirectManager.RedirectTo("Account/Lockout");
             },
-            _ => _errorMessage = "Error: Invalid login attempt.",
-            _ => _errorMessage = "Error: Invalid login attempt.");
+            _ => _errorMessage = "Error: We could not sign you in. Check your email and password, then try again.",
+            _ => _errorMessage = "Error: We could not sign you in. Check your email and password, then try again.");
     }
 
     [LoggerMessage(EventId = 1001, Level = LogLevel.Information, Message = "User logged in.")]

@@ -9,9 +9,12 @@ internal sealed class TryoutCloseout
     public string SeasonName { get; set; } = "";
     public DateOnly TryoutDate { get; set; }
     public DateTimeOffset ClosedAt { get; set; }
+    public string ClosedById { get; set; } = "";
     public string ClosedBy { get; set; } = "";
     public DateTimeOffset? ReopenedAt { get; set; }
+    public string? ReopenedById { get; set; }
     public string? ReopenedBy { get; set; }
     public string? ReopenReason { get; set; }
+    public int ErasedPlayers { get; set; }
     public List<TryoutCloseoutPlayer> Players { get; set; } = [];
 }

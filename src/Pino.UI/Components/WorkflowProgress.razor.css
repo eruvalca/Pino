@@ -1,0 +1,6 @@
+.workflow-progress { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: .75rem; list-style: none; padding: 0; margin-block: 1.5rem 2rem; }
+.workflow-progress li { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; gap: .5rem; padding-block: .65rem; border-block-start: 2px solid var(--line); color: var(--muted); overflow-wrap: anywhere; }
+.workflow-progress li[aria-current="step"] { border-color: var(--blue); color: var(--blue); font-weight: 700; }
+.workflow-progress li[data-complete="true"] { border-color: var(--navy); color: var(--navy); }
+.step-number { font-variant-numeric: tabular-nums; }
+@media (max-width: 40rem) { .workflow-progress { grid-auto-flow: row; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .4rem 1rem; } }

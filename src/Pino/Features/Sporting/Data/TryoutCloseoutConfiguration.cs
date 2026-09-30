@@ -11,6 +11,8 @@ internal sealed class TryoutCloseoutConfiguration : IEntityTypeConfiguration<Try
         builder.HasMany(value => value.Players).WithOne().HasForeignKey(value => value.CloseoutId).OnDelete(DeleteBehavior.Cascade);
         builder.Property(value => value.TryoutName).HasMaxLength(120);
         builder.Property(value => value.SeasonName).HasMaxLength(120);
+        builder.Property(value => value.ClosedById).HasMaxLength(450);
+        builder.Property(value => value.ReopenedById).HasMaxLength(450);
         builder.Property(value => value.ClosedBy).HasMaxLength(161);
         builder.Property(value => value.ReopenedBy).HasMaxLength(161);
         builder.Property(value => value.ReopenReason).HasMaxLength(1000);

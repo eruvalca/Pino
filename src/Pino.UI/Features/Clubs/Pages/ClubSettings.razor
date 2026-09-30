@@ -1,0 +1,23 @@
+@page "/clubs/{ClubId:guid}/settings"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits Pino.UI.Features.Sporting.Services.SportPageBase
+@using Pino.UI.Features.Sporting.Components
+
+<PageTitle>Club details · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    <a href="@($"/clubs/{ClubId}")">Back to club</a>
+    <header class="sport-heading"><div><h1>Club details</h1><p>Keep the name and location staff use to find your club up to date.</p></div></header>
+    <EditForm Model="_input" OnValidSubmit="SaveDetailsAsync" FormName="club-details" class="sport-form">
+        <DataAnnotationsValidator />
+        <fieldset class="sport-fields" disabled="@Disabled">
+            <legend>Club information</legend>
+            <div class="form-field"><label for="club-name">Club name</label><InputText id="club-name" maxlength="120" @bind-Value="_input.Name" /><ValidationMessage For="() => _input.Name" /></div>
+            <div class="form-field"><label for="club-sport">Sport</label><InputText id="club-sport" maxlength="60" @bind-Value="_input.Sport" /><ValidationMessage For="() => _input.Sport" /></div>
+            <div class="form-field"><label for="club-city">City</label><InputText id="club-city" maxlength="100" @bind-Value="_input.City" /><ValidationMessage For="() => _input.City" /></div>
+            <div class="form-field"><label for="club-state">State</label><InputSelect id="club-state" @bind-Value="_input.State"><option value="">Select a state</option>@foreach (var state in UsStates.All) { <option value="@state.Key">@state.Value</option> }</InputSelect><ValidationMessage For="() => _input.State" /></div>
+            <div class="actions"><button class="primary-action" type="submit">Save club details</button></div>
+        </fieldset>
+    </EditForm>
+</SportFrame>

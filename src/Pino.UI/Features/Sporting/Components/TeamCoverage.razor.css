@@ -1,0 +1,6 @@
+.team-coverage { margin-block: 1.25rem; }
+.coverage-list { list-style: none; margin: 0; padding: 0; }
+.coverage-list li { display: grid; gap: 0.25rem; padding-block: 0.75rem; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.coverage-list span { font-size: 0.875rem; }
+.coverage-target { color: var(--muted); }
+.coverage-target[data-warning="true"] { color: var(--navy); font-weight: 650; }

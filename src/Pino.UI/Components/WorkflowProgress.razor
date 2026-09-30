@@ -1,0 +1,6 @@
+<ol class="workflow-progress" aria-label="@Label">
+    @for (var index = 0; index < Steps.Count; index++)
+    {
+        <li aria-current="@(index == Current ? "step" : null)" data-complete="@(index < Current ? "true" : null)"><span class="step-number" aria-hidden="true">@(index + 1)</span><span>@Steps[index]</span></li>
+    }
+</ol>

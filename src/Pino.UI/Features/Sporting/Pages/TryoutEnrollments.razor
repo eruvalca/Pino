@@ -1,0 +1,80 @@
+@page "/clubs/{ClubId:guid}/tryouts/{TryoutId:guid}/enrollments"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits SportPageBase
+
+<PageTitle>Manage tryout players · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    @if (_tryout is { } data)
+    {
+        <p><a href="@($"/clubs/{ClubId}/tryouts/{TryoutId}")">@data.Tryout.Name</a></p>
+        <header class="sport-heading"><div><h1>Manage tryout players</h1><p>All active club players were included when this tryout was created. Exclude anyone who should not take part.</p></div><a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}")">Back to tryout</a></header>
+        <div class="workflow-actions"><span><strong>@_entries.Count(value => !value.Removed)</strong> included · <strong>@_entries.Count(value => value.Removed)</strong> excluded</span>@if (Membership?.Role == ClubRole.Administrator) { <a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/bulk-enrollment")">Include new players</a> }</div>
+        @if (!CanEdit) { <p class="notice" data-kind="information">Reopen the season and tryout before excluding or restoring players.</p> }
+        <WorkflowProgress Steps="_batchSteps" Current="BatchStep" Label="Roster change progress" />
+        <h2 @ref="_batchHeading" tabindex="-1">@_batchSteps[BatchStep]</h2>
+        @if (_reviewPlayers is { } reviewPlayers)
+        {
+            <EnrollmentBatchReview @key="_reviewId" Players="reviewPlayers" Remove="_reviewRemove" Disabled="@(Disabled || !CanEdit)" Submitted="SaveBatchAsync" Cancelled="BackToPlayers" />
+            @if (_batchReport is { } error) { <p class="notice" data-kind="error">@error.Message</p> }
+        }
+        else if (_batchReport is { Kind: SportReplyKind.Saved } report)
+        {
+            <SportingBatchResults Report="report" Names="_names" /><button type="button" class="secondary-action" disabled="@Disabled" @onclick="BackToPlayers">Back to players</button>
+        }
+        else
+        {
+        <div class="field-pair">
+            <div class="form-field"><label for="enrollment-search">Find a player</label><input id="enrollment-search" type="search" @bind="_query" @bind:event="oninput" @bind:after="ResetPage" placeholder="Name or bib" /></div>
+            <div class="form-field"><label for="enrollment-status">Player status</label><select id="enrollment-status" @bind="_status" @bind:after="ChangeStatus"><option value="all">All players</option><option value="retained">Included</option><option value="removed">Excluded</option></select></div>
+        </div>
+        @if (CanEdit)
+        {
+            <div class="workflow-actions" aria-label="Group enrollment actions">
+                <span role="status">@_selectedPlayers.Count selected</span><button class="secondary-action" disabled="@Disabled" @onclick="SelectMatching">Select all matching</button><button class="text-action" disabled="@(Disabled || _selectedPlayers.Count == 0)" @onclick="() => _selectedPlayers.Clear()">Clear selection</button>
+                <button class="secondary-action" disabled="@(Disabled || !CanExclude)" @onclick="() => ReviewBatch(true)">Review players to exclude</button><button class="secondary-action" disabled="@(Disabled || !CanRestore)" @onclick="() => ReviewBatch(false)">Review players to restore</button>
+            </div>
+            @if (_selectedPlayers.Count > 0 && !CanExclude && !CanRestore) { <p class="notice" data-kind="information">Select included players to exclude, or excluded players to restore. Change the status filter to start a new selection.</p> }
+        }
+        <ul class="record-list">
+            @foreach (var enrollment in Filtered.Skip(_page * 50).Take(50))
+            {
+                <li class="record-row" @key="enrollment.Entry.Player.Id"><div>@if (CanEdit) { <label class="checkbox-field"><input type="checkbox" checked="@_selectedPlayers.Contains(enrollment.Entry.Player.Id)" disabled="@(Disabled || _reviewPlayers is not null)" @onchange="args => SelectPlayer(enrollment.Entry.Player.Id, args)" /><strong>@enrollment.Entry.Player.FullName</strong></label> } else { <strong>@enrollment.Entry.Player.FullName</strong> }<p>Class of @enrollment.Entry.Player.GraduationYear · <span class="decision-badge" data-kind="@(enrollment.Removed ? "awaiting" : "placed")">@(enrollment.Removed ? "Excluded" : "Included")</span>@(enrollment.Entry.Bib.Length > 0 ? $" · Bib {enrollment.Entry.Bib}" : "")</p></div><button class="secondary-action" disabled="@Disabled" @onclick="() => SelectAsync(enrollment.Entry.Player.Id)" aria-label="@($"Review player for {enrollment.Entry.Player.FullName}")">Review player</button></li>
+            }
+        </ul>
+        @if (!Filtered.Any()) { <p>No players match these filters.</p> }
+        <nav class="pagination" aria-label="Enrollment correction pages"><button class="secondary-action" disabled="@(Disabled || _page == 0)" @onclick="() => _page--">Previous</button><span>Page @(_page + 1)</span><button class="secondary-action" disabled="@(Disabled || Filtered.Count() <= (_page + 1) * 50)" @onclick="() => _page++">Next</button></nav>
+        @if (Selected is { } selected)
+        {
+            <section class="sport-section" aria-labelledby="correction-player">
+                <h2 id="correction-player" tabindex="-1" @ref="_heading">@selected.Entry.Player.FullName</h2>
+                <p><a href="@($"/clubs/{ClubId}/players/{selected.Entry.Player.Id}")">Player record &amp; history</a></p>
+                <p>@(selected.Removed ? "Excluded from tryout" : "Included in tryout") · Last saved result: @SportLabels.Decision(selected.Entry.Decision)</p>
+                <EnrollmentCorrection Enrollment="selected" Submitted="SaveCorrectionAsync" Disabled="@(Disabled || !CanEdit)" />
+                <h3>Roster changes</h3>
+                @if (selected.History.Count == 0) { <p>No roster changes recorded.</p> }
+                <ol class="record-history">@foreach (var change in selected.History) { <li @key="change.Id"><strong>@(change.Removed ? "Removed" : "Restored") · <span class="staff-attribution"><StaffAvatar Name="@change.Author" PhotoUrl="change.AuthorPhotoUrl" Compact="true" /><span>@change.Author</span></span></strong><p class="muted">@change.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")@(change.Bib.Length > 0 ? $" · Bib {change.Bib}" : "")</p><p class="note-text">@change.Reason</p></li> }</ol>
+                @if (_notebook is { } notebook)
+                {
+                    <h3>Notes</h3>
+                    @if (notebook.Notes.Count == 0) { <p>No notes recorded.</p> }
+                    <ol class="record-history">@foreach (var note in notebook.Notes)
+                    {
+                        <li @key="note.Id"><strong><span class="staff-attribution"><StaffAvatar Name="@note.Author" PhotoUrl="note.AuthorPhotoUrl" /><span>@note.Author</span></span></strong><p class="muted">@note.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")@(note.CorrectsId is null ? "" : " · Correction")</p>
+                            @if (note.RedactedAt is not null) { <p>Private note text removed.</p><p><span class="staff-attribution"><StaffAvatar Name="@note.RedactedBy" PhotoUrl="note.RedactedByPhotoUrl" Compact="true" /><span>@note.RedactedBy</span></span> · @note.RedactedAt.Value.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</p><p class="note-text">Reason: @note.RedactionReason</p> }
+                            else
+                            {
+                                <p class="note-text">@note.Text</p>
+                                @if (Membership?.Role == ClubRole.Administrator) { <button class="text-action" disabled="@Disabled" @onclick="() => _redactingId = note.Id">Review text removal</button> }
+                                @if (_redactingId == note.Id && Membership?.Role == ClubRole.Administrator) { <NoteRedactionReview NoteId="note.Id" Disabled="Disabled" Submitted="RedactAsync" Cancelled="() => _redactingId = null" /> }
+                            }
+                        </li>
+                    }</ol>
+                    <h3>Decision history</h3><DecisionHistory History="notebook.History" />
+                }
+            </section>
+        }
+        }
+    }
+</SportFrame>

@@ -17,6 +17,8 @@ See the [early-development migration workflow](#ef-migrations).
 - [Application shell](docs/features/application-shell.md): shared club/account navigation, page width and responsive layout.
 - [Tryout demonstration](docs/features/tryout-evaluation.md): the separate fictional sample and its design direction.
 - [Club onboarding and access](docs/features/club-onboarding-access.md): persisted profiles, private photos, requests, roles, and membership management.
+- [Simple tryouts and staff activity](docs/features/simple-tryouts-and-staff-activity.md): session removal, staff photos and plain-language screens.
+- [Guided workflows and navigation](docs/features/guided-workflows-and-navigation.md): attendance removal, step-based preparation and Blazor state handoff.
 - [Design system](DESIGN.md): the implemented Sideline notebook visual system.
 - [Agent guidance](AGENTS.md): project boundaries, design process, and authoring rules.
 - [Build conventions](build/README.md): analyzers, formatting, and Razor policy.
@@ -31,27 +33,30 @@ from Aspire), then sign in. Complete your profile and create or join a club.
 From the club navigation:
 
 1. **Players:** add individual records or download the CSV template, preview a
-   file and import its valid batch. Edit or archive records from player details.
-2. **Seasons & teams:** create a season, add graduation-year teams and a tryout.
-3. Open the tryout, **Add players**, then select a player to write shared notes
-   and record their outcome. Each save persists to PostgreSQL. Refresh saved
+   file through the file, column mapping and player review steps, then import its valid batch. Edit or archive records from player details.
+2. **Seasons & teams:** maintain the club's graduation-year teams and create a
+   season and tryout. New tryouts show a roster/team review before creation. Club teams are available across seasons by default.
+3. Open the tryout. Active catalog players were included automatically. Use
+   **Manage tryout players** for reasoned exclusions or restoration, or select a player to write shared notes
+   and record their decision, including **Did not attend** for a player who missed
+   the tryout. Each save persists to PostgreSQL. Refresh saved
    decisions before resolving a stale-save message.
-   Set an optional bib number while adding each player, or assign, change or clear
-   it under **Bib number (this tryout)** in their notebook. Bibs are specific to
+   Assign, change or clear an optional bib under **Bib number** in their notebook. Bibs are specific to
    that tryout; a separate import reference is generated automatically for manual
-   player creation. CSV imports still supply their own references for duplicate checks.
+   player creation. CSV imports can supply references for duplicate checks or let Pino generate them.
 4. Use **Review season** to see current team rosters, participating players without
    a team, and outstanding tryout decisions. Follow **Player record & history** or
    a team link for the decisions behind current placements.
-5. Open **Review results & closeout** in a tryout. Once every player has a decision,
+5. Open **Review results** in a tryout. Once every player has a decision,
    review the results and confirm **Close tryout**. Closing preserves a result
    edition and locks that tryout's roster, bibs, notes, decisions and setup.
    Reopen it with a reason when corrections are needed; earlier editions remain.
 6. Archive a season when finished. Restoring it permits sporting changes again
    but leaves its closed tryouts closed until explicitly reopened.
 
-Coaches and administrators have the same sporting permissions. Administrators
-also manage **People**. All operations recheck current club membership on the
+Coaches and administrators can assess players, correct the
+tryout roster and export ordinary results. Administrators also manage **People**,
+club settings, planning targets, group import/preparation and personal-data controls. All operations recheck current club membership on the
 server. The first version requires a connection; save drafts before navigating
 away or reloading. See the [sporting brief](docs/features/club-sporting-workspace.md)
 for validation limits, correction rules and cross-tryout placement behavior.
@@ -73,7 +78,7 @@ Account pages retain their existing static SSR and Identity behavior.
 
 ## Club onboarding and access
 
-The root page requires sign-in. Confirm a development account, complete first
+Club workspaces require sign-in. Confirm a development account, complete first
 and last names and a cropped profile photo, then create a club or request to
 join one. `/club/access` shows the current profile and membership/request state.
 Existing members visiting `/` continue to `/clubs/{clubId}`; administrators use
@@ -91,6 +96,8 @@ the `profileblobs` connection to the server and migration resource. Profile
 images live in the private `profile-photos` blob container, served through
 authorized, non-cacheable endpoints. The browser accepts JPEG/PNG up to 5 MB;
 the server validates and re-encodes the saved 512 × 512 crop using SkiaSharp.
+Staff photos also appear beside notes, decisions and history. They
+use the same protected endpoint; missing or inaccessible photos show initials.
 Original uploads and metadata are not retained. A database-backed cleanup queue
 retries deletion of replaced/deleted photos every minute and abandoned uploads
 after an hour. Both database and blob storage are needed for photo operations.
@@ -334,6 +341,20 @@ in a secret provider. `Smtp:Port` defaults to 587 with required STARTTLS; set
 `Smtp:ImplicitTls=true` and the provider's port for implicit TLS. Mailpit is run-mode
 development infrastructure and is not a production email service.
 
+Account POST requests have an in-process connection-address rate limit. Identity
+confirmation and reset mail also has recipient cooldown/hourly limits; repeated
+requests receive generic guidance and may not generate another Mailpit message.
+See the [account protection behavior](docs/features/club-sporting-workspace.md#public-entry-and-account-protection)
+for boundaries and restart behavior. Password failures enable Identity lockout.
+
+Staff invitations and membership notifications share that SMTP transport with
+account mail. Their durable database queue runs locally with Mailpit; administrators
+can inspect and retry failed staff mail under People → Email delivery. Invitation
+links use the current loopback application origin in Development. Elsewhere,
+`Pino:PublicOrigin` must name the application's HTTPS origin; an arbitrary request
+host cannot select the email link destination. Pending staff email bodies use the
+application's data-protection keys, which must remain available until delivery.
+
 Deployment also requires persistent PostgreSQL and private Azure Blob Storage,
 HTTPS/domain configuration, protected Identity data-protection keys, and backups.
 Configure external identity providers only if wanted; unconfigured providers are
@@ -345,9 +366,13 @@ choice. No deployment destination or production credentials are included.
 `ApplicationDbContext` exposes named plural sets for every application entity.
 Feature code uses these properties (`db.Players`, `db.Seasons`, and so on).
 EF Core derives application table names from the set names: `Clubs`,
-`ClubProfiles`, `ClubMemberships`, `ClubJoinRequests`, `PhotoDeletions`, `Players`,
-`Seasons`, `SportTeams`, `TryoutEvents`, `Participations`, `SeasonPlacements`,
-`PlayerNotes`, `DecisionEvents`, `TryoutCloseouts`, and `TryoutCloseoutPlayers`.
+`ClubProfiles`, `ClubMemberships`, `ClubJoinRequests`, `ClubInvitations`, `StaffEmails`,
+`PhotoDeletions`, `Players`, `Seasons`, `SportTeams`, `SeasonTeamAvailabilities`,
+`TryoutTeamAvailabilities`, `TryoutEvents`, `Participations`, `EnrollmentChanges`, `SeasonPlacements`,
+`PlayerNotes`, `DecisionEvents`, `TryoutCloseouts`, `TryoutCloseoutPlayers`,
+`PlayerErasures`, `PlayerImportReceipts`, `SportingBatchReceipts`, and `TeamPositionTargets`.
+Teams belong to the club; availability rules scope exclusions, while placements
+remain season-specific. New tryouts atomically include the active player catalog.
 Closeout player rows preserve historical values separately from current catalog
 and placement records. Identity retains its default `AspNet*`
 tables and schema version 3, including passkeys.

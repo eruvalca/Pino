@@ -25,7 +25,7 @@ internal sealed partial class SportService
             value.ReopenedBy, value.ReopenReason, value.Players.OrderBy(player => player.LastName, StringComparer.Ordinal)
                 .ThenBy(player => player.FirstName, StringComparer.Ordinal).ThenBy(player => player.PlayerId)
                 .Select(player => new TryoutResult(player.PlayerId, player.FirstName, player.LastName, player.GraduationYear,
-                    player.Bib, player.Decision, player.TeamId, player.TeamName)).ToArray())).ToArray(), current.ReviewToken);
+                    player.Bib, player.Decision, player.TeamId, player.TeamName, player.MiddleName)).ToArray(), value.ErasedPlayers, StaffPhoto(value.ClosedById), StaffPhoto(value.ReopenedById))).ToArray(), current.ReviewToken);
     }
 
     // Closing needs only the current roster and review token. Historical editions
@@ -38,10 +38,10 @@ internal sealed partial class SportService
                              join player in db.Players on entry.PlayerId equals player.Id
                              join team in db.SportTeams on entry.TeamId equals team.Id into teams
                              from team in teams.DefaultIfEmpty()
-                             where entry.ClubId == clubId && entry.TryoutId == tryoutId
+                             where entry.ClubId == clubId && entry.TryoutId == tryoutId && !entry.Removed
                              orderby player.LastName, player.FirstName, player.Id
                              select new TryoutResult(player.Id, player.FirstName, player.LastName, player.GraduationYear,
-                                 entry.Bib, entry.Decision, entry.TeamId, team == null ? null : team.Name)).ToListAsync(ct);
+                                 entry.Bib, entry.Decision, entry.TeamId, team == null ? null : team.Name, player.MiddleName)).ToListAsync(ct);
         var summary = new TryoutSummary(tryout.Id, tryout.SeasonId, tryout.Name, tryout.Date, tryout.Location,
             results.Count, results.Count(value => value.Decision != DecisionKind.Awaiting), tryout.Revision, tryout.Closed);
         var seasonSummary = Summary(season);
@@ -62,7 +62,7 @@ internal sealed partial class SportService
             if (replay is not null)
             {
                 return replay.ClubId == clubId && replay.TryoutId == tryoutId
-                    ? new SportOutcome.Saved("This closeout was already recorded. The latest state is shown.", replay.Id)
+                    ? new SportOutcome.Saved("This tryout was already closed. Its latest results are shown.", replay.Id)
                     : new SportOutcome.Conflict(StaleMessage);
             }
             var review = await ReadCurrentTryoutReviewAsync(db, clubId, tryoutId, token);
@@ -85,12 +85,14 @@ internal sealed partial class SportService
                 SeasonName = review.Season.Name,
                 TryoutDate = review.Tryout.Date,
                 ClosedAt = time.GetUtcNow(),
+                ClosedById = actorId,
                 ClosedBy = await AuthorAsync(db, actorId, token),
                 Players = review.Results.Select(value => new TryoutCloseoutPlayer
                 {
                     CloseoutId = input.OperationId,
                     PlayerId = value.PlayerId,
                     FirstName = value.FirstName,
+                    MiddleName = value.MiddleName,
                     LastName = value.LastName,
                     GraduationYear = value.GraduationYear,
                     Bib = value.Bib,
@@ -99,7 +101,7 @@ internal sealed partial class SportService
                     TeamName = value.TeamName,
                 }).ToList(),
             });
-            return new SportOutcome.Saved("Tryout closed. Its reviewed results are preserved.", input.OperationId);
+            return new SportOutcome.Saved("Tryout closed. Its results are saved.", input.OperationId);
         }, ct);
 
     internal Task<SportOutcome> ReopenTryoutAsync(ClaimsPrincipal actor, Guid clubId, Guid tryoutId, ReopenTryoutInput input, CancellationToken ct) =>
@@ -120,11 +122,12 @@ internal sealed partial class SportService
             }
             if (!tryout.Closed || closeout.ReopenedAt.HasValue) { return new SportOutcome.Conflict("The tryout state changed. Reload before reopening it."); }
             closeout.ReopenedAt = time.GetUtcNow();
+            closeout.ReopenedById = actorId;
             closeout.ReopenedBy = await AuthorAsync(db, actorId, token);
             closeout.ReopenReason = reason;
             tryout.Closed = false;
             tryout.Revision++;
-            return new SportOutcome.Saved("Tryout reopened. Earlier closeout editions remain available.", tryoutId);
+            return new SportOutcome.Saved("Tryout reopened. Earlier saved results remain available.", tryoutId);
         }, ct);
 
     private sealed record CurrentTryoutReview(TryoutSummary Tryout, SeasonSummary Season, IReadOnlyList<TryoutResult> Results, string ReviewToken);

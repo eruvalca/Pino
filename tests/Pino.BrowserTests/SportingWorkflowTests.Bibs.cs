@@ -11,6 +11,8 @@ public sealed partial class SportingWorkflowTests
         var tryoutPath = $"{path}/tryouts/{original.Id}";
         var before = await session.GetAsync<TryoutDetail>(tryoutPath);
         var player = before.Roster.Single(value => string.Equals(value.Player.FirstName, "Jordan", StringComparison.Ordinal));
+        var notebookPath = $"{tryoutPath}/players/{player.Player.Id}/notebook";
+        var beforeNotebook = await session.GetAsync<PlayerNotebook>(notebookPath);
         var second = (await session.GetAsync<PlayerPage>(path + "/players?query=NS-002&archived=false&page=0")).Players.ShouldHaveSingleItem();
         before.Roster.Single(value => value.Player.Id == second.Id).Bib.ShouldBe("22");
         var unenrolled = new PlayerInput { PlayerReference = "BIB-UNENROLLED", FirstName = "Unenrolled", LastName = "Player", GraduationYear = 2030 };
@@ -27,7 +29,7 @@ public sealed partial class SportingWorkflowTests
         entry.Bib.ShouldBe("41");
         entry.Revision.ShouldBe(player.Revision);
         entry.Decision.ShouldBe(player.Decision);
-        saved.History.Count.ShouldBe(before.History.Count);
+        (await session.GetAsync<PlayerNotebook>(notebookPath)).History.ShouldBe(beforeNotebook.History);
         var longest = new string('1', 20);
         (await session.PostAsync<SportReply>(tryoutPath + "/bib", new BibNumberInput(player.Player.Id, longest, "41"))).Kind.ShouldBe(SportReplyKind.Saved);
         (await session.GetAsync<TryoutDetail>(tryoutPath)).Roster.Single(value => value.Player.Id == player.Player.Id).Bib.ShouldBe(longest);

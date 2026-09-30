@@ -11,10 +11,12 @@
         <p><a href="@($"/clubs/{ClubId}/seasons/{SeasonId}")">Season setup</a></p>
         <header class="sport-heading"><div><h1>@review.Season.Name</h1><p>@review.Season.StartsOn.ToString("MMM d, yyyy") – @review.Season.EndsOn.ToString("MMM d, yyyy") · @(review.Season.Archived ? "Archived season" : "Active season")</p></div><button class="secondary-action" disabled="@Disabled" @onclick="ReloadAsync">Refresh season</button></header>
         <p class="season-summary"><strong>@review.Players @(review.Players == 1 ? "player" : "players")</strong> across @review.Teams.Count @(review.Teams.Count == 1 ? "team" : "teams"). @review.UnplacedPlayers.Count participating @(review.UnplacedPlayers.Count == 1 ? "player has" : "players have") no current team.</p>
+        <nav class="workflow-actions" aria-label="Season actions"><a class="primary-action" href="@($"/clubs/{ClubId}/seasons/{SeasonId}/compare")">Compare teams &amp; notes</a><a class="secondary-action" href="@($"/api/clubs/{ClubId}/sport/seasons/{SeasonId}/roster.csv")" download data-enhance-nav="false">Download current season roster (CSV)</a></nav>
+        <p class="muted">The download includes players without a current team.</p>
         <nav class="review-index" aria-label="Season review sections"><a href="@($"/clubs/{ClubId}/seasons/{SeasonId}/review#tryout-results")">Tryout work &amp; results</a><a href="@($"/clubs/{ClubId}/seasons/{SeasonId}/review#current-teams")">Current team rosters</a><a href="@($"/clubs/{ClubId}/seasons/{SeasonId}/review#unplaced-players")">Players without a team</a></nav>
         <section id="tryout-results" class="sport-section">
             <h2>Tryout work &amp; results</h2>
-            <p class="muted">Review outstanding decisions, then close each tryout to preserve its results. Closed editions stay separate from today's team rosters.</p>
+            <p class="muted">Finish each player's decision, then close the tryout to save its results. Later team changes do not change those saved results.</p>
             @if (review.Tryouts.Count == 0) { <p>No tryouts yet. <a href="@($"/clubs/{ClubId}/seasons/{SeasonId}")">Add a tryout in season setup</a>.</p> }
             <ul class="record-list">@foreach (var tryout in review.Tryouts.OrderBy(value => value.Closed).ThenBy(value => value.Complete))
             {
@@ -22,17 +24,19 @@
             }</ul>
         </section>
         <section id="current-teams" class="sport-section">
-            <h2>Current team rosters</h2><p class="muted">Each player appears on one current team in this season. Later tryouts can change these placements without changing a closed edition.</p>
+            <h2>Current team rosters</h2><p class="muted">Each player has one current team per season. Later tryouts can change their team. Results saved when a tryout closed stay the same.</p>
             @if (review.Teams.Count == 0) { <p>No teams yet. <a href="@($"/clubs/{ClubId}/seasons/{SeasonId}")">Prepare your teams</a>.</p> }
             <div class="season-rosters">@foreach (var roster in review.Teams)
             {
-                <section class="season-team" @key="roster.Team.Id"><header><h3><a href="@($"/clubs/{ClubId}/teams/{roster.Team.Id}")">@roster.Team.Name</a></h3><p class="muted">@roster.Players.Count @(roster.Players.Count == 1 ? "player" : "players") · Graduation @roster.Team.GraduationYear+@(roster.Team.Archived ? " · Archived" : "")</p></header>
-                    @if (roster.Players.Count == 0) { <p class="muted">No current placements.</p> }
+                <section class="season-team" @key="roster.Team.Id"><header><h3><a href="@($"/clubs/{ClubId}/teams/{roster.Team.Id}?season={SeasonId}")">@roster.Team.Name</a></h3><p class="muted">@roster.Players.Count @(roster.Players.Count == 1 ? "player" : "players") · Graduation @roster.Team.GraduationYear+ · @SportLabels.TeamState(roster.Team)</p></header>
+                    <TeamCoverage Team="roster.Team" Players="roster.Players" />
+                    @if (Membership?.Role == ClubRole.Administrator) { <p><a href="@($"/clubs/{ClubId}/teams/{roster.Team.Id}/targets")">Set @roster.Team.Name targets</a></p> }
+                    @if (roster.Players.Count == 0) { <p class="muted">No players on this team yet.</p> }
                     <ul class="record-list">@foreach (var player in roster.Players) { <li class="season-player" @key="player.Id"><a href="@($"/clubs/{ClubId}/players/{player.Id}")">@player.FullName</a><span>Class of @player.GraduationYear@(player.Archived ? " · Archived player" : "")</span></li> }</ul>
                 </section>
             }</div>
         </section>
-        <section id="unplaced-players" class="sport-section"><h2>Players without a current team</h2><p class="muted">These players participated in this season. An awaiting, withdrawn or not-selected result may explain why they have no placement.</p>
+        <section id="unplaced-players" class="sport-section"><h2>Players without a current team</h2><p class="muted">These players took part this season but have no team now. Check their tryout results to see why.</p>
             @if (review.UnplacedPlayers.Count == 0) { <p>@(review.Players == 0 ? "Add players to a tryout to begin the season's record." : "Every participating player has a current team.")</p> }
             <ul class="record-list">@foreach (var player in review.UnplacedPlayers) { <li class="season-player" @key="player.Id"><a href="@($"/clubs/{ClubId}/players/{player.Id}")">@player.FullName</a><span>Class of @player.GraduationYear@(player.Archived ? " · Archived player" : "")</span></li> }</ul>
         </section>

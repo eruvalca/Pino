@@ -1,0 +1,10 @@
+<section class="sport-section" aria-label="Batch results">
+    <h2 tabindex="-1" @ref="_heading">Player results</h2>
+    <p class="notice" data-kind="@NoticeKind" role="status">@Report.Message</p>
+    <RosterPager Count="Report.Rows.Count" Page="_page" PageChanged="ChangePageAsync" Label="Batch result pages" />
+    <ul class="record-list">@foreach (var row in Report.Rows.Skip(_page * 50).Take(50))
+    {
+        <li class="record-row" @key="row.PlayerId"><div><strong>@Names.GetValueOrDefault(row.PlayerId, "Player no longer available")</strong><p>@(row.Applied ? "Applied" : "Skipped") · @row.Message</p></div></li>
+    }</ul>
+    <RosterPager Count="Report.Rows.Count" Page="_page" PageChanged="ChangePageAsync" Label="Batch result pages after players" />
+</section>

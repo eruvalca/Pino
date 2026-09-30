@@ -7,6 +7,30 @@ namespace Pino.Client.Features.Sporting;
 
 internal sealed class HttpSportGateway(HttpClient http) : ISportGateway
 {
+    public Task<SportReply> SaveTeamTargetsAsync(Guid clubId, Guid teamId, TeamTargetsInput input, CancellationToken cancellationToken = default) =>
+        PostAsync<SportReply, TeamTargetsInput>(clubId, $"teams/{teamId}/targets", input, cancellationToken);
+    public Task<IReadOnlyList<EnrollmentCandidate>> GetEnrollmentCandidatesAsync(Guid clubId, Guid tryoutId, CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<EnrollmentCandidate>>(clubId, $"tryouts/{tryoutId}/enrollment-candidates", cancellationToken);
+    public Task<SportingBatchReport> EnrollBulkAsync(Guid clubId, Guid tryoutId, BulkEnrollmentInput input, CancellationToken cancellationToken = default) =>
+        PostAsync<SportingBatchReport, BulkEnrollmentInput>(clubId, $"tryouts/{tryoutId}/bulk-enrollment", input, cancellationToken);
+    public Task<IReadOnlyList<TeamAvailabilitySummary>> GetTeamAvailabilityAsync(Guid clubId, Guid seasonId, Guid? tryoutId, CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<TeamAvailabilitySummary>>(clubId, $"seasons/{seasonId}/team-availability" + (tryoutId is null ? "" : $"?tryoutId={tryoutId}"), cancellationToken);
+    public Task<SportReply> SaveTeamAvailabilityAsync(Guid clubId, Guid seasonId, Guid? tryoutId, TeamAvailabilityInput input, CancellationToken cancellationToken = default) =>
+        PostAsync<SportReply, TeamAvailabilityInput>(clubId, $"seasons/{seasonId}/team-availability" + (tryoutId is null ? "" : $"?tryoutId={tryoutId}"), input, cancellationToken);
+    public Task<IReadOnlyList<ReturningPlayerReview>> GetReturningPlayersAsync(Guid clubId, Guid tryoutId, Guid sourceSeasonId, CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<ReturningPlayerReview>>(clubId, $"tryouts/{tryoutId}/returning?sourceSeasonId={sourceSeasonId}", cancellationToken);
+    public Task<SportingBatchReport> PlaceReturningPlayersAsync(Guid clubId, Guid tryoutId, ReturningPlacementInput input, CancellationToken cancellationToken = default) =>
+        PostAsync<SportingBatchReport, ReturningPlacementInput>(clubId, $"tryouts/{tryoutId}/returning", input, cancellationToken);
+    public Task<IReadOnlyList<EnrollmentDetail>> GetEnrollmentsAsync(Guid clubId, Guid tryoutId, CancellationToken cancellationToken = default) =>
+        GetAsync<IReadOnlyList<EnrollmentDetail>>(clubId, $"tryouts/{tryoutId}/enrollments", cancellationToken);
+    public Task<SportReply> ChangeEnrollmentAsync(Guid clubId, Guid tryoutId, EnrollmentChangeInput input, CancellationToken cancellationToken = default) =>
+        PostAsync<SportReply, EnrollmentChangeInput>(clubId, $"tryouts/{tryoutId}/enrollments", input, cancellationToken);
+    public Task<SportingBatchReport> ChangeEnrollmentsAsync(Guid clubId, Guid tryoutId, BulkEnrollmentChangeInput input, CancellationToken cancellationToken = default) =>
+        PostAsync<SportingBatchReport, BulkEnrollmentChangeInput>(clubId, $"tryouts/{tryoutId}/enrollments/batch", input, cancellationToken);
+    public Task<ErasureReport> ErasePlayerAsync(Guid clubId, ErasePlayerInput input, CancellationToken cancellationToken = default) =>
+        PostAsync<ErasureReport, ErasePlayerInput>(clubId, "players/erase", input, cancellationToken);
+    public Task<ErasureReport> GetErasureAsync(Guid clubId, Guid operationId, CancellationToken cancellationToken = default) =>
+        GetAsync<ErasureReport>(clubId, $"erasures/{operationId}", cancellationToken);
     public Task<SeasonReview> GetSeasonReviewAsync(Guid clubId, Guid seasonId, CancellationToken cancellationToken = default) =>
         GetAsync<SeasonReview>(clubId, $"seasons/{seasonId}/review", cancellationToken);
     public Task<TryoutReview> GetTryoutReviewAsync(Guid clubId, Guid tryoutId, CancellationToken cancellationToken = default) =>
@@ -15,8 +39,8 @@ internal sealed class HttpSportGateway(HttpClient http) : ISportGateway
         PostAsync<SportReply, CloseTryoutInput>(clubId, $"tryouts/{tryoutId}/close", input, cancellationToken);
     public Task<SportReply> ReopenTryoutAsync(Guid clubId, Guid tryoutId, ReopenTryoutInput input, CancellationToken cancellationToken = default) =>
         PostAsync<SportReply, ReopenTryoutInput>(clubId, $"tryouts/{tryoutId}/reopen", input, cancellationToken);
-    public Task<TeamDetail> GetTeamAsync(Guid clubId, Guid teamId, CancellationToken cancellationToken = default) =>
-        GetAsync<TeamDetail>(clubId, $"teams/{teamId}", cancellationToken);
+    public Task<TeamDetail> GetTeamAsync(Guid clubId, Guid teamId, Guid? seasonId, CancellationToken cancellationToken = default) =>
+        GetAsync<TeamDetail>(clubId, $"teams/{teamId}" + (seasonId is null ? "" : $"?seasonId={seasonId}"), cancellationToken);
     public Task<SportOverview> GetOverviewAsync(Guid clubId, CancellationToken cancellationToken = default) =>
         GetAsync<SportOverview>(clubId, "overview", cancellationToken);
 
@@ -28,6 +52,9 @@ internal sealed class HttpSportGateway(HttpClient http) : ISportGateway
 
     public Task<TryoutDetail> GetTryoutAsync(Guid clubId, Guid tryoutId, CancellationToken cancellationToken = default) =>
         GetAsync<TryoutDetail>(clubId, $"tryouts/{tryoutId}", cancellationToken);
+
+    public Task<PlayerNotebook> GetNotebookAsync(Guid clubId, Guid tryoutId, Guid playerId, CancellationToken cancellationToken = default) =>
+        GetAsync<PlayerNotebook>(clubId, $"tryouts/{tryoutId}/players/{playerId}/notebook", cancellationToken);
 
     public Task<SportReply> SavePlayerAsync(Guid clubId, PlayerInput input, CancellationToken cancellationToken = default) =>
         PostAsync<SportReply, PlayerInput>(clubId, "players", input, cancellationToken);
@@ -55,6 +82,9 @@ internal sealed class HttpSportGateway(HttpClient http) : ISportGateway
 
     public Task<ImportReport> ImportAsync(Guid clubId, ImportInput input, CancellationToken cancellationToken = default) =>
         PostAsync<ImportReport, ImportInput>(clubId, "import", input, cancellationToken);
+
+    public Task<SportReply> RedactNoteAsync(Guid clubId, Guid tryoutId, RedactNoteInput input, CancellationToken cancellationToken = default) =>
+        PostAsync<SportReply, RedactNoteInput>(clubId, $"tryouts/{tryoutId}/notes/redact", input, cancellationToken);
 
     private async Task<T> GetAsync<T>(Guid clubId, string path, CancellationToken ct)
     {

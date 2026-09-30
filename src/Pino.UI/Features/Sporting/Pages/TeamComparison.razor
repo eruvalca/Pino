@@ -1,0 +1,75 @@
+@page "/clubs/{ClubId:guid}/seasons/{SeasonId:guid}/compare"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits SportPageBase
+
+<PageTitle>Compare teams · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    @if (_review is { } review)
+    {
+        <p><a href="@($"/clubs/{ClubId}/seasons/{SeasonId}/review")">Back to @review.Season.Name</a></p>
+        <header class="sport-heading"><div><h1>Compare teams</h1><p>Compare team lists and read player notes side by side.</p></div><button class="secondary-action" disabled="@Disabled" @onclick="ReloadAsync">Refresh comparison</button></header>
+        <p>Try placing a player to see how the team would look. This preview saves nothing and disappears when you leave or refresh.</p>
+        <div class="comparison-surface" data-view="@(_showNotebook ? "notebook" : "rosters")">
+        <div class="comparison-controls">
+            <div class="form-field"><label for="comparison-first">First team</label><select id="comparison-first" @bind="_firstTeam" @bind:after="ResetPreview" disabled="@Disabled"><option value="@Guid.Empty">Choose a team</option>@foreach (var team in review.Teams.Select(value => value.Team)) { <option value="@team.Id">@team.Name@(team.Archived ? " · Archived" : "")</option> }</select></div>
+            <div class="form-field"><label for="comparison-second">Second team</label><select id="comparison-second" @bind="_secondTeam" @bind:after="ResetPreview" disabled="@Disabled"><option value="@Guid.Empty">Choose a team</option>@foreach (var team in review.Teams.Select(value => value.Team)) { <option value="@team.Id">@team.Name@(team.Archived ? " · Archived" : "")</option> }</select></div>
+            <div class="form-field"><label for="comparison-search">Player name or graduation year</label><input id="comparison-search" type="search" @bind="_query" @bind:event="oninput" @bind:after="FilterPlayers" disabled="@Disabled" /></div>
+            <div class="form-field"><label for="comparison-position">Primary or secondary position</label><select id="comparison-position" @bind="_position" @bind:after="FilterPlayers" disabled="@Disabled"><option value="">All positions</option>@foreach (var position in Positions) { <option>@position</option> }</select></div>
+        </div>
+        <div class="comparison-workspace">
+            <div class="comparison-lists">
+                <header class="comparison-roster-heading comparison-mobile"><h2 id="comparison-rosters-title" tabindex="-1" @ref="_rosterHeading">Team rosters</h2>
+                    @if (SelectedPlayer is { } returning) { <button class="secondary-action comparison-return" type="button" disabled="@Disabled" @onclick="ShowPlayer">Return to @returning.FullName</button> }
+                </header>
+                @foreach (var roster in ComparedTeams)
+                {
+                    <section @key="roster.Team.Id" class="comparison-team"><h2>@roster.Team.Name</h2><p class="muted">Graduation @roster.Team.GraduationYear+ · @roster.Players.Count saved placements@(roster.Team.Archived ? " · Archived team" : "")</p>
+                        @if (_previewTeam != Guid.Empty) { <p class="preview-label">Preview coverage · saved roster below</p> }
+                        <TeamCoverage Team="roster.Team" Players="CoveragePlayers(roster)" />
+                        <ComparisonRoster Players="_filtered.GetValueOrDefault(roster.Team.Id, [])" Label="roster.Team.Name" SelectedId="_selectedId" Selected="SelectPlayerAsync" Disabled="Disabled" />
+                    </section>
+                }
+                @if (!ComparedTeams.Any()) { <p>Choose a club team above to compare its roster in this season.</p> }
+                <section class="comparison-available"><h2>Players without a current team</h2><p class="muted">These players took part this season but have no team. Check their results before placing them.</p><ComparisonRoster Players="_unplaced" Label="Unplaced" SelectedId="_selectedId" Selected="SelectPlayerAsync" Disabled="Disabled" /></section>
+            </div>
+            <section class="comparison-notebook" aria-labelledby="comparison-player-title">
+                <button class="text-action comparison-mobile comparison-back" type="button" disabled="@Disabled" @onclick="ShowRosters">Back to rosters</button>
+                <h2 id="comparison-player-title" tabindex="-1" @ref="_heading">@(SelectedPlayer?.FullName ?? "Player notes")</h2>
+                @if (SelectedPlayer is { } selected)
+                {
+                    <p>Class of @selected.GraduationYear · @(selected.Position.Length == 0 ? "Position not recorded" : selected.Position)@(selected.SecondaryPosition.Length == 0 ? "" : $" / {selected.SecondaryPosition}")</p>
+                    <p><a href="@($"/clubs/{ClubId}/players/{selected.Id}")">Open full player history</a></p>
+                    <fieldset class="sport-fields" disabled="@Disabled"><legend>Preview a placement</legend>
+                        @foreach (var team in ComparedTeams.Select(value => value.Team))
+                        {
+                            <button class="secondary-action" type="button" disabled="@(selected.Archived || team.Archived || team.Excluded || review.Season.Archived || selected.GraduationYear < team.GraduationYear)" @onclick="() => Preview(team.Id)">Preview on @team.Name</button>
+                            @if (team.Excluded) { <p class="muted">@team.Name is excluded from this season.</p> }
+                            @if (selected.GraduationYear < team.GraduationYear) { <p class="muted">Not eligible for @team.Name: requires graduation @team.GraduationYear or later.</p> }
+                        }
+                        @if (_previewTeam != Guid.Empty) { <p class="notice" data-kind="information">Preview only. No placement has been saved.</p><button class="secondary-action comparison-mobile comparison-preview-coverage" type="button" @onclick="ShowRosters">Review preview coverage</button><button class="text-action" type="button" @onclick="ResetPreview">Clear preview</button> }
+                    </fieldset>
+                    @if (_playerLoaded)
+                    {
+                        @if (PlayerTryouts.Length == 0) { <p>No tryout history for this player in this season.</p> }
+                        else
+                        {
+                            <div class="form-field"><label for="comparison-tryout">Notes from tryout</label><select id="comparison-tryout" @bind="_tryoutId" @bind:after="LoadNotebookAsync" disabled="@Disabled">@foreach (var tryout in PlayerTryouts) { <option value="@tryout.Id">@tryout.Name@(tryout.Removed ? " · Excluded from tryout" : "")</option> }</select></div>
+                            @if (SelectedTryout is { } current)
+                            {
+                                <p><strong>@SportLabels.Decision(current.Decision)</strong>@(current.Team is null ? "" : $" · {current.Team}")</p>
+                                <p><a class="primary-action" href="@($"/clubs/{ClubId}/tryouts/{current.Id}?player={selected.Id}")">Open tryout to save a decision</a></p>
+                            }
+                            @if (_notebook is not null) { <PlayerHistory Notebook="_notebook" /> }
+                            else { <p role="status">@(Busy ? "Loading notes…" : "Notes could not be loaded.")</p><button class="secondary-action" disabled="@Disabled" @onclick="LoadNotebookAsync">Retry notes</button> }
+                        }
+                    }
+                    else { <p role="status">@(Busy ? "Loading player history…" : "Player history is unavailable.")</p><button class="secondary-action" disabled="@Disabled" @onclick="() => SelectPlayerAsync(_selectedId)">Retry player history</button> }
+                }
+                else { <p>Choose a player to read their notes and try a team placement.</p> }
+            </section>
+        </div>
+        </div>
+    }
+</SportFrame>

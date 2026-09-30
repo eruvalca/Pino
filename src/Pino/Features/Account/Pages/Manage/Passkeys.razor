@@ -46,14 +46,14 @@
 }
 else
 {
-    <p>No passkeys are registered.</p>
+    <p>No passkeys added yet.</p>
 }
 
 <form @formname="add-passkey" @onsubmit="AddPasskeyAsync" method="post">
     <AntiforgeryToken />
     @if (_currentPasskeys is { Count: >= MaxPasskeyCount })
     {
-        <p class="error-text">You have reached the maximum number of allowed passkeys. Please delete one before adding a new one.</p>
+        <p class="error-text">Your passkey list is full. Remove one before adding another.</p>
     }
     else
     {

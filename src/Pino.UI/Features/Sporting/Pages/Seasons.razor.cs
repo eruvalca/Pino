@@ -8,21 +8,48 @@ public sealed partial class Seasons : SportPageBase
 {
     [Parameter] public Guid SeasonId { get; set; }
     private SportOverview? _overview;
+    private IReadOnlyList<TeamSummary> _teams = [];
     private SeasonSummary? _selected;
     private SeasonInput? _seasonInput;
     private TeamInput? _teamInput;
     private TryoutInput? _tryoutInput;
+    private static readonly string[] _tryoutSteps = ["Tryout details", "Review roster & teams"];
+    private bool _reviewTryout;
+    private string TryoutHeading => (_tryoutInput?.Revision > 0, _reviewTryout) switch
+    {
+        (true, _) => "Edit tryout",
+        (_, true) => "Review your new tryout",
+        _ => "New tryout details",
+    };
+    private ElementReference _tryoutHeading;
+    private bool _focusTryout;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusTryout && _tryoutInput is not null) { _focusTryout = false; await _tryoutHeading.FocusAsync(); }
+    }
+    private Task ReviewTryoutAsync(TryoutInput input) => ExecuteAsync(async () =>
+    {
+        _tryoutInput = input;
+        _overview = await Gateway.GetOverviewAsync(ClubId, Token);
+        _teams = (await Gateway.GetTeamAvailabilityAsync(ClubId, SeasonId, tryoutId: null, Token)).Select(value => value.Team with { Excluded = value.SeasonExcluded }).ToArray();
+        _reviewTryout = true;
+        _focusTryout = true;
+    });
+    private void BackToTryoutDetails() { _reviewTryout = false; _focusTryout = true; }
+
     protected override async Task LoadAsync()
     {
-        _overview = await Gateway.GetOverviewAsync(ClubId, Token);
+        _overview = await ReadInitialAsync("GetOverviewAsync", () => Gateway.GetOverviewAsync(ClubId, Token));
         _selected = _overview.Seasons.FirstOrDefault(season => season.Id == SeasonId);
         if (SeasonId != Guid.Empty && _selected is null) { throw new KeyNotFoundException(); }
+        _teams = _selected is null ? _overview.Teams : (await ReadInitialAsync("GetTeamAvailabilityAsync", () => Gateway.GetTeamAvailabilityAsync(ClubId, SeasonId, tryoutId: null, Token))).Select(value => value.Team with { Excluded = value.SeasonExcluded }).ToArray();
         CloseForms();
     }
-    private void CloseForms() { _seasonInput = null; _teamInput = null; _tryoutInput = null; }
+    private void CloseForms() { _seasonInput = null; _teamInput = null; _tryoutInput = null; _reviewTryout = false; }
     private void NewSeason() { CloseForms(); _seasonInput = new(); }
-    private void NewTeam() { CloseForms(); _teamInput = new() { SeasonId = SeasonId }; }
-    private void NewTryout() { CloseForms(); _tryoutInput = new() { SeasonId = SeasonId, Date = _selected?.StartsOn ?? DateOnly.FromDateTime(DateTime.UtcNow) }; }
+    private void NewTeam() { CloseForms(); _teamInput = new(); }
+    private string TeamUrl(Guid teamId) => $"/clubs/{ClubId}/teams/{teamId}" + (_selected is null ? "" : $"?season={SeasonId}");
+    private void NewTryout() { CloseForms(); _focusTryout = true; _tryoutInput = new() { SeasonId = SeasonId, Date = _selected?.StartsOn ?? DateOnly.FromDateTime(DateTime.UtcNow) }; }
     private void EditSeason()
     {
         if (_selected is null) { return; }
@@ -32,7 +59,7 @@ public sealed partial class Seasons : SportPageBase
     private void EditTeam(TeamSummary team)
     {
         CloseForms();
-        _teamInput = new() { Id = team.Id, SeasonId = team.SeasonId, Revision = team.Revision, Name = team.Name, GraduationYear = team.GraduationYear, Archived = team.Archived };
+        _teamInput = new() { Id = team.Id, Revision = team.Revision, Name = team.Name, GraduationYear = team.GraduationYear, Archived = team.Archived };
     }
     private void EditTryout(TryoutSummary tryout)
     {
@@ -53,6 +80,10 @@ public sealed partial class Seasons : SportPageBase
     }
     private async Task SaveTryoutAsync(TryoutInput input)
     {
-        if (await SaveAsync(() => Gateway.SaveTryoutAsync(ClubId, input, Token))) { await ReloadAsync(); }
+        if (await SaveAsync(() => Gateway.SaveTryoutAsync(ClubId, input, Token)))
+        {
+            if (input.Revision == 0) { Navigation.NavigateTo($"/clubs/{ClubId}/tryouts/{input.Id}"); return; }
+            await ReloadAsync();
+        }
     }
 }

@@ -1,0 +1,21 @@
+.previous-placement {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .75rem 1rem;
+    padding: 1rem;
+    margin-block: 1rem;
+    background: var(--blue-soft);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.previous-placement strong,
+.previous-placement span { display: block; }
+.previous-placement p { grid-column: 1 / -1; margin: 0; }
+.previous-placement button { white-space: normal; }
+
+@media (max-width: 48rem) {
+    .previous-placement { grid-template-columns: minmax(0, 1fr); }
+    .previous-placement button { justify-self: start; }
+}

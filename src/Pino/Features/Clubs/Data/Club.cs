@@ -9,4 +9,5 @@ internal sealed class Club
     public string State { get; set; } = "";
     public string CreatedBy { get; set; } = "";
     public Guid OperationId { get; set; }
+    public long Revision { get; set; } = 1;
 }

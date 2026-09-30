@@ -21,6 +21,9 @@ internal sealed class ClubUserStore(ApplicationDbContext context, IdentityErrorD
                 return IdentityResult.Failed(new IdentityError { Code = "ClubMembership", Description = "Leave your club from Your club before deleting your account. If you are the last administrator, promote another member first." });
             }
             var profile = await Context.ClubProfiles.SingleOrDefaultAsync(value => value.UserId == user.Id, cancellationToken);
+            var invitations = await Context.ClubInvitations.Where(value => value.UsedById == user.Id ||
+                (user.NormalizedEmail != null && value.NormalizedEmail == user.NormalizedEmail)).ToArrayAsync(cancellationToken);
+            Context.ClubInvitations.RemoveRange(invitations);
             if (profile?.PhotoKey is { } photoKey)
             {
                 Context.PhotoDeletions.Add(new() { PhotoKey = photoKey, NotBefore = time.GetUtcNow() });

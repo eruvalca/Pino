@@ -14,6 +14,7 @@ internal sealed class DecisionEvent
     public string? TeamName { get; set; }
     public Guid? TeamId { get; set; }
     public Guid? PreviousTeamId { get; set; }
+    public string AuthorId { get; set; } = "";
     public string Author { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; }
     public string Reason { get; set; } = "";

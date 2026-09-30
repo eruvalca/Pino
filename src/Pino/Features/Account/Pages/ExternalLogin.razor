@@ -33,7 +33,7 @@
 else
 {
     <h1>Register</h1>
-    <h2>Associate your @ProviderDisplayName account.</h2>
+    <h2>Connect your @ProviderDisplayName account.</h2>
     <hr />
 
     <div  class="notice" data-kind="information">
@@ -50,6 +50,8 @@ else
             <InputText @bind-Value="Input.Email" id="Input.Email" autocomplete="email" placeholder="Please enter your email." />
             <ValidationMessage For="() => Input.Email" />
         </div>
+        <label class="checkbox-field" for="Input.AdultStaff"><InputCheckbox id="Input.AdultStaff" @bind-Value="Input.AdultStaff" /> I am an adult acting as club staff.</label>
+        <ValidationMessage For="() => Input.AdultStaff" class="error-text" />
         <button class="primary-action" type="submit">Register</button>
     </EditForm>
 }

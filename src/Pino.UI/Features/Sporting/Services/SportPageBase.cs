@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Pino.SharedKernel.Clubs;
 using Pino.SharedKernel.Sporting;
+using Pino.UI.Services;
 
 namespace Pino.UI.Features.Sporting.Services;
 
@@ -11,6 +12,8 @@ namespace Pino.UI.Features.Sporting.Services;
 public abstract partial class SportPageBase : ComponentBase, IAsyncDisposable
 {
     private readonly CancellationTokenSource _lifetime = new();
+    private InitialPageState? _initialState;
+    [Inject] private PersistentComponentState PageState { get; set; } = default!;
     [Inject] protected ISportGateway Gateway { get; set; } = default!;
     [Inject] protected IClubGateway Clubs { get; set; } = default!;
     [Inject] protected NavigationManager Navigation { get; set; } = default!;
@@ -24,8 +27,23 @@ public abstract partial class SportPageBase : ComponentBase, IAsyncDisposable
     protected string MessageKind { get; set; } = "information";
     protected CancellationToken Token => _lifetime.Token;
 
-    protected override Task OnParametersSetAsync() => ReloadAsync();
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        // Complete the first read before ComponentBase renders. A warm .NET 10
+        // WebAssembly runtime can miss prerender state during enhanced navigation
+        // (dotnet/aspnetcore#63996); keep the server-rendered page until ready.
+        parameters.SetParameterProperties(this);
+        _initialState ??= new(PageState, $"{GetType().FullName}:{Navigation.Uri.Split('#')[0]}", RendererInfo.IsInteractive);
+        await ReloadAsync();
+        _initialState.Complete(!Failed);
+        await base.SetParametersAsync(ParameterView.Empty);
+    }
     protected abstract Task LoadAsync();
+    protected Task<T> ReadInitialAsync<T>(string key, Func<Task<T>> read)
+    {
+        ArgumentNullException.ThrowIfNull(read);
+        return _initialState is null ? read() : _initialState.ReadAsync(key, read);
+    }
 
     protected async Task ReloadAsync()
     {
@@ -34,7 +52,7 @@ public abstract partial class SportPageBase : ComponentBase, IAsyncDisposable
         Failed = false;
         try
         {
-            var access = await Clubs.GetAccessAsync(Token);
+            var access = await ReadInitialAsync("access", () => Clubs.GetAccessAsync(Token));
             Membership = access.Membership?.Club.Id == ClubId ? access.Membership : null;
             _ = Membership ?? throw new UnauthorizedAccessException();
             await LoadAsync();
@@ -88,6 +106,7 @@ public abstract partial class SportPageBase : ComponentBase, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        _initialState?.Dispose();
         await _lifetime.CancelAsync();
         _lifetime.Dispose();
         GC.SuppressFinalize(this);

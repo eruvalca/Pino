@@ -12,6 +12,7 @@ internal sealed class ClubConfiguration : IEntityTypeConfiguration<Club>
         builder.Property(value => value.City).HasMaxLength(100);
         builder.Property(value => value.State).HasMaxLength(2);
         builder.Property(value => value.CreatedBy).HasMaxLength(450);
+        builder.Property(value => value.Revision).IsConcurrencyToken();
         builder.HasIndex(value => new { value.CreatedBy, value.OperationId }).IsUnique();
     }
 }

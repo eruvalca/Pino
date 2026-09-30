@@ -23,7 +23,7 @@
             <ol>
                 @foreach (var record in Player.History)
                 {
-                    <li><strong>@record.Outcome</strong><span>@record.Season · @record.Tryout</span><span>@record.Author · @record.RecordedAt.ToString("MMM d, yyyy · h:mm tt", System.Globalization.CultureInfo.InvariantCulture)</span></li>
+                    <li><strong>@record.Outcome</strong><span>@record.Season · @record.Tryout</span><span><span class="staff-attribution"><StaffAvatar Name="@record.Author" Compact="true" /><span>@record.Author</span></span> · @record.RecordedAt.ToString("MMM d, yyyy · h:mm tt", System.Globalization.CultureInfo.InvariantCulture)</span></li>
                 }
             </ol>
         }

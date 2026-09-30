@@ -1,0 +1,13 @@
+.introduction { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(17rem, 1fr); gap: 3rem; padding: 2.5rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.introduction-heading { grid-column: 1 / -1; max-width: 56rem; padding-block: 0.5rem 1.5rem; }
+.introduction-heading h1 { max-width: 16ch; font-size: clamp(2.5rem, 5vw, 4rem); line-height: 1.12; letter-spacing: -0.035em; margin-bottom: 1.5rem; }
+.introduction-heading > p:first-of-type { max-width: 54ch; font-size: 1.25rem; }
+.introduction-heading .actions { margin-block: 2rem 1rem; }
+.introduction-workflow ol { padding-left: 1.5rem; }
+.introduction-workflow li { padding-left: 0.5rem; padding-block: 1rem; border-bottom: 1px solid var(--line); }
+.introduction-workflow h3 { margin-top: 0; }
+.introduction-workflow p { margin-bottom: 0; max-width: 65ch; }
+.introduction-sample { align-self: start; padding-block: 1rem; border-block: 1px solid var(--line-strong); }
+.introduction-sample h2 { margin-top: 0; }
+.introduction footer { grid-column: 1 / -1; padding-top: 1rem; border-top: 1px solid var(--line); color: var(--muted); }
+@media (max-width: 50rem) { .introduction { grid-template-columns: minmax(0, 1fr); padding: 1.25rem; gap: 2rem; } }

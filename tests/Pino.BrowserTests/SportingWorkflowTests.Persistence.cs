@@ -7,12 +7,14 @@ public sealed partial class SportingWorkflowTests
 {
     private static async Task VerifyConflictAndHistoryAsync(BrowserSession session, string path, TryoutDetail detail, SportOverview overview)
     {
-        var entry = detail.Roster.Single();
+        var entry = detail.Roster.Single(value => string.Equals(value.Player.FirstName, "Jordan", StringComparison.Ordinal));
         var tryoutPath = $"{path}/tryouts/{detail.Tryout.Id}";
-        var placement = detail.History.Single();
+        var notebookPath = $"{tryoutPath}/players/{entry.Player.Id}/notebook";
+        var notebook = await session.GetAsync<PlayerNotebook>(notebookPath);
+        var placement = notebook.History.Single();
         var changedTeam = new DecisionInput(placement.Id, entry.Player.Id, DecisionKind.Placed, Guid.NewGuid(), entry.Revision, entry.PlacementRevision, placement.Reason);
         (await session.PostAsync<SportReply>(tryoutPath + "/decisions", changedTeam)).Kind.ShouldBe(SportReplyKind.Conflict);
-        var note = detail.Notes.Single();
+        var note = notebook.Notes.Single();
         var correction = new NoteInput(Guid.NewGuid(), entry.Player.Id, "Correction: finds the near-side runner.", note.Id);
         (await session.PostAsync<SportReply>(tryoutPath + "/notes", correction)).Kind.ShouldBe(SportReplyKind.Saved);
         (await session.PostAsync<SportReply>(tryoutPath + "/notes", correction)).Kind.ShouldBe(SportReplyKind.Saved);
@@ -25,14 +27,15 @@ public sealed partial class SportingWorkflowTests
         concurrent.Count(result => result.Kind == SportReplyKind.Saved).ShouldBe(1);
         concurrent.Count(result => result.Kind == SportReplyKind.Conflict).ShouldBe(1);
         var current = await session.GetAsync<TryoutDetail>(tryoutPath);
-        current.Notes.Count.ShouldBe(2);
-        current.Notes.Single(value => value.Id == correction.Id).Text.ShouldBe(correction.Text);
-        current.History.Count.ShouldBe(2);
-        current.Roster.Single().CurrentTeamId.ShouldBeNull();
+        var currentNotebook = await session.GetAsync<PlayerNotebook>(notebookPath);
+        currentNotebook.Notes.Count.ShouldBe(2);
+        currentNotebook.Notes.Single(value => value.Id == correction.Id).Text.ShouldBe(correction.Text);
+        currentNotebook.History.Count.ShouldBe(2);
+        current.Roster.Single(value => string.Equals(value.Player.FirstName, "Jordan", StringComparison.Ordinal)).CurrentTeamId.ShouldBeNull();
         var team = await session.GetAsync<TeamDetail>($"{path}/teams/{overview.Teams.Single().Id}");
         team.Members.ShouldBeEmpty();
         team.History.Count.ShouldBe(2);
-        var roster = current.Roster.Single();
+        var roster = current.Roster.Single(value => string.Equals(value.Player.FirstName, "Jordan", StringComparison.Ordinal));
         var reopen = new DecisionInput(Guid.NewGuid(), roster.Player.Id, DecisionKind.Awaiting, TeamId: null, roster.Revision, roster.PlacementRevision, "Reopened for review.");
         (await session.PostAsync<SportReply>(tryoutPath + "/decisions", reopen)).Kind.ShouldBe(SportReplyKind.Saved);
         (await session.PostAsync<SportReply>(tryoutPath + "/decisions", reopen)).Kind.ShouldBe(SportReplyKind.Saved);
@@ -40,13 +43,13 @@ public sealed partial class SportingWorkflowTests
         (await session.PostAsync<SportReply>(tryoutPath + "/decisions", reopen with { Reason = "Different reason under the same ID." })).Kind.ShouldBe(SportReplyKind.Conflict);
         var reopened = await session.GetAsync<TryoutDetail>(tryoutPath);
         reopened.Tryout.Complete.ShouldBeFalse();
-        reopened.History.Count.ShouldBe(3);
-        var tooYoung = new TeamInput { SeasonId = overview.Seasons.Single().Id, Name = "Graduation 2031", GraduationYear = 2031 };
+        (await session.GetAsync<PlayerNotebook>(notebookPath)).History.Count.ShouldBe(3);
+        var tooYoung = new TeamInput { Name = "Graduation 2031", GraduationYear = 2031 };
         (await session.PostAsync<SportReply>(path + "/teams", tooYoung)).Kind.ShouldBe(SportReplyKind.Saved);
-        var latest = reopened.Roster.Single();
+        var latest = reopened.Roster.Single(value => string.Equals(value.Player.FirstName, "Jordan", StringComparison.Ordinal));
         var invalid = new DecisionInput(Guid.NewGuid(), latest.Player.Id, DecisionKind.Placed, tooYoung.Id, latest.Revision, latest.PlacementRevision, "");
         (await session.PostAsync<SportReply>(tryoutPath + "/decisions", invalid)).Kind.ShouldBe(SportReplyKind.Invalid);
-        (await session.GetAsync<TryoutDetail>(tryoutPath)).History.Count.ShouldBe(3);
+        (await session.GetAsync<PlayerNotebook>(notebookPath)).History.Count.ShouldBe(3);
     }
 
     private static async Task VerifyArchivesAndImportsAsync(BrowserSession session, string path, SportOverview overview)
@@ -54,9 +57,10 @@ public sealed partial class SportingWorkflowTests
         var player = (await session.GetAsync<PlayerPage>(path + "/players?query=Jordan&archived=false&page=0")).Players.ShouldHaveSingleItem();
         var csv = $"PlayerReference,FirstName,LastName,GraduationYear,Position,ContactEmail\nNS-004,Alex,Reed,2030,,\n{player.PlayerReference},Duplicate,Player,2030,,";
         var import = await session.PostAsync<ImportReport>(path + "/import", new ImportInput(csv, Commit: true));
-        import.Saved.ShouldBeFalse();
-        import.Rows[^1].Error.ShouldNotBeNull();
-        (await session.GetAsync<PlayerPage>(path + "/players?query=NS-004&archived=false&page=0")).Players.ShouldBeEmpty();
+        import.Saved.ShouldBeTrue();
+        import.Counts.ShouldBe(new ImportCounts(1, 1, 0, 0, 0));
+        import.Rows[^1].Disposition.ShouldBe(ImportDisposition.Skip);
+        (await session.GetAsync<PlayerPage>(path + "/players?query=NS-004&archived=false&page=0")).Players.ShouldHaveSingleItem();
         const string Malformed = "PlayerReference,FirstName,LastName,GraduationYear,Position,ContactEmail\nWIDTH-1,Alex,Reed,2030,,\nWIDTH-2,Ada,Lee,2030,Midfield,,ada@example.test";
         var malformed = await session.PostAsync<ImportReport>(path + "/import", new ImportInput(Malformed, Commit: true));
         malformed.Saved.ShouldBeFalse();
@@ -68,10 +72,10 @@ public sealed partial class SportingWorkflowTests
         var tryoutId = overview.Tryouts.Single().Id;
         var current = await session.GetAsync<TryoutDetail>($"{path}/tryouts/{tryoutId}");
         current.Season.Archived.ShouldBeTrue();
-        (await session.PostAsync<SportReply>($"{path}/tryouts/{tryoutId}/bib", new BibNumberInput(current.Roster.Single().Player.Id, "41", "17"))).Kind.ShouldBe(SportReplyKind.Invalid);
-        var note = new NoteInput(Guid.NewGuid(), current.Roster.Single().Player.Id, "Must not be written.", CorrectsId: null);
+        (await session.PostAsync<SportReply>($"{path}/tryouts/{tryoutId}/bib", new BibNumberInput(current.Roster.Single(value => string.Equals(value.Player.FirstName, "Jordan", StringComparison.Ordinal)).Player.Id, "41", "17"))).Kind.ShouldBe(SportReplyKind.Invalid);
+        var note = new NoteInput(Guid.NewGuid(), current.Roster.Single(value => string.Equals(value.Player.FirstName, "Jordan", StringComparison.Ordinal)).Player.Id, "Must not be written.", CorrectsId: null);
         (await session.PostAsync<SportReply>($"{path}/tryouts/{tryoutId}/notes", note)).Kind.ShouldBe(SportReplyKind.Invalid);
-        (await session.GetAsync<TryoutDetail>($"{path}/tryouts/{tryoutId}")).Notes.Count.ShouldBe(2);
+        (await session.GetAsync<PlayerNotebook>($"{path}/tryouts/{tryoutId}/players/{player.Id}/notebook")).Notes.Count.ShouldBe(2);
         input.Revision++;
         input.Archived = false;
         (await session.PostAsync<SportReply>(path + "/seasons", input)).Kind.ShouldBe(SportReplyKind.Saved);

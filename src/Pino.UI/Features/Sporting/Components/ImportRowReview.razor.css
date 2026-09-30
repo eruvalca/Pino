@@ -1,0 +1,48 @@
+.import-row {
+    display: grid;
+    grid-template-columns: minmax(10rem, 1fr) minmax(0, 1.5fr);
+    gap: 1.5rem;
+    padding-block: 1.25rem;
+    border-bottom: 1px solid var(--line);
+    overflow-wrap: anywhere;
+}
+
+.import-row header p {
+    margin: 0.25rem 0;
+}
+
+.import-row header .muted {
+    font-size: 0.875rem;
+}
+
+.import-row h3 {
+    margin: 0;
+    font-size: 1.125rem;
+}
+
+.import-row-review {
+    display: grid;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.import-row-review p {
+    margin: 0;
+}
+
+.import-row-review label {
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.import-row-review select {
+    width: 100%;
+    min-width: 0;
+}
+
+@media (max-width: 50rem) {
+    .import-row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 1rem;
+    }
+}

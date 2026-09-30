@@ -56,7 +56,7 @@ public sealed partial class Register
         else
         {
             await SignInManager.SignInAsync(user, isPersistent: false);
-            RedirectManager.RedirectTo(ReturnUrl);
+            RedirectManager.RedirectTo(Pino.Features.Account.Services.AccountReturnPath.Local(ReturnUrl));
         }
     }
 
@@ -65,13 +65,16 @@ public sealed partial class Register
 
     private sealed class InputModel
     {
+        [Range(typeof(bool), "true", "true", ErrorMessage = "Confirm that you are an adult acting as club staff.")]
+        public bool AdultStaff { get; set; }
+
         [Required]
         [EmailAddress]
         [Display(Name = "Email")]
         public string Email { get; set; } = "";
 
         [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [StringLength(100, ErrorMessage = "{0} must be {2} to {1} characters long.", MinimumLength = 6)]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
         public string Password { get; set; } = "";

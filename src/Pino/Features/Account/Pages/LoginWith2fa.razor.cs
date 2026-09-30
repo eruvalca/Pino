@@ -37,7 +37,7 @@ public sealed partial class LoginWith2fa
             _ =>
             {
                 LogUserLoggedInWithTwoFactor(Logger, userId);
-                RedirectManager.RedirectTo(ReturnUrl);
+                RedirectManager.RedirectTo(Pino.Features.Account.Services.AccountReturnPath.Local(ReturnUrl));
             },
             _ => ShowInvalidCode(userId),
             _ =>
@@ -52,7 +52,7 @@ public sealed partial class LoginWith2fa
     private void ShowInvalidCode(string userId)
     {
         LogInvalidAuthenticatorCode(Logger, userId);
-        _message = "Error: Invalid authenticator code.";
+        _message = "Error: That code did not work. Enter the latest code from your authenticator app.";
     }
 
     [LoggerMessage(EventId = 1003, Level = LogLevel.Information, Message = "User with ID '{UserId}' logged in with 2fa.")]
@@ -67,7 +67,7 @@ public sealed partial class LoginWith2fa
     private sealed class InputModel
     {
         [Required]
-        [StringLength(7, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [StringLength(7, ErrorMessage = "{0} must be {2} to {1} characters long.", MinimumLength = 6)]
         [DataType(DataType.Text)]
         [Display(Name = "Authenticator code")]
         public string? TwoFactorCode { get; set; }

@@ -1,0 +1,12 @@
+<section class="sport-edit" aria-labelledby="enrollment-batch-heading">
+    <h2 id="enrollment-batch-heading" tabindex="-1" @ref="_heading">@(Remove ? "Exclude" : "Restore") @Players.Count players</h2>
+    <p>@(Remove ? "Excluded players leave the active roster and completion counts. Placements made by this tryout are cleared; earlier work stays in history." : "Players return with their saved bibs and need a new final decision. Earlier notes stay in history.")</p>
+    <details><summary>Review selected players (@Players.Count)</summary><ul class="selection-review">@foreach (var player in Players.Select(value => value.Entry.Player)) { <li @key="player.Id">@player.FullName · @player.GraduationYear</li> }</ul></details>
+    <form class="sport-form" @onsubmit="SubmitAsync" @onsubmit:preventDefault>
+        <fieldset class="sport-fields" disabled="@Disabled">
+            <div class="form-field"><label for="batch-enrollment-reason">Reason for all selected players</label><textarea id="batch-enrollment-reason" required maxlength="1000" rows="2" @bind="_reason" @bind:event="oninput"></textarea></div>
+            <p class="muted">Changed records are skipped and reported for review.</p>
+            <div class="actions"><button class="primary-action" disabled="@(!CanSubmit)">@(Remove ? "Confirm exclusion" : "Confirm restoration")</button><button class="secondary-action" type="button" @onclick="Cancelled">Cancel</button></div>
+        </fieldset>
+    </form>
+</section>

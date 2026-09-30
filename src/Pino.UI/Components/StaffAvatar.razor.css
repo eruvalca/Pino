@@ -1,0 +1,3 @@
+.staff-avatar { display: inline-grid; place-items: center; width: 2.25rem; height: 2.25rem; vertical-align: middle; overflow: hidden; border-radius: var(--radius); background: var(--blue-soft); color: var(--navy); font-size: .75rem; font-weight: 700; }
+.staff-avatar[data-size="small"] { width: 1.5rem; height: 1.5rem; font-size: .625rem; }
+.staff-avatar img { width: 100%; height: 100%; object-fit: cover; }

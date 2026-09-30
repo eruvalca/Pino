@@ -19,13 +19,13 @@ public sealed class AccountSignInServiceTests
     public async Task PasswordPreservesRememberMeWithoutCountingFailuresAsync(bool rememberMe)
     {
         using var identity = IdentityTestContext.Create();
-        identity.SignIn.PasswordSignInAsync("member@example.test", "secret", rememberMe, lockoutOnFailure: false).Returns(SignInResult.Success);
+        identity.SignIn.PasswordSignInAsync("member@example.test", "secret", rememberMe, lockoutOnFailure: true).Returns(SignInResult.Success);
         var service = new AccountSignInService(identity.SignIn);
 
         var result = await service.PasswordAsync("member@example.test", "secret", rememberMe);
 
         result.Value.ShouldBeOfType<SignInOutcome.Succeeded>();
-        await identity.SignIn.Received(1).PasswordSignInAsync("member@example.test", "secret", rememberMe, lockoutOnFailure: false);
+        await identity.SignIn.Received(1).PasswordSignInAsync("member@example.test", "secret", rememberMe, lockoutOnFailure: true);
     }
 
     [Fact]

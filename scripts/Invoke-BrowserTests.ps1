@@ -1,13 +1,14 @@
 [CmdletBinding()]
 param(
     [string] $BrowserChannel = "",
-    [string] $ArtifactsDirectory = ""
+    [string] $ArtifactsDirectory = "",
+    [string] $PlayerCsvPath = ""
 )
 
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
 Push-Location $repo
-$names = @('PINO_BROWSER_URL', 'PINO_MAILPIT_URL', 'PINO_TEST_DATABASE', 'PINO_BROWSER_CHANNEL', 'PINO_BROWSER_ARTIFACTS')
+$names = @('PINO_BROWSER_URL', 'PINO_MAILPIT_URL', 'PINO_TEST_DATABASE', 'PINO_BROWSER_CHANNEL', 'PINO_BROWSER_ARTIFACTS', 'PINO_PLAYER_CSV_PATH')
 $previous = @{}
 foreach ($name in $names) { $previous[$name] = [Environment]::GetEnvironmentVariable($name) }
 try {
@@ -24,6 +25,7 @@ try {
     $env:PINO_TEST_DATABASE = $web.environment.ConnectionStrings__pinodb
     $env:PINO_BROWSER_CHANNEL = $BrowserChannel
     $env:PINO_BROWSER_ARTIFACTS = if ($ArtifactsDirectory) { [IO.Path]::GetFullPath($ArtifactsDirectory) } else { '' }
+    $env:PINO_PLAYER_CSV_PATH = if ($PlayerCsvPath) { (Resolve-Path -LiteralPath $PlayerCsvPath).Path } else { '' }
     dotnet test --project tests/Pino.BrowserTests/Pino.BrowserTests.csproj --no-build
     $result = $LASTEXITCODE
 }

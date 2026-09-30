@@ -22,17 +22,20 @@ public sealed partial class TryoutWorkTests
         var player = new PlayerSummary(Guid.NewGuid(), "NS-001", "Jordan", "Rivera", 2030, "Midfield", "", Archived: false, 1, PhotoUrl: null);
         var second = player with { Id = Guid.NewGuid(), PlayerReference = "NS-002", FirstName = "Casey", LastName = "Chen" };
         return new(new(_tryoutId, season.Id, "Spring evaluation", new(2027, 2, 20), "", 2, 0, 1), season,
-            [new(Guid.NewGuid(), season.Id, "Eligible 2030", 2030, Archived: false, 1), new(Guid.NewGuid(), season.Id, "Ineligible 2031", 2031, Archived: false, 1)],
-            [new(player, "17", DecisionKind.Awaiting, DecisionTeamId: null, 3, CurrentTeamId: null, CurrentTryoutId: null, 8), new(second, "22", DecisionKind.Awaiting, DecisionTeamId: null, 1, CurrentTeamId: null, CurrentTryoutId: null, 0)], [], []);
+            [new(Guid.NewGuid(), "Eligible 2030", 2030, Archived: false, 1), new(Guid.NewGuid(), "Ineligible 2031", 2031, Archived: false, 1)],
+            [new(player, "17", DecisionKind.Awaiting, DecisionTeamId: null, 3, CurrentTeamId: null, CurrentTryoutId: null, 8), new(second, "22", DecisionKind.Awaiting, DecisionTeamId: null, 1, CurrentTeamId: null, CurrentTryoutId: null, 0)]);
     }
     private static ISportGateway Configure(BunitContext context, TryoutDetail data, ClubRole role = ClubRole.Coach)
     {
+        context.AddBunitPersistentComponentState();
         context.AddAuthorization().SetAuthorized("member");
         var clubs = Substitute.For<IClubGateway>();
         clubs.GetAccessAsync(Arg.Any<CancellationToken>()).Returns(new AccessSnapshot(new("Avery", "Coach", new("/photo", UriKind.Relative)),
             new(new(_clubId, "Northside", "Soccer", "Chicago", "IL"), role), Request: null));
         var sport = Substitute.For<ISportGateway>();
         sport.GetTryoutAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(data);
+        sport.GetOverviewAsync(_clubId, Arg.Any<CancellationToken>()).Returns(new SportOverview([data.Season], data.Teams, [data.Tryout]));
+        sport.GetNotebookAsync(_clubId, _tryoutId, Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(call => new PlayerNotebook(call.ArgAt<Guid>(2), false, [], [], []));
         context.Services.AddSingleton(clubs);
         context.Services.AddSingleton(sport);
         context.SetRendererInfo(new("Server", isInteractive: true));

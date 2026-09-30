@@ -12,3 +12,4 @@
 
 <h1>Confirm email</h1>
 <StatusMessage Message="@_statusMessage" />
+@if (_confirmed) { <p><a class="primary-action" href="@ContinueUrl">Continue to sign in</a></p> }

@@ -1,0 +1,8 @@
+@if (Count > PageSize)
+{
+    <nav class="pagination" aria-label="@Label">
+        <button type="button" class="secondary-action" disabled="@(Disabled || Page == 0)" @onclick="() => PageChanged.InvokeAsync(Page - 1)">Previous</button>
+        <span>Page @(Page + 1) of @((Count + PageSize - 1) / PageSize)</span>
+        <button type="button" class="secondary-action" disabled="@(Disabled || (Page + 1) * PageSize >= Count)" @onclick="() => PageChanged.InvokeAsync(Page + 1)">Next</button>
+    </nav>
+}

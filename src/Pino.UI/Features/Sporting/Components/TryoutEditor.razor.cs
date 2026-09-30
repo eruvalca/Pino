@@ -11,6 +11,7 @@ public sealed partial class TryoutEditor
     [Parameter, EditorRequired] public EventCallback<TryoutInput> Save { get; set; }
     [Parameter, EditorRequired] public EventCallback Cancel { get; set; }
     [Parameter] public bool Busy { get; set; }
+    [Parameter] public string SubmitLabel { get; set; } = "Save tryout";
     protected override void OnParametersSet()
     {
         if (_loaded == Input.Id) { return; }

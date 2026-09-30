@@ -1,0 +1,9 @@
+<fieldset disabled="@Disabled" class="sport-fields">
+    <legend>Confirm permanent deletion</legend>
+    <p class="notice" data-kind="warning">This removes the player's details, photos, notes and earlier versions, decisions, placements and copies in closed results. This cannot be undone. Archiving keeps history and can be reversed.</p>
+    <div class="form-field">
+        <label for="@($"{InputId}-name")">Type @FullName to confirm</label>
+        <input id="@($"{InputId}-name")" autocomplete="off" value="@Confirmation" @oninput="NameChangedAsync" />
+    </div>
+    <label class="checkbox-field"><input type="checkbox" checked="@AcknowledgeHistory" @onchange="AcknowledgementChangedAsync" /> I understand that this permanently removes this person's records and history.</label>
+</fieldset>

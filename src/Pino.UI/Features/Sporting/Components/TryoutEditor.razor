@@ -4,6 +4,6 @@
         <div class="form-field"><label for="tryout-name">Tryout name</label><InputText id="tryout-name" maxlength="120" @bind-Value="_model.Name" /></div>
 <div class="form-field"><label for="tryout-date">Tryout date</label><InputDate id="tryout-date" @bind-Value="_model.Date" /><p class="muted">Choose a date within this season.</p></div>
 <div class="form-field"><label for="tryout-location">Location (optional)</label><InputText id="tryout-location" maxlength="160" @bind-Value="_model.Location" /></div>
-        <div class="actions"><button class="primary-action" type="submit">@(Busy ? "Saving…" : "Save tryout")</button><button class="text-action" type="button" @onclick="Cancel">Cancel</button></div>
+        <div class="actions"><button class="primary-action" type="submit">@(Busy ? "Please wait…" : SubmitLabel)</button><button class="text-action" type="button" @onclick="Cancel">Cancel</button></div>
     </fieldset>
 </EditForm>

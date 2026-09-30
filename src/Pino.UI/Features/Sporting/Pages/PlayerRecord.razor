@@ -14,7 +14,7 @@
             @if (identity.Player.PhotoUrl is not null) { <img class="player-portrait" src="@identity.Player.PhotoUrl" alt="" width="112" height="112" /> }
             else { <span class="player-initials" aria-hidden="true">@identity.Player.FirstName[..1]@identity.Player.LastName[..1]</span> }
         }
-        <div><h1>@(_detail?.Player.FullName ?? "Add player")</h1><p>@(_detail is null ? "Start a player record. Names and graduation year are required. Assign bib numbers in each tryout." : $"Class of {_detail.Player.GraduationYear}")</p></div></div>
+        <div><h1>@(_detail?.Player.FullName ?? "Add player")</h1><p>@(_detail is null ? "Add their name and graduation year. You can assign a bib number in each tryout." : $"Class of {_detail.Player.GraduationYear}")</p></div></div>
         @if (_detail is not null && !_editing) { <button class="secondary-action" @onclick="Edit" disabled="@Disabled">Edit player</button> }
     </header>
     @if (_detail?.Player.Archived == true) { <p class="notice" data-kind="information">Archived player. Their notes and placements remain available. Restore them to enroll in new tryouts.</p> }
@@ -25,11 +25,13 @@
             <fieldset disabled="@Disabled">
                 <div class="field-pair">
                     <div class="form-field"><label for="player-first">First name</label><InputText id="player-first" maxlength="80" @bind-Value="_model.FirstName" /><ValidationMessage For="() => _model.FirstName" /></div>
+                    <div class="form-field"><label for="player-middle">Middle name (optional)</label><InputText id="player-middle" maxlength="80" @bind-Value="_model.MiddleName" /><ValidationMessage For="() => _model.MiddleName" /></div>
                     <div class="form-field"><label for="player-last">Last name</label><InputText id="player-last" maxlength="80" @bind-Value="_model.LastName" /><ValidationMessage For="() => _model.LastName" /></div>
                 </div>
                 <div class="form-field"><label for="player-year">High-school graduation year</label><InputNumber id="player-year" min="2000" max="2100" @bind-Value="_model.GraduationYear" /><ValidationMessage For="() => _model.GraduationYear" /></div>
                 <div class="field-pair">
-                    <div class="form-field"><label for="player-position">Position (optional)</label><InputText id="player-position" maxlength="80" @bind-Value="_model.Position" /></div>
+                    <div class="form-field"><label for="player-position">Primary position (optional)</label><InputText id="player-position" maxlength="80" @bind-Value="_model.Position" /></div>
+                    <div class="form-field"><label for="player-secondary-position">Secondary position (optional)</label><InputText id="player-secondary-position" maxlength="80" @bind-Value="_model.SecondaryPosition" /></div>
                     <div class="form-field"><label for="player-email">Contact email (optional)</label><InputText id="player-email" type="email" maxlength="254" @bind-Value="_model.ContactEmail" /><ValidationMessage For="() => _model.ContactEmail" /></div>
                 </div>
                 <PhotoEditor @key="_model" InputId="player-photo" Label="Player photo (optional)" SavedPhotoUrl="@(_model.RemovePhoto ? null : _detail?.Player.PhotoUrl)" HelpText="Only the square crop is kept. Visible to club staff only." Disabled="@Disabled" CroppedPhotoChanged="PhotoChanged" PendingChanged="value => _photoPending = value" />
@@ -42,11 +44,27 @@
     }
     else if (_detail is { } detail)
     {
+        @if (Membership?.Role == ClubRole.Administrator) { <details class="sport-section"><summary>Player data</summary><p>Download this player's details, photo, notes and earlier versions, roster changes, decisions and saved results. Deleted private text stays removed.</p><p><a href="@($"/api/clubs/{ClubId}/sport/players/{PlayerId}/personal-data")" download data-enhance-nav="false">Download player personal data (JSON)</a></p><p>Archiving keeps this player's history. Permanent deletion removes it, including copies in saved results.</p><a href="@($"/clubs/{ClubId}/players/{PlayerId}/erase")">Review permanent deletion</a></details> }
         <div class="player-record-layout"><section>
             <h2>Season placements</h2>
             @if (detail.Placements.Count == 0) { <p class="muted">This player has not joined a tryout yet. Open a season's tryout to add them.</p> }
             <ul class="record-list">@foreach (var placement in detail.Placements) { <li class="record-row" @key="placement.SeasonId"><div><h3>@placement.Season</h3><p>@(placement.Team ?? "No current team")</p>@if (placement.Tryout is not null) { <small>Placed through @placement.Tryout</small> }</div><a href="@($"/clubs/{ClubId}/seasons/{placement.SeasonId}")">View season</a></li> }</ul>
+            <section class="sport-section" aria-labelledby="player-tryout-history">
+                <h2 id="player-tryout-history">Tryout history</h2><p class="muted">Choose a tryout to see notes and roster changes. Players excluded from a tryout still have a history here.</p>
+                @if (detail.Tryouts is not { Count: > 0 }) { <p>No tryout history yet.</p> }
+                else
+                {
+                    <div class="form-field"><label for="history-tryout">Tryout to review</label><select id="history-tryout" value="@_historyTryoutId" @onchange="ChangeHistoryAsync" disabled="@Disabled"><option value="">Choose a tryout</option>@foreach (var tryout in detail.Tryouts) { <option value="@tryout.Id">@tryout.Season · @tryout.Name · @tryout.Date.ToString("MMM d, yyyy")@(tryout.Removed ? " · Excluded from tryout" : "")</option> }</select></div>
+                    @if (HistoryTryout is { } selected)
+                    {
+                        <div class="actions"><a href="@($"/clubs/{ClubId}/tryouts/{selected.Id}")">Open @selected.Name</a><button class="text-action" @onclick="ReloadHistoryAsync" disabled="@Disabled">Reload this history</button></div>
+                        <p>@(selected.Closed ? "Closed tryout" : "Open tryout") · Bib @(selected.Bib.Length == 0 ? "not assigned" : selected.Bib) · @(selected.Removed ? "Excluded from tryout" : SportLabels.Decision(selected.Decision))@(selected.Team is null || selected.Removed ? "" : $" · {selected.Team}")</p>
+                        @if (_notebook is { } notebook) { <PlayerHistory Notebook="notebook" /> }
+                        else { <p role="status">@(Busy ? "Loading this player's history…" : "History is unavailable. Reload this history to try again.")</p> }
+                    }
+                }
+            </section>
             <section class="sport-section"><h2>Decision history</h2><p class="muted">Each decision is kept as recorded, including later corrections.</p><DecisionHistory History="detail.History" /></section>
-        </section><aside class="player-facts"><h2>Player details</h2><dl><div><dt>Position</dt><dd>@(detail.Player.Position.Length == 0 ? "Not provided" : detail.Player.Position)</dd></div><div><dt>Contact email</dt><dd>@(detail.Player.ContactEmail.Length == 0 ? "Not provided" : detail.Player.ContactEmail)</dd></div><div><dt>Catalog status</dt><dd><span class="decision-badge" data-kind="@(detail.Player.Archived ? "withdrawn" : "placed")">@(detail.Player.Archived ? "Archived" : "Active")</span></dd></div></dl><p>Bib numbers are assigned separately in each tryout.</p></aside></div>
+        </section><aside class="player-facts"><h2>Player details</h2><dl><div><dt>Primary position</dt><dd>@(detail.Player.Position.Length == 0 ? "Not provided" : detail.Player.Position)</dd></div><div><dt>Secondary position</dt><dd>@(detail.Player.SecondaryPosition.Length == 0 ? "Not provided" : detail.Player.SecondaryPosition)</dd></div><div><dt>Contact email</dt><dd>@(detail.Player.ContactEmail.Length == 0 ? "Not provided" : detail.Player.ContactEmail)</dd></div><div><dt>Player status</dt><dd><span class="decision-badge" data-kind="@(detail.Player.Archived ? "withdrawn" : "placed")">@(detail.Player.Archived ? "Archived" : "Active")</span></dd></div></dl><p>Bib numbers are assigned separately in each tryout.</p></aside></div>
     }
 </SportFrame>

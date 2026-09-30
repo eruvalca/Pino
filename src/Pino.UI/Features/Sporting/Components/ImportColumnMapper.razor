@@ -1,0 +1,23 @@
+<fieldset class="sport-fields" disabled="@Disabled">
+    <legend>Match your columns</legend>
+    <p>Choose the columns Pino should read. Other columns are ignored. Graduation year must be confirmed; birth year and school grade cannot replace it.</p>
+    <div class="field-pair">
+        @foreach (var field in _fields)
+        {
+            <div class="form-field" @key="field.Key">
+                <label for="@($"map-{field.Key}")">@field.Label</label>
+                <select id="@($"map-{field.Key}")" value="@Selected(field.Key)" @onchange="args => ChangeAsync(field.Key, args)">
+                    <option value="-1">@(field.Required ? "Choose a column" : "Not included")</option>
+                    @for (var index = 0; index < Columns.Count; index++)
+                    {
+                        @if (!string.IsNullOrWhiteSpace(Columns[index]))
+                        {
+                            <option value="@index">@(index + 1). @Columns[index]</option>
+                        }
+                    }
+                </select>
+            </div>
+        }
+    </div>
+    <p class="muted">If your file has no player ID, Pino makes one. We also check names and graduation years for possible matches. The import never changes an existing player's details.</p>
+</fieldset>
