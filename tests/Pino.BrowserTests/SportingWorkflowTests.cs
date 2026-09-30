@@ -15,6 +15,7 @@ public sealed partial class SportingWorkflowTests
     public async Task ClubCanPrepareEvaluateAndRevisitAPersistedSeasonAsync()
     {
         await using var session = await BrowserSession.CreateAsync();
+        await CaptureEntrySurfacesAsync(session);
         var email = await session.RegisterAsync();
         await session.CompleteProfileAsync(throughUi: true);
         var clubId = await CreateClubAsync(session);
@@ -33,6 +34,7 @@ public sealed partial class SportingWorkflowTests
         await VerifySeasonIndependenceAsync(session, path, overview);
         await CaptureCompletedWorkspaceAsync(session, clubId, tryout.Id);
         await VerifyImportCommitAcknowledgementAsync(session, clubId, email);
+        await VerifyBibNumbersAsync(session, path, overview);
     }
 
     private static async Task<Guid> CreateClubAsync(BrowserSession session)
@@ -59,14 +61,31 @@ public sealed partial class SportingWorkflowTests
         await page.GotoAsync($"/clubs/{clubId}/players/new");
         await page.GetByLabel("First name", new() { Exact = true }).FillAsync("Jordan");
         await page.GetByLabel("Last name", new() { Exact = true }).FillAsync("Rivera");
-        await page.GetByLabel("Player reference", new() { Exact = true }).FillAsync("NS-001");
+        (await page.Locator("#player-reference").CountAsync()).ShouldBe(0);
         await page.GetByLabel("High-school graduation year").FillAsync("2030");
         await page.GetByLabel("Position (optional)", new() { Exact = true }).FillAsync("Midfielder");
         await page.GetByLabel("Player photo (optional)", new() { Exact = true }).SetInputFilesAsync(new FilePayload { Name = "player.png", MimeType = "image/png", Buffer = BrowserSession.Photo() });
-        await page.GetByText("player.png selected. Save the player to upload it.", new() { Exact = true }).WaitForAsync();
+        await session.ConfirmPhotoAsync("Save player", "player-photo");
+        await session.CaptureAsync("player-create-desktop");
+        await page.SetViewportSizeAsync(390, 844);
+        await session.CaptureAsync("player-create-mobile");
+        await page.SetViewportSizeAsync(1440, 1000);
         await page.GetByRole(AriaRole.Button, new() { Name = "Save player", Exact = true }).ClickAsync();
         await page.GetByRole(AriaRole.Heading, new() { Name = "Jordan Rivera", Exact = true }).WaitForAsync();
         await page.GetByRole(AriaRole.Heading, new() { Name = "Season placements" }).WaitForAsync();
+        var saved = (await session.GetAsync<PlayerPage>($"/api/clubs/{clubId}/sport/players?query=Jordan&archived=false&page=0")).Players.ShouldHaveSingleItem();
+        saved.PlayerReference.ShouldNotBeNullOrWhiteSpace();
+        (await page.Locator("main").InnerTextAsync()).ShouldNotContain(saved.PlayerReference);
+        saved.PhotoUrl.ShouldNotBeNull();
+        var photoResponse = await session.Context.APIRequest.GetAsync(saved.PhotoUrl.ToString());
+        photoResponse.Status.ShouldBe(200);
+        using var photo = SkiaSharp.SKBitmap.Decode(await photoResponse.BodyAsync());
+        photo.Width.ShouldBe(512);
+        photo.Height.ShouldBe(512);
+        await session.CaptureAsync("player-record-desktop");
+        await page.SetViewportSizeAsync(390, 844);
+        await session.CaptureAsync("player-record-mobile");
+        await page.SetViewportSizeAsync(1440, 1000);
     }
 
     private static async Task ImportPlayersAsync(BrowserSession session, Guid clubId)
@@ -78,7 +97,9 @@ public sealed partial class SportingWorkflowTests
         await session.Page.GetByRole(AriaRole.Button, new() { Name = "Import 2 players", Exact = true }).ClickAsync();
         await session.Page.GetByRole(AriaRole.Link, new() { Name = "Open player catalog" }).WaitForAsync();
         var players = await session.GetAsync<PlayerPage>($"/api/clubs/{clubId}/sport/players?query=&archived=false&page=0");
-        players.Players.Select(player => player.PlayerReference).Order(StringComparer.Ordinal).ShouldBe(["NS-001", "NS-002", "NS-003"]);
+        players.Players.Select(player => player.FirstName).Order(StringComparer.Ordinal).ShouldBe(["Casey", "Jordan", "Morgan"]);
+        players.Players.Single(player => string.Equals(player.FirstName, "Casey", StringComparison.Ordinal)).PlayerReference.ShouldBe("NS-002");
+        players.Players.Single(player => string.Equals(player.FirstName, "Morgan", StringComparison.Ordinal)).PlayerReference.ShouldBe("NS-003");
         await session.CaptureAsync("import-desktop");
     }
 
@@ -112,9 +133,18 @@ public sealed partial class SportingWorkflowTests
         var page = session.Page;
         await page.GotoAsync($"/clubs/{clubId}/tryouts/{tryoutId}");
         await page.GetByRole(AriaRole.Button, new() { Name = "Add players", Exact = true }).ClickAsync();
-        await page.GetByLabel("Bib (optional, next player only)").FillAsync("17");
+        await page.GetByLabel("Bib number (next player)").FillAsync("17");
         await page.GetByRole(AriaRole.Button, new() { Name = "Add Jordan Rivera to tryout", Exact = true }).ClickAsync();
         await page.GetByRole(AriaRole.Button, new() { Name = "Close enrollment", Exact = true }).ClickAsync();
+        await page.GetByLabel("Bib number (this tryout)").FillAsync("41");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Save bib number", Exact = true }).ClickAsync();
+        await page.GetByText("Bib 41", new() { Exact = true }).WaitForAsync();
+        await page.ReloadAsync();
+        await page.Locator("#player-bib:enabled").WaitForAsync();
+        (await page.GetByLabel("Bib number (this tryout)").InputValueAsync()).ShouldBe("41");
+        await page.GetByLabel("Bib number (this tryout)").FillAsync("17");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Save bib number", Exact = true }).ClickAsync();
+        await page.GetByText("Bib 17", new() { Exact = true }).WaitForAsync();
         await page.GetByLabel("Add shared note", new() { Exact = true }).FillAsync("Scans before receiving. Finds the far-side runner.");
         await page.GetByRole(AriaRole.Button, new() { Name = "Save note", Exact = true }).ClickAsync();
         await page.Locator(".note-text").GetByText("Scans before receiving. Finds the far-side runner.", new() { Exact = true }).WaitForAsync();

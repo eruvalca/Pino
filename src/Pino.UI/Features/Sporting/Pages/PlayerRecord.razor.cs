@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Forms;
 using Pino.SharedKernel.Sporting;
 using Pino.UI.Features.Sporting.Services;
 
@@ -11,7 +10,7 @@ public sealed partial class PlayerRecord : SportPageBase
     private PlayerDetail? _detail;
     private PlayerInput _model = new();
     private bool _editing;
-    private string? _photoName;
+    private bool _photoPending;
 
     protected override async Task LoadAsync()
     {
@@ -22,7 +21,7 @@ public sealed partial class PlayerRecord : SportPageBase
 
     private void ResetModel()
     {
-        _photoName = null;
+        _photoPending = false;
         if (_detail is null) { _model = new(); return; }
         _model = new()
         {
@@ -41,6 +40,7 @@ public sealed partial class PlayerRecord : SportPageBase
     private void CancelEdit() { ResetModel(); _editing = false; }
     private async Task SavePlayerAsync()
     {
+        if (_photoPending) { Message = "Use this crop to review the photo before saving the player."; MessageKind = "warning"; return; }
         if (string.IsNullOrWhiteSpace(_model.ContactEmail)) { _model.ContactEmail = null; }
         if (await SaveAsync(() => Gateway.SavePlayerAsync(ClubId, _model, Token)))
         {
@@ -49,17 +49,9 @@ public sealed partial class PlayerRecord : SportPageBase
         }
     }
 
-    private Task ChoosePhotoAsync(InputFileChangeEventArgs args) => ExecuteAsync(async () =>
+    private void PhotoChanged(string? photo)
     {
-        if (args.File.Size > 5 * 1024 * 1024 || args.File.ContentType is not ("image/jpeg" or "image/png"))
-        {
-            Message = "Choose a JPEG or PNG no larger than 5 MB."; MessageKind = "error"; return;
-        }
-        await using var stream = args.File.OpenReadStream(5 * 1024 * 1024, Token);
-        await using var buffer = new MemoryStream();
-        await stream.CopyToAsync(buffer, Token);
-        _model.Photo = Convert.ToBase64String(buffer.ToArray());
-        _model.RemovePhoto = false;
-        _photoName = args.File.Name;
-    });
+        _model.Photo = photo;
+        if (photo is not null) { _model.RemovePhoto = false; }
+    }
 }

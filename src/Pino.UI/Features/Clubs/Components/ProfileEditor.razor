@@ -1,50 +1,19 @@
-@using Cropper.Blazor.Components
-
 <section aria-labelledby="profile-heading">
-    <h2 id="profile-heading">@(_model.CroppedPhoto is null && !Profile.IsComplete ? "Complete your profile" : "Edit your profile")</h2>
+    <h2 id="profile-heading">@(Profile.IsComplete ? "Edit your profile" : "Complete your profile")</h2>
     <p class="muted">Help club staff recognize you. Your photo is shared with your club and administrators reviewing your request.</p>
     <EditForm Model="_model" OnValidSubmit="SaveAsync" FormName="club-profile">
         <DataAnnotationsValidator />
-        <fieldset disabled="@(!RendererInfo.IsInteractive || Busy || _processing)" class="profile-fields">
+        <fieldset disabled="@(!RendererInfo.IsInteractive || Busy)" class="profile-fields">
             <div class="name-fields">
                 <div class="form-field"><label for="first-name">First name</label><InputText id="first-name" autocomplete="given-name" maxlength="80" @bind-Value="_model.FirstName" /><ValidationMessage For="() => _model.FirstName" /></div>
                 <div class="form-field"><label for="last-name">Last name</label><InputText id="last-name" autocomplete="family-name" maxlength="80" @bind-Value="_model.LastName" /><ValidationMessage For="() => _model.LastName" /></div>
             </div>
-            <div class="form-field">
-                <label for="profile-photo">Profile photo</label>
-                <InputFile id="profile-photo" OnChange="ChooseAsync" accept="image/jpeg,image/png" aria-describedby="photo-help" />
-                <p id="photo-help" class="muted">JPEG or PNG, up to 5 MB. Save a square crop; the original is not kept.</p>
-            </div>
-            @if (_error is not null)
-            {
-                <p class="notice" data-kind="error" role="alert">@_error</p>
-            }
-            @if (_source is not null)
-            {
-                <div class="crop-stage">
-                    <CropperComponent @key="_source" @ref="_cropper" Src="@_source" Options="_options" Class="profile-cropper" InputAttributes="_imageAttributes" OnReadyEvent="_ => PhotoReady()" OnErrorLoadImageEvent="_ => PhotoFailed()" />
-                </div>
-                <p class="muted">Drag to position, or use these buttons. The outlined square is your saved photo.</p>
-                <div class="crop-controls" aria-label="Photo positioning">
-                    <button type="button" class="secondary-action" @onclick="() => _cropper?.Move(-20, 0)">Move left</button>
-                    <button type="button" class="secondary-action" @onclick="() => _cropper?.Move(20, 0)">Move right</button>
-                    <button type="button" class="secondary-action" @onclick="() => _cropper?.Move(0, -20)">Move up</button>
-                    <button type="button" class="secondary-action" @onclick="() => _cropper?.Move(0, 20)">Move down</button>
-                    <button type="button" class="secondary-action" @onclick="() => _cropper?.Zoom(0.1m)">Zoom in</button>
-                    <button type="button" class="secondary-action" @onclick="() => _cropper?.Zoom(-0.1m)">Zoom out</button>
-                    <button type="button" class="text-action" @onclick="CancelCropAsync">Cancel photo change</button>
-                </div>
-            }
-            else if (Profile.PhotoUrl is not null)
-            {
-                <img class="photo-preview" src="@Profile.PhotoUrl" alt="Your current profile photo" width="96" height="96" />
-            }
+            <PhotoEditor InputId="profile-photo" Label="Profile photo" SavedPhotoUrl="Profile.PhotoUrl" Disabled="Busy" CroppedPhotoChanged="value => _model.CroppedPhoto = value" PendingChanged="value => _photoPending = value" />
+            @if (_error is not null) { <p class="notice" data-kind="error" role="alert">@_error</p> }
+            @if (_photoPending) { <p class="muted">Use this crop to review your photo before saving the profile.</p> }
             <div class="actions">
-                <button class="primary-action" type="submit">@(Busy || _processing ? "Preparing profile…" : "Save profile")</button>
-                @if (Profile.IsComplete)
-                {
-                    <button class="text-action" type="button" @onclick="Cancel">Cancel</button>
-                }
+                <button class="primary-action" type="submit" disabled="@_photoPending">@(Busy ? "Saving profile…" : "Save profile")</button>
+                @if (Profile.IsComplete) { <button class="text-action" type="button" @onclick="Cancel">Cancel</button> }
             </div>
         </fieldset>
     </EditForm>

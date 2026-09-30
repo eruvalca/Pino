@@ -1,33 +1,18 @@
 @using Microsoft.AspNetCore.Identity
 @using Pino.Data
-
 @inject SignInManager<ApplicationUser> SignInManager
 
 <nav class="account-navigation" aria-label="Account settings">
-    <ul>
-        <li>
-            <NavLink href="Account/Manage" Match="NavLinkMatch.All">Profile</NavLink>
-        </li>
-        <li>
-            <NavLink href="Account/Manage/Email">Email</NavLink>
-        </li>
-        <li>
-            <NavLink href="Account/Manage/ChangePassword">Password</NavLink>
-        </li>
-        @if (_hasExternalLogins)
-        {
-            <li>
-                <NavLink href="Account/Manage/ExternalLogins">External logins</NavLink>
-            </li>
-        }
-        <li>
-            <NavLink href="Account/Manage/TwoFactorAuthentication">Two-factor authentication</NavLink>
-        </li>
-        <li>
-            <NavLink href="Account/Manage/Passkeys">Passkeys</NavLink>
-        </li>
-        <li>
-            <NavLink href="Account/Manage/PersonalData">Personal data</NavLink>
-        </li>
-    </ul>
+    <div class="account-section-tabs" aria-label="Settings groups">
+        <a href="Account/Manage" aria-current="@(Group == "profile" ? "location" : null)" class="@(Group == "profile" ? "selected" : null)">Profile</a>
+        <a href="Account/Manage/ChangePassword" aria-current="@(Group == "security" ? "location" : null)" class="@(Group == "security" ? "selected" : null)">Security</a>
+        <a href="Account/Manage/PersonalData" aria-current="@(Group == "data" ? "location" : null)" class="@(Group == "data" ? "selected" : null)">Your data</a>
+    </div>
+    <section class="account-nav-group" data-current="@(Group == "profile" ? "true" : "false")"><h2>About you</h2><ul>
+        @foreach (var section in _profileSections) { <li><a href="@AccountNavigation.Href(section)" aria-current="@(Section == section ? "page" : null)">@AccountNavigation.Label(section)</a></li> }
+    </ul></section>
+    <section class="account-nav-group" data-current="@(Group == "security" ? "true" : "false")"><h2>Sign-in &amp; security</h2><ul>
+        @foreach (var section in _securitySections.Where(value => value != "external" || _hasExternalLogins)) { <li><a href="@AccountNavigation.Href(section)" aria-current="@(Section == section ? "page" : null)">@AccountNavigation.Label(section)</a></li> }
+    </ul></section>
+    <section class="account-nav-group" data-current="@(Group == "data" ? "true" : "false")"><h2>Your data</h2><ul><li><a href="Account/Manage/PersonalData" aria-current="@(Section == "data" ? "page" : null)">Personal data</a></li></ul></section>
 </nav>

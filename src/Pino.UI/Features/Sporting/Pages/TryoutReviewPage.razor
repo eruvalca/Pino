@@ -1,0 +1,49 @@
+@page "/clubs/{ClubId:guid}/tryouts/{TryoutId:guid}/review"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits SportPageBase
+
+<PageTitle>@(_review?.Tryout.Name ?? "Tryout review") · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    @if (_review is { } review)
+    {
+        <p><a href="@($"/clubs/{ClubId}/seasons/{review.Season.Id}/review")">@review.Season.Name · Season review</a></p>
+        <header class="sport-heading"><div><h1>@review.Tryout.Name</h1><p>@review.Tryout.Date.ToString("MMM d, yyyy") · Review &amp; closeout</p></div><span class="decision-badge" data-kind="@(review.Tryout.Closed ? "placed" : "awaiting")">@(review.Tryout.Closed ? "Closed" : "Open for evaluation")</span></header>
+        <div class="actions"><a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}")">Open player notebooks</a><button class="text-action" disabled="@Disabled" @onclick="ReloadAsync">Reload results</button></div>
+        @if (review.Season.Archived) { <p class="notice" data-kind="information">This season is archived. Reopen it in season setup before changing the tryout's state.</p> }
+        @if (review.Closeouts.Count > 0)
+        {
+            <div class="form-field edition-picker"><label for="closeout-edition">Results edition</label><select id="closeout-edition" @bind="_editionId"><option value="">Current tryout decisions</option>@foreach (var edition in review.Closeouts) { <option value="@edition.Id">Closed @edition.ClosedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm:ss tt") · @edition.ClosedBy</option> }</select></div>
+        }
+        @if (Edition is { } closed)
+        {
+            <section class="closeout-receipt" aria-labelledby="receipt-heading" @key="closed.Id"><div class="receipt-mark" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-width="2" /></svg></div><div><h2 id="receipt-heading">Results recorded</h2><p><strong>@closed.TryoutName</strong> · @closed.SeasonName · @closed.TryoutDate.ToString("MMM d, yyyy")</p><p>@closed.Results.Count players · Closed by @closed.ClosedBy on <time datetime="@closed.ClosedAt.ToString("O")">@closed.ClosedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</time></p><p class="muted">This edition preserves names, bibs and outcomes as reviewed. Current season teams may have changed since.</p>
+                @if (closed.ReopenedAt is { } reopened) { <p><strong>Reopened</strong> by @closed.ReopenedBy on @reopened.ToLocalTime().ToString("MMM d, yyyy · h:mm tt"): @closed.ReopenReason</p> }
+            </div></section>
+        }
+        else if (review.Tryout.Closed)
+        {
+            <section class="review-readiness"><h2>Current tryout decisions</h2><p>This tryout is closed. These rows use current catalog names; choose a closed edition above to see the names and results preserved at closeout.</p></section>
+        }
+        else
+        {
+            <section class="review-readiness"><h2>@(review.Tryout.Complete ? "Ready for your final review" : "Decisions still to record")</h2><p>@review.Tryout.Decided of @review.Tryout.Players players have a decision. @(review.Tryout.Complete ? "Check the outcomes below, then close the tryout to preserve this edition." : "Every player needs a placement, withdrawal or not-selected decision before closeout.")</p></section>
+        }
+        <div class="sport-toolbar"><div class="form-field"><label for="result-search">Find a result</label><input id="result-search" type="search" @bind="_query" @bind:event="oninput" placeholder="Player, bib or team" /></div><div class="form-field"><label for="result-decision">Outcome</label><select id="result-decision" @bind="_decision"><option value="">All outcomes</option>@foreach (var kind in Enum.GetValues<DecisionKind>()) { <option value="@kind">@SportLabels.Decision(kind)</option> }</select></div></div>
+        <p class="muted" role="status">@Results.Count() of @(Edition?.Results.Count ?? review.Results.Count) results shown</p>
+        <ul class="result-ledger">@foreach (var result in Results)
+        {
+            <li @key="result.PlayerId"><span class="result-bib"><span class="result-bib-label">Bib </span>@(result.Bib.Length > 0 ? result.Bib : "—")</span><div><a href="@($"/clubs/{ClubId}/players/{result.PlayerId}")">@result.FirstName @result.LastName</a><small>Class of @result.GraduationYear</small></div><div class="result-outcome"><span class="decision-badge" data-kind="@SportLabels.Kind(result.Decision)">@SportLabels.Decision(result.Decision)</span>@if (result.TeamName is not null) { <span>@result.TeamName</span> }</div></li>
+        }</ul>
+        @if (!Results.Any()) { <p>@(review.Results.Count == 0 ? "No players enrolled yet. Add players from the notebooks to begin." : "No results match these filters.")</p> }
+        @if (!review.Tryout.Closed && _editionId is null)
+        {
+            <form class="closeout-action sport-form" @onsubmit="CloseAsync" @onsubmit:preventDefault><fieldset class="sport-fields" disabled="@(Disabled || review.Season.Archived || !review.Tryout.Complete)"><legend>Close this tryout</legend><p>Closing locks enrollment, bibs, decisions, notes and tryout details. Coaches and administrators can reopen it with a reason. Current season placements stay unchanged.</p><label class="closeout-confirm"><input type="checkbox" @bind="_confirmed" /> I have reviewed all @review.Tryout.Players player outcomes.</label><button class="primary-action" type="submit" disabled="@(!_confirmed)">Close tryout &amp; record results</button></fieldset></form>
+        }
+        else if (review.Tryout.Closed && Edition is { ReopenedAt: null })
+        {
+            <details class="closeout-action"><summary>Reopen for a correction</summary><form class="sport-form" @onsubmit="ReopenAsync" @onsubmit:preventDefault><fieldset class="sport-fields" disabled="@(Disabled || review.Season.Archived)"><p>The recorded edition remains available. Reopening restores editing for staff and does not change any placements.</p><div class="form-field"><label for="reopen-reason">Reason for reopening</label><textarea id="reopen-reason" maxlength="1000" rows="3" required @bind="_reason"></textarea></div><button type="submit" class="secondary-action">Reopen tryout</button></fieldset></form></details>
+        }
+    }
+</SportFrame>

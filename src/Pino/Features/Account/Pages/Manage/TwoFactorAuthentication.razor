@@ -11,9 +11,10 @@
 <PageTitle>Two-factor authentication (2FA)</PageTitle>
 
 <StatusMessage />
-<h3>Two-factor authentication (2FA)</h3>
+<h2>Two-factor authentication (2FA)</h2>
 @if (_canTrack)
 {
+    <p class="notice" data-kind="@(_is2faEnabled ? "success" : "information")"><strong>@(_is2faEnabled ? "Two-factor authentication is on." : "Two-factor authentication is off.")</strong> @(_is2faEnabled ? "Your authenticator adds a verification step when signing in with your password. Keep recovery codes somewhere safe." : "Add an authenticator to protect password sign-ins with a second verification step.")</p>
     if (_is2faEnabled)
     {
         if (_recoveryCodesLeft == 0)
@@ -52,15 +53,14 @@
         </div>
     }
 
-    <h4>Authenticator app</h4>
+    <h3>Authenticator app</h3>
     @if (!_hasAuthenticator)
     {
-        <a href="Account/Manage/EnableAuthenticator">Add authenticator app</a>
+        <a class="primary-action" href="Account/Manage/EnableAuthenticator">Add authenticator app</a>
     }
     else
     {
-        <a href="Account/Manage/EnableAuthenticator">Set up authenticator app</a>
-        <a href="Account/Manage/ResetAuthenticator">Reset authenticator app</a>
+        <div class="actions"><a class="secondary-action" href="Account/Manage/EnableAuthenticator">Set up authenticator app</a><a class="text-action" href="Account/Manage/ResetAuthenticator">Reset authenticator app</a></div>
     }
 }
 else

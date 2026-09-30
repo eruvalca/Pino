@@ -1,26 +1,25 @@
 <div class="club-shell">
-    <a class="skip-link" href="#club-content">Skip to content</a>
-    <header class="access-masthead">
-        <div class="masthead-identity">
-            <a class="access-wordmark" href="/">Pino<span aria-hidden="true">.</span></a>
-            @if (Club is not null)
-            {
-                <a class="active-club" href="@($"/clubs/{Club.Id}")">@Club.Name</a>
-            }
+    <a class="skip-link" data-enhance-nav="false" href="@(Navigation.Uri.Split('#')[0] + "#club-content")">Skip to content</a>
+    <header class="app-masthead">
+        <div class="app-width app-masthead-inner">
+            <NavMenu />
         </div>
-        <nav aria-label="Account navigation">
-            <a href="/club/access">Your club</a>
-            <a href="/Account/Manage">Account</a>
-        </nav>
     </header>
     @if (Club is not null)
     {
-        <nav class="club-navigation" aria-label="Club navigation">
-            <NavLink href="@($"/clubs/{Club.Id}")" Match="NavLinkMatch.All">Overview</NavLink>
-            <NavLink href="@($"/clubs/{Club.Id}/players")">Players</NavLink>
-            <NavLink href="@($"/clubs/{Club.Id}/seasons")">Seasons &amp; teams</NavLink>
-            @if (CanManagePeople) { <NavLink href="@($"/clubs/{Club.Id}/people")">People</NavLink> }
-        </nav>
+        <div class="club-context">
+            <div class="app-width club-context-inner">
+                <a class="active-club" href="/club/access" aria-label="@($"Your club: {Club.Name}")">
+                    <span>@Club.Name</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+                </a>
+                <nav class="club-navigation" aria-label="Club navigation">
+                    <NavLink href="@($"/clubs/{Club.Id}")" Match="NavLinkMatch.All">Overview</NavLink>
+                    <NavLink href="@($"/clubs/{Club.Id}/players")">Players</NavLink>
+                    <a href="@($"/clubs/{Club.Id}/seasons")" class="@(IsSeasonSection ? "active" : null)" aria-current="@(IsSeasonSection ? "location" : null)">Seasons &amp; teams</a>
+                    @if (CanManagePeople) { <NavLink href="@($"/clubs/{Club.Id}/people")">People</NavLink> }
+                </nav>
+            </div>
+        </div>
     }
-    <main id="club-content" tabindex="-1">@ChildContent</main>
+    <main id="club-content" class="app-width app-content" tabindex="-1">@ChildContent</main>
 </div>

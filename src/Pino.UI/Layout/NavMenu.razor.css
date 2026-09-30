@@ -1,56 +1,15 @@
-.site-navigation {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 1rem;
-}
-
-.site-name {
-    justify-self: start;
-    font-weight: 700;
-    color: white;
-    text-decoration: none;
-    font-size: 2rem;
-    letter-spacing: -0.035em;
-}
-.site-name span { color: #a6c6ff; }
+.site-navigation { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 1.5rem; }
+.site-name { display: inline-grid; grid-auto-flow: column; align-items: center; gap: 0.6rem; justify-self: start; font-weight: 800; color: var(--surface); text-decoration: none; font-size: 2rem; line-height: 1; letter-spacing: -0.035em; }
+.site-name .brand-dot { color: #a6c6ff; }
 .site-navigation nav { justify-self: end; }
-
-.navigation-links {
-    display: grid;
-    grid-template-columns: repeat(3, auto);
-    align-items: start;
-    gap: 0.5rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.navigation-links li {
-    min-width: 0;
-}
-
-.navigation-links ::deep a,
-.navigation-links button {
-    display: block;
-    width: 100%;
-    padding: 0.5rem;
-    text-align: start;
-    overflow-wrap: anywhere;
-    color: white;
-    background: transparent;
-    border: 0;
-    font-size: 0.875rem;
-    text-decoration: none;
-}
-
-.navigation-links ::deep a:hover {
-    background: var(--blue);
-}
-
-.navigation-links ::deep a.active {
-    background: var(--blue);
-    font-weight: 700;
-}
+.navigation-links { display: grid; grid-template-columns: repeat(3, auto); align-items: stretch; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.navigation-links li { min-width: 0; }
+.navigation-links form { height: 100%; }
+.navigation-links ::deep a, .navigation-links button { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 0.65rem; min-height: 3rem; height: 100%; width: 100%; padding: 0.7rem 1rem; text-align: start; overflow-wrap: anywhere; color: var(--surface); background: transparent; border: 1px solid transparent; border-radius: var(--radius); font-size: 0.875rem; font-weight: 650; line-height: 1.35; text-decoration: none; }
+.navigation-links svg { width: 1.125rem; height: 1.125rem; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.navigation-links ::deep a:hover, .navigation-links button:hover { background: #30425e; }
+.navigation-links ::deep a.active { color: var(--navy); background: var(--surface); }
+.site-name:hover { color: var(--surface); }
 .site-navigation ::deep a:focus-visible, .site-navigation button:focus-visible { outline-color: #a6c6ff; }
-@media (max-width: 32rem) { .site-navigation { grid-template-columns: minmax(0, 1fr); } .site-navigation nav { justify-self: stretch; } }
+@media (max-width: 42rem) { .site-navigation { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; } .site-navigation nav { justify-self: stretch; } .navigation-links { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.35rem; } .navigation-links ::deep a, .navigation-links button { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1.125rem minmax(2.7em, auto); align-items: start; justify-items: start; gap: 0.5rem; padding: 0.75rem; font-size: 0.8125rem; } }
+@media (prefers-reduced-motion: no-preference) { .navigation-links ::deep a, .navigation-links button { transition: background-color 160ms ease-out, color 160ms ease-out; } }

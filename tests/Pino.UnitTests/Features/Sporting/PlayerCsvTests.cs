@@ -36,6 +36,7 @@ public sealed class PlayerCsvTests
     [InlineData("", "nonempty")]
     [InlineData("PlayerReference,FirstName,LastName,GraduationYear,Position,ContactEmail\nP1,Avery,Morgan,nope,,\n", "graduation")]
     [InlineData("PlayerReference,FirstName,LastName,GraduationYear,Position,ContactEmail\nP1,,Morgan,2030,,\n", "names")]
+    [InlineData("PlayerReference,FirstName,LastName,GraduationYear,Position,ContactEmail\n,Avery,Morgan,2030,,\n", "reference")]
     [InlineData("PlayerReference,FirstName,LastName,GraduationYear,Position,ContactEmail\nP1,Avery,Morgan,2030,,bad-email\n", "email")]
     public async Task InvalidFileExplainsRowErrorAsync(string csv, string message)
     {

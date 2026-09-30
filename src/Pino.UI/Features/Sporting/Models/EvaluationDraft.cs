@@ -4,6 +4,9 @@ namespace Pino.UI.Features.Sporting.Models;
 
 internal sealed class EvaluationDraft(RosterEntry entry)
 {
+    internal string BibNumber { get; set; } = entry.Bib;
+    internal string SavedBibNumber { get; private set; } = entry.Bib;
+    internal void ReloadBibNumber(string value) { BibNumber = value; SavedBibNumber = value; }
     internal string Note { get; set; } = "";
     internal Guid NoteId { get; set; } = Guid.NewGuid();
     internal Guid? CorrectsId { get; set; }

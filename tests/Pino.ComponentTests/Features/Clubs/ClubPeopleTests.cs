@@ -18,6 +18,7 @@ public sealed class ClubPeopleTests
 
     private static IClubGateway Configure(BunitContext context)
     {
+        context.AddAuthorization().SetAuthorized("member");
         var gateway = Substitute.For<IClubGateway>();
         gateway.GetPeopleAsync(_club.Id, Arg.Any<bool>(), Arg.Any<int>(), Arg.Any<CancellationToken>()).Returns(new PeoplePage(_club, [_person], 0, HasMore: false));
         gateway.DecideAsync(_club.Id, Arg.Any<RequestDecisionInput>(), Arg.Any<CancellationToken>()).Returns(new ClubReply(ClubReplyKind.Saved, "Handled."));
@@ -103,7 +104,7 @@ public sealed class ClubPeopleTests
             page.Find("h2").TextContent.ShouldBe("Club members");
             page.Find("[role='status']").TextContent.ShouldBe("Loading people…");
             page.FindAll(".person-actions .primary-action").ShouldBeEmpty();
-            page.FindAll("button").ShouldAllBe(button => button.HasAttribute("disabled"));
+            page.FindAll("main button").ShouldAllBe(button => button.HasAttribute("disabled"));
         });
         requests.SetResult(new(_club, [_person], 0, HasMore: false));
         await switching;

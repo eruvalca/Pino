@@ -5,7 +5,6 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 #nullable disable
 
 namespace Pino.Migrations;
-
 /// <inheritdoc />
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments", Justification = "EF-generated schema declarations execute once per database migration; keeping column arrays beside each operation makes schema review reliable.")]
 internal sealed partial class InitialCreate : Migration
@@ -371,7 +370,8 @@ internal sealed partial class InitialCreate : Migration
                 Name = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
                 Date = table.Column<DateOnly>(type: "date", nullable: false),
                 Location = table.Column<string>(type: "character varying(160)", maxLength: 160, nullable: false),
-                Revision = table.Column<long>(type: "bigint", nullable: false)
+                Revision = table.Column<long>(type: "bigint", nullable: false),
+                Closed = table.Column<bool>(type: "boolean", nullable: false)
             },
             constraints: table =>
             {
@@ -462,6 +462,33 @@ internal sealed partial class InitialCreate : Migration
             });
 
         migrationBuilder.CreateTable(
+            name: "TryoutCloseouts",
+            columns: table => new
+            {
+                Id = table.Column<Guid>(type: "uuid", nullable: false),
+                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
+                TryoutId = table.Column<Guid>(type: "uuid", nullable: false),
+                TryoutName = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                SeasonName = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: false),
+                TryoutDate = table.Column<DateOnly>(type: "date", nullable: false),
+                ClosedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                ClosedBy = table.Column<string>(type: "character varying(161)", maxLength: 161, nullable: false),
+                ReopenedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                ReopenedBy = table.Column<string>(type: "character varying(161)", maxLength: 161, nullable: true),
+                ReopenReason = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: true)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_TryoutCloseouts", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_TryoutCloseouts_TryoutEvents_ClubId_TryoutId",
+                    columns: x => new { x.ClubId, x.TryoutId },
+                    principalTable: "TryoutEvents",
+                    principalColumns: new[] { "ClubId", "Id" },
+                    onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
             name: "DecisionEvents",
             columns: table => new
             {
@@ -513,6 +540,31 @@ internal sealed partial class InitialCreate : Migration
                     principalTable: "Participations",
                     principalColumns: new[] { "ClubId", "TryoutId", "PlayerId" },
                     onDelete: ReferentialAction.Restrict);
+            });
+
+        migrationBuilder.CreateTable(
+            name: "TryoutCloseoutPlayers",
+            columns: table => new
+            {
+                CloseoutId = table.Column<Guid>(type: "uuid", nullable: false),
+                PlayerId = table.Column<Guid>(type: "uuid", nullable: false),
+                FirstName = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                LastName = table.Column<string>(type: "character varying(80)", maxLength: 80, nullable: false),
+                GraduationYear = table.Column<int>(type: "integer", nullable: false),
+                Bib = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                Decision = table.Column<int>(type: "integer", nullable: false),
+                TeamId = table.Column<Guid>(type: "uuid", nullable: true),
+                TeamName = table.Column<string>(type: "character varying(120)", maxLength: 120, nullable: true)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_TryoutCloseoutPlayers", x => new { x.CloseoutId, x.PlayerId });
+                table.ForeignKey(
+                    name: "FK_TryoutCloseoutPlayers_TryoutCloseouts_CloseoutId",
+                    column: x => x.CloseoutId,
+                    principalTable: "TryoutCloseouts",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
             });
 
         migrationBuilder.CreateIndex(
@@ -646,6 +698,11 @@ internal sealed partial class InitialCreate : Migration
             columns: new[] { "ClubId", "SeasonId" });
 
         migrationBuilder.CreateIndex(
+            name: "IX_TryoutCloseouts_ClubId_TryoutId_ClosedAt",
+            table: "TryoutCloseouts",
+            columns: new[] { "ClubId", "TryoutId", "ClosedAt" });
+
+        migrationBuilder.CreateIndex(
             name: "IX_TryoutEvents_ClubId_SeasonId",
             table: "TryoutEvents",
             columns: new[] { "ClubId", "SeasonId" });
@@ -694,6 +751,9 @@ internal sealed partial class InitialCreate : Migration
             name: "SeasonPlacements");
 
         migrationBuilder.DropTable(
+            name: "TryoutCloseoutPlayers");
+
+        migrationBuilder.DropTable(
             name: "AspNetRoles");
 
         migrationBuilder.DropTable(
@@ -701,6 +761,9 @@ internal sealed partial class InitialCreate : Migration
 
         migrationBuilder.DropTable(
             name: "Participations");
+
+        migrationBuilder.DropTable(
+            name: "TryoutCloseouts");
 
         migrationBuilder.DropTable(
             name: "Players");

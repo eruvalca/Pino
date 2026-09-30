@@ -23,10 +23,11 @@ tryout decisions and appropriate team placements within a season. It preserves
 placement history across tryouts and seasons as players progress through their
 playing careers.
 
-A tryout is complete once a decision has been made for every participating
-player. A completed decision is placement on a team, withdrawal from the tryout,
-or a club/coach decision not to place the player on any team. Completion does
-not require every player to receive a team placement.
+A tryout is ready to close once a decision has been made for every participating
+player on a nonempty roster. A completed decision is placement on a team,
+withdrawal from the tryout, or a club/coach decision not to place the player on
+any team. Staff review the results and explicitly close the tryout to preserve
+that edition. Closing does not require every player to receive a team placement.
 
 ## Operating Context
 
@@ -94,12 +95,23 @@ The implemented flow and remaining product boundaries are recorded in the
 - A club maintains a persistent catalog of players.
 - Staff can create a player individually, with an optional player photo.
 - Staff can import players in bulk from a CSV file using **CsvHelper**.
-- Required fields are first name, last name, a unique club-local player reference
-  and graduation year. Position and contact email are optional.
+- Required user-entered fields are first name, last name and graduation year.
+  Position and contact email are optional. Manually created players receive an
+  automatic club-local import reference; staff do not need to invent one.
 - CSV contains PlayerReference, FirstName, LastName, GraduationYear, Position and
   ContactEmail. Preview reports row errors; imports are atomic and create-only.
   References are normalized to uppercase and compared against archived records too.
 - Players may be archived and restored without losing notes or placements.
+- Bib numbers belong to a player's entry in a particular tryout, not the club
+  catalog record. They are optional and unique within that tryout; the same player
+  can have a different bib in another tryout, and numbers can be reused there.
+  Staff can assign, change or clear a bib during enrollment or evaluation. The
+  player reference remains a separate catalog/import identifier for duplicate
+  detection. It appears in CSV import feedback, not ordinary player or roster views.
+- Member and player photo editors share a choose, frame, confirm, then save flow.
+  Dragging, wheel/pinch zoom and keyboard-operable controls position the photo.
+  **Use this crop** shows the exact square preview before the record is saved;
+  staff can adjust or discard it. An unconfirmed crop blocks saving.
 
 ### Seasons, tryouts, and teams
 
@@ -118,6 +130,9 @@ The implemented flow and remaining product boundaries are recorded in the
 - A player's team membership can change across seasons.
 - A player can have only one current team within a season. Replacements must
   preserve placement history rather than create simultaneous team memberships.
+- A consolidated season review shows current team rosters, participating players
+  without a current team, outstanding tryout decisions and recorded closeouts.
+  Season player totals count distinct players, not their entries across tryouts.
 
 ### Evaluation and decisions
 
@@ -128,7 +143,7 @@ The implemented flow and remaining product boundaries are recorded in the
   the earlier text, authorship and timestamp. Other staff cannot rewrite a note.
 - Those staff can place a player on an appropriate, compatible team during the
   tryout. Graduation year eligibility must be enforced.
-- Every participating player needs a decision before the tryout is complete.
+- Every participating player needs a decision before the tryout can be closed.
 - The completing outcomes are placement on a team, withdrawal from the tryout,
   and a club/coach decision not to place the player on any team.
 - Coaches and administrators working a tryout can finalize and revise player
@@ -136,8 +151,15 @@ The implemented flow and remaining product boundaries are recorded in the
 - A new placement replaces the current team within that season. A non-placement
   revision clears a team only if that same tryout created the assignment; a team
   from another tryout remains. Stale saves are rejected using record revisions.
-- Empty tryouts need players. A nonempty tryout completes when every player has
-  an outcome, and reopens when someone is added or reset to Awaiting decision.
+- Empty tryouts need players. An open tryout becomes ready for review when every
+  player has an outcome; adding a player or resetting a decision removes that
+  readiness. Readiness alone does not close the tryout.
+- Coaches and administrators can close reviewed results and reopen a closed
+  tryout with a reason. Closing rejects stale reviews and locks enrollment, bibs,
+  decisions, notes/corrections and tryout metadata. Catalog and team maintenance
+  remain independent. Neither closing nor reopening changes current placements.
+- Reopening requires an active season. Restoring an archived season does not
+  automatically reopen its closed tryouts.
 
 ### History
 
@@ -148,6 +170,12 @@ The implemented flow and remaining product boundaries are recorded in the
 - Every saved decision is appended with actor, timestamp, reason, and the team,
   tryout and season names at that time. Current assignments are stored separately.
   Player and team pages expose history; renaming records does not rewrite it.
+- Each closeout preserves the reviewed player names, graduation years, bibs,
+  outcomes and team names, with tryout/season context and the closing actor/time.
+  Reopening records its actor, time and reason while retaining that edition;
+  closing again creates a new edition. Later catalog edits and season placements
+  do not rewrite closed results. See the
+  [closeout brief](docs/features/season-review-closeout.md).
 
 ### Implementation requirements
 
@@ -180,8 +208,8 @@ its representative roster sizes are demonstration cases, not product limits.
    memberships, and tryout work belong to their club.
 2. **Respect eligibility when placing players.** Team selection must honor the
    graduation year constraint alongside staff evaluation.
-3. **Make completion depend on decisions.** A tryout is complete only when every
-   participating player has a recorded decision.
+3. **Review before closing.** Every participating player needs a recorded decision
+   before staff can deliberately preserve a closed edition.
 4. **Preserve progression over time.** New placements must retain the context of
    earlier tryouts and seasons.
 5. **Support staff collaboration.** Player notes and placement workflows support

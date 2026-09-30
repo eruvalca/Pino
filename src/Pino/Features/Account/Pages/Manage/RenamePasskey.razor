@@ -9,15 +9,18 @@
 @inject AccountPasskeyService AccountPasskeys
 @inject IdentityRedirectManager RedirectManager
 
+<PageTitle>Name your passkey · Pino</PageTitle>
+<h2>Name your passkey</h2>
+
 <EditForm class="account-form" Model="Input" OnValidSubmit="RenameAsync" FormName="rename-passkey" method="post">
     <DataAnnotationsValidator />
     @if (_passkey?.Name is { } name)
     {
-        <h4>Enter a new name for your "@name" passkey</h4>
+        <h3>Enter a new name for your "@name" passkey</h3>
     }
     else
     {
-        <h4>Enter a name for your passkey</h4>
+        <h3>Enter a name for your passkey</h3>
     }
     <hr />
     <ValidationSummary class="error-text" role="alert" />
@@ -27,6 +30,6 @@
         <ValidationMessage For="() => Input.Name" class="error-text" />
     </div>
     <div>
-        <button class="primary-action" type="submit">Continue</button>
+        <button class="primary-action" type="submit">Save name</button>
     </div>
 </EditForm>

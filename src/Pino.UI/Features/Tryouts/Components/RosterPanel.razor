@@ -14,7 +14,7 @@
         @foreach (var player in Session.FilteredPlayers)
         {
             <button @key="player.Id" type="button" class="player-row" aria-current="@(player.Id == Session.Selected?.Id ? "true" : null)" disabled="@Session.Busy" @onclick="() => OnSelected.InvokeAsync(player.Id)">
-                <span class="bib-number">@player.Bib.ToString("00", System.Globalization.CultureInfo.InvariantCulture)</span>
+                <BibBadge Number="@(player.Bib.ToString("00", System.Globalization.CultureInfo.InvariantCulture))" Compact="true" />
                 <span class="player-summary"><strong>@player.Name</strong><span>@player.GraduationYear <span aria-hidden="true">·</span> @player.Position</span><span class="roster-decision" data-kind="@player.Decision.Kind">@player.Decision.Label@(player.Decision.AssignedTeam is { } team ? $" · {team.Name}" : "")</span></span>
                 <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m9 5 7 7-7 7" /></svg>
             </button>

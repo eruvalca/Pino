@@ -25,6 +25,7 @@
     }
     else if (_overview is not null && _selected is { } selected)
     {
+        <p><a class="primary-action" href="@($"/clubs/{ClubId}/seasons/{SeasonId}/review")">Review season &amp; team rosters</a></p>
         @if (selected.Archived) { <p class="notice" data-kind="information">Archived season. Notes, rosters and history remain readable. Reopen the season to make corrections.</p> }
         <section class="sport-section">
             <header class="sport-heading"><div><h2>Tryouts</h2><p>Enroll players, share observations and record every outcome.</p></div><button class="primary-action" disabled="@(Disabled || selected.Archived)" @onclick="NewTryout">Add tryout</button></header>
@@ -32,7 +33,7 @@
             @if (!_overview.Tryouts.Any(tryout => tryout.SeasonId == SeasonId)) { <p class="muted">No tryouts yet. Add one when you're ready to build the roster.</p> }
             <ul class="record-list">@foreach (var tryout in _overview.Tryouts.Where(tryout => tryout.SeasonId == SeasonId))
             {
-                <li class="record-row" @key="tryout.Id"><div><h3><a href="@($"/clubs/{ClubId}/tryouts/{tryout.Id}")">@tryout.Name</a></h3><p class="muted">@tryout.Date.ToString("MMM d, yyyy")@(tryout.Location.Length > 0 ? $" · {tryout.Location}" : "")</p><p>@SportLabels.Progress(tryout) · @tryout.Decided / @tryout.Players decisions</p></div><button class="text-action" disabled="@(Disabled || selected.Archived)" @onclick="() => EditTryout(tryout)" aria-label="@($"Edit {tryout.Name}")">Edit</button></li>
+                <li class="record-row" @key="tryout.Id"><div><h3><a href="@($"/clubs/{ClubId}/tryouts/{tryout.Id}")">@tryout.Name</a></h3><p class="muted">@tryout.Date.ToString("MMM d, yyyy")@(tryout.Location.Length > 0 ? $" · {tryout.Location}" : "")</p><p>@SportLabels.Progress(tryout) · @tryout.Decided / @tryout.Players decisions</p></div><button class="text-action" disabled="@(Disabled || selected.Archived || tryout.Closed)" @onclick="() => EditTryout(tryout)" aria-label="@($"Edit {tryout.Name}")">Edit</button></li>
             }</ul>
         </section>
         <section class="sport-section">

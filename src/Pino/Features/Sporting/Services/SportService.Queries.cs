@@ -42,7 +42,7 @@ internal sealed partial class SportService
         var tryouts = await db.TryoutEvents.AsNoTracking().Where(value => value.ClubId == clubId).OrderByDescending(value => value.Date)
             .Select(value => new TryoutSummary(value.Id, value.SeasonId, value.Name, value.Date, value.Location,
                 db.Participations.Count(entry => entry.ClubId == clubId && entry.TryoutId == value.Id),
-                db.Participations.Count(entry => entry.ClubId == clubId && entry.TryoutId == value.Id && entry.Decision != DecisionKind.Awaiting), value.Revision)).ToListAsync(ct);
+                db.Participations.Count(entry => entry.ClubId == clubId && entry.TryoutId == value.Id && entry.Decision != DecisionKind.Awaiting), value.Revision, value.Closed)).ToListAsync(ct);
         return new(seasons.Select(Summary).ToArray(), teams.Select(Summary).ToArray(), tryouts);
     }
 
@@ -95,7 +95,7 @@ internal sealed partial class SportService
         var notes = await db.PlayerNotes.AsNoTracking().Where(value => value.ClubId == clubId && value.TryoutId == tryoutId).OrderByDescending(value => value.CreatedAt).ThenByDescending(value => value.Id).ToListAsync(ct);
         var corrected = notes.Where(note => note.CorrectsId.HasValue).Select(note => note.CorrectsId!.Value).ToHashSet();
         var history = await db.DecisionEvents.AsNoTracking().Where(value => value.ClubId == clubId && value.TryoutId == tryoutId).OrderByDescending(value => value.CreatedAt).ThenByDescending(value => value.Id).ToListAsync(ct);
-        return new(new(tryout.Id, season.Id, tryout.Name, tryout.Date, tryout.Location, roster.Length, roster.Count(entry => entry.Decision != DecisionKind.Awaiting), tryout.Revision),
+        return new(new(tryout.Id, season.Id, tryout.Name, tryout.Date, tryout.Location, roster.Length, roster.Count(entry => entry.Decision != DecisionKind.Awaiting), tryout.Revision, tryout.Closed),
             Summary(season), teams.Select(Summary).ToArray(), roster,
             notes.Select(note => new NoteSummary(note.Id, note.PlayerId, note.Text, note.Author, note.CreatedAt, note.CorrectsId,
                 string.Equals(note.AuthorId, actorId, StringComparison.Ordinal) && !corrected.Contains(note.Id))).ToArray(), history.Select(Summary).ToArray());

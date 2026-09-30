@@ -1,3 +1,4 @@
+using System.Data;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using Pino.Data;
@@ -38,6 +39,19 @@ internal sealed partial class SportService(IDbContextFactory<ApplicationDbContex
             await db.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
             return result;
+        });
+    }
+
+    private async Task<T> ReadSnapshotAsync<T>(ClaimsPrincipal actor, Guid clubId,
+        Func<ApplicationDbContext, CancellationToken, Task<T>> operation, CancellationToken ct)
+    {
+        await using var strategyContext = await factory.CreateDbContextAsync(ct);
+        return await strategyContext.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            await using var db = await factory.CreateDbContextAsync(ct);
+            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, ct);
+            await RequireMemberAsync(db, actor, clubId, ct);
+            return await operation(db, ct);
         });
     }
 

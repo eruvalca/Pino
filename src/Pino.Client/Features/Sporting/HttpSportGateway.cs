@@ -7,6 +7,14 @@ namespace Pino.Client.Features.Sporting;
 
 internal sealed class HttpSportGateway(HttpClient http) : ISportGateway
 {
+    public Task<SeasonReview> GetSeasonReviewAsync(Guid clubId, Guid seasonId, CancellationToken cancellationToken = default) =>
+        GetAsync<SeasonReview>(clubId, $"seasons/{seasonId}/review", cancellationToken);
+    public Task<TryoutReview> GetTryoutReviewAsync(Guid clubId, Guid tryoutId, CancellationToken cancellationToken = default) =>
+        GetAsync<TryoutReview>(clubId, $"tryouts/{tryoutId}/review", cancellationToken);
+    public Task<SportReply> CloseTryoutAsync(Guid clubId, Guid tryoutId, CloseTryoutInput input, CancellationToken cancellationToken = default) =>
+        PostAsync<SportReply, CloseTryoutInput>(clubId, $"tryouts/{tryoutId}/close", input, cancellationToken);
+    public Task<SportReply> ReopenTryoutAsync(Guid clubId, Guid tryoutId, ReopenTryoutInput input, CancellationToken cancellationToken = default) =>
+        PostAsync<SportReply, ReopenTryoutInput>(clubId, $"tryouts/{tryoutId}/reopen", input, cancellationToken);
     public Task<TeamDetail> GetTeamAsync(Guid clubId, Guid teamId, CancellationToken cancellationToken = default) =>
         GetAsync<TeamDetail>(clubId, $"teams/{teamId}", cancellationToken);
     public Task<SportOverview> GetOverviewAsync(Guid clubId, CancellationToken cancellationToken = default) =>
@@ -35,6 +43,9 @@ internal sealed class HttpSportGateway(HttpClient http) : ISportGateway
 
     public Task<SportReply> EnrollAsync(Guid clubId, Guid tryoutId, EnrollmentInput input, CancellationToken cancellationToken = default) =>
         PostAsync<SportReply, EnrollmentInput>(clubId, $"tryouts/{tryoutId}/players", input, cancellationToken);
+
+    public Task<SportReply> SaveBibNumberAsync(Guid clubId, Guid tryoutId, BibNumberInput input, CancellationToken cancellationToken = default) =>
+        PostAsync<SportReply, BibNumberInput>(clubId, $"tryouts/{tryoutId}/bib", input, cancellationToken);
 
     public Task<SportReply> DecideAsync(Guid clubId, Guid tryoutId, DecisionInput input, CancellationToken cancellationToken = default) =>
         PostAsync<SportReply, DecisionInput>(clubId, $"tryouts/{tryoutId}/decisions", input, cancellationToken);

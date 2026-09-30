@@ -1,9 +1,9 @@
 @inherits LayoutComponentBase
 
 <div class="tryout-shell">
-    <a class="skip-link" href="#tryout-content">Skip to tryout</a>
+    <a class="skip-link" data-enhance-nav="false" href="@(Navigation.Uri.Split('#')[0] + "#tryout-content")">Skip to tryout</a>
     <header class="club-header">
-        <a class="wordmark" href="/" aria-label="Pino home">Pino<span aria-hidden="true">.</span></a>
+        <a class="wordmark" href="/" aria-label="Pino home"><PinoMark /><span>Pino<span class="brand-dot" aria-hidden="true">.</span></span></a>
         <div class="club-name">Northside FC <span>Club workspace</span></div>
         <span class="sample-label">Sample data</span>
         <a class="account-link" href="Account/Manage">Account</a>

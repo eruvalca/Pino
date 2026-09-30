@@ -51,8 +51,9 @@ public sealed partial class SportingWorkflowTests
 
     private static async Task VerifyArchivesAndImportsAsync(BrowserSession session, string path, SportOverview overview)
     {
-        const string Csv = "PlayerReference,FirstName,LastName,GraduationYear,Position,ContactEmail\nNS-004,Alex,Reed,2030,,\nNS-001,Duplicate,Player,2030,,";
-        var import = await session.PostAsync<ImportReport>(path + "/import", new ImportInput(Csv, Commit: true));
+        var player = (await session.GetAsync<PlayerPage>(path + "/players?query=Jordan&archived=false&page=0")).Players.ShouldHaveSingleItem();
+        var csv = $"PlayerReference,FirstName,LastName,GraduationYear,Position,ContactEmail\nNS-004,Alex,Reed,2030,,\n{player.PlayerReference},Duplicate,Player,2030,,";
+        var import = await session.PostAsync<ImportReport>(path + "/import", new ImportInput(csv, Commit: true));
         import.Saved.ShouldBeFalse();
         import.Rows[^1].Error.ShouldNotBeNull();
         (await session.GetAsync<PlayerPage>(path + "/players?query=NS-004&archived=false&page=0")).Players.ShouldBeEmpty();
@@ -67,6 +68,7 @@ public sealed partial class SportingWorkflowTests
         var tryoutId = overview.Tryouts.Single().Id;
         var current = await session.GetAsync<TryoutDetail>($"{path}/tryouts/{tryoutId}");
         current.Season.Archived.ShouldBeTrue();
+        (await session.PostAsync<SportReply>($"{path}/tryouts/{tryoutId}/bib", new BibNumberInput(current.Roster.Single().Player.Id, "41", "17"))).Kind.ShouldBe(SportReplyKind.Invalid);
         var note = new NoteInput(Guid.NewGuid(), current.Roster.Single().Player.Id, "Must not be written.", CorrectsId: null);
         (await session.PostAsync<SportReply>($"{path}/tryouts/{tryoutId}/notes", note)).Kind.ShouldBe(SportReplyKind.Invalid);
         (await session.GetAsync<TryoutDetail>($"{path}/tryouts/{tryoutId}")).Notes.Count.ShouldBe(2);

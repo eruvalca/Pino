@@ -123,7 +123,10 @@ the access home. Treat a saved return URL as navigation intent, not authority.
 1. **Complete identity.** Preserve the existing email-confirmation and sign-in
    sequence. Collect separately labelled first and last names and the profile
    photo. Explain that the photo helps club staff recognize the applicant.
-   Show a crop preview with replace, reposition/zoom, cancel, and save controls.
+   Use the shared photo editor to reposition with drag, wheel/pinch zoom or
+   keyboard-operable buttons. **Use this crop** shows the final square preview
+   before **Save profile**. Staff can adjust or discard the crop; discarding
+   restores the saved photo. Saving is blocked while framing is unfinished.
    Saving must acknowledge the stored image, not just the local preview. Resume
    saved profile progress after sign-in; do not imply an unsubmitted local file
    survives a reload. The access gate requires a completed profile

@@ -5,6 +5,14 @@ namespace Pino.Features.Sporting.Services;
 
 internal sealed class ServerSportGateway(SportService service, AuthenticationStateProvider authentication) : ISportGateway
 {
+    public async Task<SeasonReview> GetSeasonReviewAsync(Guid clubId, Guid seasonId, CancellationToken cancellationToken = default) =>
+        await service.GetSeasonReviewAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, seasonId, cancellationToken);
+    public async Task<TryoutReview> GetTryoutReviewAsync(Guid clubId, Guid tryoutId, CancellationToken cancellationToken = default) =>
+        await service.GetTryoutReviewAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, tryoutId, cancellationToken);
+    public async Task<SportReply> CloseTryoutAsync(Guid clubId, Guid tryoutId, CloseTryoutInput input, CancellationToken cancellationToken = default) =>
+        (await service.CloseTryoutAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, tryoutId, input, cancellationToken)).ToReply();
+    public async Task<SportReply> ReopenTryoutAsync(Guid clubId, Guid tryoutId, ReopenTryoutInput input, CancellationToken cancellationToken = default) =>
+        (await service.ReopenTryoutAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, tryoutId, input, cancellationToken)).ToReply();
     public async Task<TeamDetail> GetTeamAsync(Guid clubId, Guid teamId, CancellationToken cancellationToken = default) =>
         await service.GetTeamAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, teamId, cancellationToken);
     public async Task<SportOverview> GetOverviewAsync(Guid clubId, CancellationToken cancellationToken = default) =>
@@ -33,6 +41,9 @@ internal sealed class ServerSportGateway(SportService service, AuthenticationSta
 
     public async Task<SportReply> EnrollAsync(Guid clubId, Guid tryoutId, EnrollmentInput input, CancellationToken cancellationToken = default) =>
         (await service.EnrollAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, tryoutId, input, cancellationToken)).ToReply();
+
+    public async Task<SportReply> SaveBibNumberAsync(Guid clubId, Guid tryoutId, BibNumberInput input, CancellationToken cancellationToken = default) =>
+        (await service.SaveBibNumberAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, tryoutId, input, cancellationToken)).ToReply();
 
     public async Task<SportReply> DecideAsync(Guid clubId, Guid tryoutId, DecisionInput input, CancellationToken cancellationToken = default) =>
         (await service.DecideAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, tryoutId, input, cancellationToken)).ToReply();
