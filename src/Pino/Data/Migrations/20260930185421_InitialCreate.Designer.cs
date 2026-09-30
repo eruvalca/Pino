@@ -12,7 +12,7 @@ using Pino.Data;
 namespace Pino.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260930175747_InitialCreate")]
+    [Migration("20260930185421_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -1080,45 +1080,6 @@ namespace Pino.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Pino.Features.Sporting.Data.TryoutAttendance", b =>
-                {
-                    b.Property<Guid>("ClubId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("TryoutId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Kind")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTimeOffset>("RecordedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("RecordedBy")
-                        .IsRequired()
-                        .HasMaxLength(161)
-                        .HasColumnType("character varying(161)");
-
-                    b.Property<string>("RecordedById")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("character varying(450)");
-
-                    b.Property<long>("Revision")
-                        .IsConcurrencyToken()
-                        .HasColumnType("bigint");
-
-                    b.HasKey("ClubId", "TryoutId", "PlayerId");
-
-                    b.ToTable("TryoutAttendances", t =>
-                        {
-                            t.HasCheckConstraint("CK_TryoutAttendance_Kind", "\"Kind\" BETWEEN 0 AND 2");
-                        });
-                });
-
             modelBuilder.Entity("Pino.Features.Sporting.Data.TryoutCloseout", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1623,15 +1584,6 @@ namespace Pino.Migrations
                         .WithMany("PositionTargets")
                         .HasForeignKey("ClubId", "TeamId")
                         .HasPrincipalKey("ClubId", "Id")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Pino.Features.Sporting.Data.TryoutAttendance", b =>
-                {
-                    b.HasOne("Pino.Features.Sporting.Data.Participation", null)
-                        .WithMany()
-                        .HasForeignKey("ClubId", "TryoutId", "PlayerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

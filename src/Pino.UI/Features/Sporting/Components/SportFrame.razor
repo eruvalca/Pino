@@ -1,5 +1,5 @@
 <ClubPageShell Club="Membership?.Club" CanManagePeople="@(Membership?.Role == ClubRole.Administrator)">
-    <article class="sport-sheet" aria-busy="@Busy">
+    <article class="sport-sheet" aria-busy="@(Busy ? "true" : "false")" data-renderer="@RendererInfo.Name">
         @if (Message is not null)
         {
             <p class="notice" data-kind="@MessageKind" role="status">@Message</p>

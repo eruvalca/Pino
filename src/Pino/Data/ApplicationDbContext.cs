@@ -20,7 +20,6 @@ internal sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext
     internal DbSet<SeasonTeamAvailability> SeasonTeamAvailabilities => Set<SeasonTeamAvailability>();
     internal DbSet<TryoutTeamAvailability> TryoutTeamAvailabilities => Set<TryoutTeamAvailability>();
     internal DbSet<TryoutEvent> TryoutEvents => Set<TryoutEvent>();
-    internal DbSet<TryoutAttendance> TryoutAttendances => Set<TryoutAttendance>();
     internal DbSet<Participation> Participations => Set<Participation>();
     internal DbSet<EnrollmentChange> EnrollmentChanges => Set<EnrollmentChange>();
     internal DbSet<SeasonPlacement> SeasonPlacements => Set<SeasonPlacement>();

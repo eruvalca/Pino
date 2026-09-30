@@ -123,7 +123,6 @@ public sealed class AccessBoundaryTests
         (await coach.PostAsync<SportReply>(path + "/tryouts", tryout)).Kind.ShouldBe(SportReplyKind.Saved);
         var tryoutPath = $"{path}/tryouts/{tryout.Id}";
         (await coach.PostAsync<SportReply>(tryoutPath + "/bib", new BibNumberInput(playerId, "17", ""))).Kind.ShouldBe(SportReplyKind.Saved);
-        (await coach.PostAsync<SportReply>(tryoutPath + "/attendance", new AttendanceInput(playerId, AttendanceKind.Absent, 0))).Kind.ShouldBe(SportReplyKind.Saved);
         (await coach.PostAsync<SportReply>(tryoutPath + "/notes", new NoteInput(Guid.NewGuid(), playerId, "Coaches can add notes"))).Kind.ShouldBe(SportReplyKind.Saved);
         (await coach.PostAsync<SportReply>(tryoutPath + "/decisions", new DecisionInput(Guid.NewGuid(), playerId, DecisionKind.Withdrawn, null, 1, 0, "Withdrawn"))).Kind.ShouldBe(SportReplyKind.Saved);
         var review = await coach.GetAsync<TryoutReview>(tryoutPath + "/review");

@@ -15,7 +15,7 @@ public sealed partial class TeamTargets : SportPageBase
     protected override async Task LoadAsync()
     {
         if (Membership?.Role != ClubRole.Administrator) { throw new UnauthorizedAccessException(); }
-        _detail = await Gateway.GetTeamAsync(ClubId, TeamId, seasonId: null, Token);
+        _detail = await ReadInitialAsync("GetTeamAsync", () => Gateway.GetTeamAsync(ClubId, TeamId, seasonId: null, Token));
         _total = _detail.Team.RosterTarget;
         _positions.Clear();
         _positions.AddRange((_detail.Team.PositionTargets ?? []).Select(value => new PositionDraft { Position = value.Position, Players = value.Players }));

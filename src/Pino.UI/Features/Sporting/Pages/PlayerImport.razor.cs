@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Pino.SharedKernel.Sporting;
 using Pino.UI.Features.Sporting.Services;
@@ -7,6 +8,11 @@ namespace Pino.UI.Features.Sporting.Pages;
 
 public sealed partial class PlayerImport : SportPageBase
 {
+    private static readonly string[] _steps = ["Choose a file", "Match columns", "Review players", "Import result"];
+    private int _step;
+    private ElementReference _stepHeading;
+    private bool _focusStep;
+    private bool _commitUnconfirmed;
     private string? _csv;
     private string? _fileName;
     private ImportReport? _report;
@@ -22,6 +28,11 @@ public sealed partial class PlayerImport : SportPageBase
     private IEnumerable<ImportRow> VisibleRows => FilteredRows.Skip(_page * 50).Take(50);
     private string PreviewKind => _report switch { { Saved: true } => "success", { CanImport: true } => "information", _ => "error" };
     protected override Task LoadAsync() => Task.CompletedTask;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusStep) { _focusStep = false; await _stepHeading.FocusAsync(); }
+    }
+    private void GoToStep(int step) { _step = step; _focusStep = true; }
     private Task ChooseAsync(InputFileChangeEventArgs args) => ExecuteAsync(async () =>
     {
         _report = null; _csv = null; _fileName = null; _columns = []; _mapping = null;
@@ -42,20 +53,24 @@ public sealed partial class PlayerImport : SportPageBase
             _report = await Gateway.ImportAsync(ClubId, new(_csv, Commit: false, _mapping, _resolutions.Values.ToArray()), Token);
             _needsPreview = false;
             _page = 0;
+            GoToStep(2);
         }
     });
     private Task ImportAsync() => ExecuteAsync(async () =>
     {
         if (_csv is not null && !_needsPreview && _report is { CanImport: true, Saved: false })
         {
+            _commitUnconfirmed = true;
             _report = await Gateway.ImportAsync(ClubId, new(_csv, Commit: true, _mapping, _resolutions.Values.ToArray()) { OperationId = _operationId }, Token);
-            if (_report.Saved) { _csv = null; _resolutions.Clear(); _attentionOnly = false; _page = 0; }
+            _commitUnconfirmed = false;
+            if (_report.Saved) { _csv = null; _resolutions.Clear(); _attentionOnly = false; _page = 0; GoToStep(3); }
         }
     });
     private void MappingChanged(CsvColumnMapping mapping) { _mapping = mapping; _report = null; ResetReview(); }
     private void ResetReview() { _resolutions.Clear(); _operationId = Guid.NewGuid(); _needsPreview = false; _page = 0; _attentionOnly = false; }
     private void ResolutionChanged(ImportResolution choice)
     {
+        if (_commitUnconfirmed) { return; }
         if (choice.Action == ImportDisposition.Create) { _resolutions.Remove(choice.Row); }
         else { _resolutions[choice.Row] = choice; }
         _needsPreview = true;

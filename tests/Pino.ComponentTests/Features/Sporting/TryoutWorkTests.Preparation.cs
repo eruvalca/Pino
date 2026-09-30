@@ -60,6 +60,7 @@ public sealed partial class TryoutWorkTests
         gateway.PlaceReturningPlayersAsync(_clubId, _tryoutId, Arg.Any<ReturningPlacementInput>(), Arg.Any<CancellationToken>()).Returns(new SportingBatchReport(SportReplyKind.Saved, "Completed", 1, 0, []));
         var page = context.Render<ReturningPlayers>(parameters => parameters.Add(value => value.ClubId, _clubId).Add(value => value.TryoutId, _tryoutId));
         await page.Find("#returning-source").ChangeAsync(source.Id.ToString());
+        await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Continue to players", StringComparison.Ordinal)).ClickAsync();
         await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Select ready matches", StringComparison.Ordinal)).ClickAsync();
         page.FindAll("input[type='checkbox']:checked").Count.ShouldBe(1);
         page.Markup.ShouldContain("Team is excluded from this tryout.");

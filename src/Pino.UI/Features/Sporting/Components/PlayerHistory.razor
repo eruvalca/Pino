@@ -1,10 +1,4 @@
 <div class="player-tryout-history">
-    <h3>Attendance</h3>
-    @if (Notebook.Attendance.Count == 0) { <p class="muted">No attendance recorded. Attendance is separate from the selection decision.</p> }
-    <ul class="record-history">@foreach (var entry in Notebook.Attendance)
-    {
-        <li><strong>@SportLabels.Attendance(entry.Kind)</strong><p class="muted"><span class="staff-attribution"><StaffAvatar Name="@entry.RecordedBy" PhotoUrl="entry.RecordedByPhotoUrl" Compact="true" /><span>@entry.RecordedBy</span></span> · @entry.RecordedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</p></li>
-    }</ul>
     <h3>Notes &amp; earlier versions</h3>
     @if (Notebook.Notes.Count == 0) { <p class="muted">No saved notes.</p> }
     <ul class="record-history">@foreach (var note in Notebook.Notes)

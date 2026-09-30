@@ -2,7 +2,7 @@
     <a class="skip-link" data-enhance-nav="false" href="@(Navigation.Uri.Split('#')[0] + "#club-content")">Skip to content</a>
     <header class="app-masthead">
         <div class="app-width app-masthead-inner">
-            <NavMenu />
+            <NavMenu ClubId="Club?.Id" />
         </div>
     </header>
     @if (Club is not null)

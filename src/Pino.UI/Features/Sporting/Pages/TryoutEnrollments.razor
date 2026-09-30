@@ -12,15 +12,24 @@
         <header class="sport-heading"><div><h1>Manage tryout players</h1><p>All active club players were included when this tryout was created. Exclude anyone who should not take part.</p></div><a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}")">Back to tryout</a></header>
         <div class="workflow-actions"><span><strong>@_entries.Count(value => !value.Removed)</strong> included · <strong>@_entries.Count(value => value.Removed)</strong> excluded</span>@if (Membership?.Role == ClubRole.Administrator) { <a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/bulk-enrollment")">Include new players</a> }</div>
         @if (!CanEdit) { <p class="notice" data-kind="information">Reopen the season and tryout before excluding or restoring players.</p> }
+        <WorkflowProgress Steps="_batchSteps" Current="BatchStep" Label="Roster change progress" />
+        <h2 @ref="_batchHeading" tabindex="-1">@_batchSteps[BatchStep]</h2>
+        @if (_reviewPlayers is { } reviewPlayers)
+        {
+            <EnrollmentBatchReview @key="_reviewId" Players="reviewPlayers" Remove="_reviewRemove" Disabled="@(Disabled || !CanEdit)" Submitted="SaveBatchAsync" Cancelled="BackToPlayers" />
+            @if (_batchReport is { } error) { <p class="notice" data-kind="error">@error.Message</p> }
+        }
+        else if (_batchReport is { Kind: SportReplyKind.Saved } report)
+        {
+            <SportingBatchResults Report="report" Names="_names" /><button type="button" class="secondary-action" disabled="@Disabled" @onclick="BackToPlayers">Back to players</button>
+        }
+        else
+        {
         <div class="field-pair">
             <div class="form-field"><label for="enrollment-search">Find a player</label><input id="enrollment-search" type="search" @bind="_query" @bind:event="oninput" @bind:after="ResetPage" placeholder="Name or bib" /></div>
             <div class="form-field"><label for="enrollment-status">Player status</label><select id="enrollment-status" @bind="_status" @bind:after="ChangeStatus"><option value="all">All players</option><option value="retained">Included</option><option value="removed">Excluded</option></select></div>
         </div>
-        @if (_reviewPlayers is { } reviewPlayers)
-        {
-            <EnrollmentBatchReview @key="_reviewId" Players="reviewPlayers" Remove="_reviewRemove" Disabled="@(Disabled || !CanEdit)" Submitted="SaveBatchAsync" Cancelled="() => _reviewPlayers = null" />
-        }
-        else if (CanEdit)
+        @if (CanEdit)
         {
             <div class="workflow-actions" aria-label="Group enrollment actions">
                 <span role="status">@_selectedPlayers.Count selected</span><button class="secondary-action" disabled="@Disabled" @onclick="SelectMatching">Select all matching</button><button class="text-action" disabled="@(Disabled || _selectedPlayers.Count == 0)" @onclick="() => _selectedPlayers.Clear()">Clear selection</button>
@@ -28,7 +37,6 @@
             </div>
             @if (_selectedPlayers.Count > 0 && !CanExclude && !CanRestore) { <p class="notice" data-kind="information">Select included players to exclude, or excluded players to restore. Change the status filter to start a new selection.</p> }
         }
-        @if (_batchReport is { } report) { <SportingBatchResults Report="report" Names="_names" /> }
         <ul class="record-list">
             @foreach (var enrollment in Filtered.Skip(_page * 50).Take(50))
             {
@@ -49,9 +57,6 @@
                 <ol class="record-history">@foreach (var change in selected.History) { <li @key="change.Id"><strong>@(change.Removed ? "Removed" : "Restored") · <span class="staff-attribution"><StaffAvatar Name="@change.Author" PhotoUrl="change.AuthorPhotoUrl" Compact="true" /><span>@change.Author</span></span></strong><p class="muted">@change.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")@(change.Bib.Length > 0 ? $" · Bib {change.Bib}" : "")</p><p class="note-text">@change.Reason</p></li> }</ol>
                 @if (_notebook is { } notebook)
                 {
-                    <h3>Attendance</h3>
-                    @if (notebook.Attendance.Count == 0) { <p>No attendance recorded.</p> }
-                    <ul class="record-history">@foreach (var attendance in notebook.Attendance) { <li><strong>@attendance.RecordedAt.ToLocalTime().ToString("MMM d, yyyy")</strong><p>@AttendanceLabel(attendance.Kind) · <span class="staff-attribution"><StaffAvatar Name="@attendance.RecordedBy" PhotoUrl="attendance.RecordedByPhotoUrl" Compact="true" /><span>@attendance.RecordedBy</span></span></p></li> }</ul>
                     <h3>Notes</h3>
                     @if (notebook.Notes.Count == 0) { <p>No notes recorded.</p> }
                     <ol class="record-history">@foreach (var note in notebook.Notes)
@@ -69,6 +74,7 @@
                     <h3>Decision history</h3><DecisionHistory History="notebook.History" />
                 }
             </section>
+        }
         }
     }
 </SportFrame>

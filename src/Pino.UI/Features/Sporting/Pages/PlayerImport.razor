@@ -8,27 +8,38 @@
 <SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
     <p><a href="@($"/clubs/{ClubId}/players")">All players</a></p>
     <header class="sport-heading"><div><h1>Import players</h1><p>Match columns, review possible duplicates, then confirm the import.</p></div><a class="secondary-action" href="@($"/api/clubs/{ClubId}/sport/template")" download>Download CSV template</a></header>
-    <ol class="task-steps" aria-label="Import progress"><li aria-current="@(_report is null ? "step" : null)">Choose a CSV</li><li aria-current="@(_report is { Saved: false } ? "step" : null)">Match &amp; review</li><li aria-current="@(_report?.Saved == true ? "step" : null)">Import complete</li></ol>
-    <section class="sport-form"><p>Each player needs a first name, last name and graduation year. Choose which columns to import. Leave optional columns as Not included to skip them.</p>
-        <fieldset class="sport-fields" disabled="@Disabled"><div class="form-field"><label for="import-file">Player CSV</label><InputFile id="import-file" accept=".csv,text/csv" OnChange="ChooseAsync" /><p class="muted">UTF-8 CSV. Up to 1,000 players, 4 MB and 2,000,000 characters per import. Empty rows are ignored.</p></div><button class="secondary-action" disabled="@(_csv is null)" @onclick="PreviewAsync">@(Busy ? "Checking file…" : "Preview file")</button></fieldset>
-    </section>
-    @if (_mapping is not null && _columns.Count > 0 && _report?.Saved != true)
+    <WorkflowProgress Steps="_steps" Current="_step" Label="Import progress" />
+    <h2 @ref="_stepHeading" tabindex="-1">@_steps[_step]</h2>
+    @if (_step == 0)
     {
-        <section class="sport-form"><ImportColumnMapper Columns="_columns" Mapping="_mapping" MappingChanged="MappingChanged" Disabled="@Disabled" /><button class="secondary-action" disabled="@Disabled" @onclick="PreviewAsync">Preview mapped file</button></section>
+        <section class="sport-form"><p>Each player needs a first name, last name and graduation year. Extra columns can be left out.</p>
+            <fieldset class="sport-fields" disabled="@Disabled"><div class="form-field"><label for="import-file">Player CSV</label><InputFile id="import-file" accept=".csv,text/csv" OnChange="ChooseAsync" /><p class="muted">UTF-8 CSV. Up to 1,000 players, 4 MB and 2,000,000 characters per import. Empty rows are ignored.</p></div>
+                @if (_fileName is not null) { <p>Selected file: <strong>@_fileName</strong></p> }
+                @if (_report is { Columns.Count: 0 }) { <p class="notice" data-kind="error" role="alert">@_report.Message</p> }
+                <button class="primary-action" disabled="@(_mapping is null || _columns.Count == 0)" @onclick="() => GoToStep(1)">Continue to columns</button>
+            </fieldset>
+        </section>
     }
-    @if (_report is not null)
+    else if (_step == 1 && _mapping is not null)
     {
-        <section class="sport-section"><h2>Preview@(_fileName is null ? "" : $" · {_fileName}")</h2><p class="notice" data-kind="@PreviewKind" role="status">@_report.Message</p>
+        <section class="sport-form"><p><strong>@_fileName</strong> · Match the required fields. Leave optional columns as Not included to skip them.</p><ImportColumnMapper Columns="_columns" Mapping="_mapping" MappingChanged="MappingChanged" Disabled="@Disabled" />
+            <div class="actions"><button class="primary-action" disabled="@Disabled" @onclick="PreviewAsync">Review players</button><button class="secondary-action" disabled="@Disabled" @onclick="() => GoToStep(0)">Back to file</button></div>
+        </section>
+    }
+    @if (_step >= 2 && _report is not null)
+    {
+        <section class="sport-section"><p><strong>@_fileName</strong></p><p class="notice" data-kind="@PreviewKind" role="status">@_report.Message</p>
             @if (_report.Counts is { } counts)
             {
                 @if (_report.Saved) { <p>Created: @counts.Created · Skipped: @counts.Skipped · Restored: @counts.Reactivated · Needs review: @counts.Unresolved · Errors: @counts.Errors</p> }
                 else { <p>Ready to create: @_report.Rows.Count(value => value.Disposition is ImportDisposition.Create or ImportDisposition.Replace) · Ready to restore: @_report.Rows.Count(value => value.Disposition == ImportDisposition.Reactivate) · Skipped: @counts.Skipped · Needs review: @counts.Unresolved · Errors: @counts.Errors</p> }
             }
+            @if (_commitUnconfirmed) { <p class="notice" data-kind="warning">The import response was interrupted. Choose Import reviewed players again to confirm the result before changing this file.</p> }
             @if (_needsPreview) { <p class="notice" data-kind="warning">Your choices changed. Check the preview again before importing.</p><button class="secondary-action" disabled="@Disabled" @onclick="PreviewAsync">Review updated choices</button> }
-            <div class="workflow-actions">@if (!_report.Saved) { <button class="primary-action" disabled="@(Disabled || _needsPreview || !_report.CanImport)" @onclick="ImportAsync">Import reviewed players</button><span>Review the rows below before confirming.</span> } else { <a class="primary-action" href="@($"/clubs/{ClubId}/players")">Open players</a> }</div>
+            <div class="workflow-actions">@if (!_report.Saved) { <button class="primary-action" disabled="@(Disabled || _needsPreview || !_report.CanImport)" @onclick="ImportAsync">Import reviewed players</button><button class="secondary-action" disabled="@(Disabled || _commitUnconfirmed)" @onclick="() => GoToStep(1)">Back to columns</button><span>Review the rows below before confirming.</span> } else { <a class="primary-action" href="@($"/clubs/{ClubId}/players")">Open players</a> }</div>
             <label class="checkbox-field"><input type="checkbox" @bind="_attentionOnly" @bind:after="FilterChanged" /> Show rows needing attention</label>
             <ol class="import-review-list" aria-label="Import preview">
-                @foreach (var row in VisibleRows) { <li @key="row.Row"><ImportRowReview Row="row" ClubId="ClubId" Resolution="_resolutions.GetValueOrDefault(row.Row)" ResolutionChanged="ResolutionChanged" Administrator="@(Membership?.Role == ClubRole.Administrator)" Saved="_report.Saved" Disabled="@Disabled" /></li> }
+                @foreach (var row in VisibleRows) { <li @key="row.Row"><ImportRowReview Row="row" ClubId="ClubId" Resolution="_resolutions.GetValueOrDefault(row.Row)" ResolutionChanged="ResolutionChanged" Administrator="@(Membership?.Role == ClubRole.Administrator)" Saved="_report.Saved" Disabled="@(Disabled || _commitUnconfirmed)" /></li> }
             </ol>
             <nav class="actions" aria-label="Import pages"><button class="secondary-action" disabled="@(Disabled || _page == 0)" @onclick="() => _page--">Previous 50</button><span>@FilteredCount rows · page @(_page + 1) of @Math.Max(1, (FilteredCount + 49) / 50)</span><button class="secondary-action" disabled="@(Disabled || (_page + 1) * 50 >= FilteredCount)" @onclick="() => _page++">Next 50</button></nav>
         </section>

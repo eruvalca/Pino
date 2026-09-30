@@ -17,7 +17,7 @@ public sealed partial class PlayerRecord : SportPageBase
 
     protected override async Task LoadAsync()
     {
-        _detail = PlayerId == Guid.Empty ? null : await Gateway.GetPlayerAsync(ClubId, PlayerId, Token);
+        _detail = PlayerId == Guid.Empty ? null : await ReadInitialAsync("GetPlayerAsync", () => Gateway.GetPlayerAsync(ClubId, PlayerId, Token));
         _historyTryoutId = null;
         _notebook = null;
         ResetModel();
@@ -74,6 +74,6 @@ public sealed partial class PlayerRecord : SportPageBase
         if (Disabled) { return; }
         _notebook = null;
         if (HistoryTryout is not { } selected) { return; }
-        await ExecuteAsync(async () => _notebook = await Gateway.GetNotebookAsync(ClubId, selected.Id, PlayerId, Token));
+        await ExecuteAsync(async () => _notebook = await ReadInitialAsync("GetNotebookAsync", () => Gateway.GetNotebookAsync(ClubId, selected.Id, PlayerId, Token)));
     }
 }

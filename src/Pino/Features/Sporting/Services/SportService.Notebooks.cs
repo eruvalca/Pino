@@ -17,13 +17,11 @@ internal sealed partial class SportService
         var corrected = notes.Where(note => note.CorrectsId.HasValue).Select(note => note.CorrectsId!.Value).ToHashSet();
         var history = await db.DecisionEvents.AsNoTracking().Where(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == playerId)
             .OrderByDescending(value => value.CreatedAt).ThenByDescending(value => value.Id).ToListAsync(ct);
-        var attendance = await db.TryoutAttendances.AsNoTracking().Where(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == playerId)
-            .Select(value => new AttendanceRecord(value.Kind, value.RecordedBy, value.RecordedAt, StaffPhoto(value.RecordedById))).ToListAsync(ct);
         var enrollmentChanges = await db.EnrollmentChanges.AsNoTracking().Where(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == playerId)
             .OrderByDescending(value => value.CreatedAt).ThenByDescending(value => value.Id)
             .Select(value => new EnrollmentChangeSummary(value.Id, value.Removed, value.Reason, value.Author, value.CreatedAt, value.Bib, StaffPhoto(value.AuthorId))).ToListAsync(ct);
         return new(playerId, entry.Removed, notes.Select(note => new NoteSummary(note.Id, note.PlayerId, note.Text, note.Author, note.CreatedAt, note.CorrectsId,
             !entry.Removed && note.RedactedAt is null && string.Equals(note.AuthorId, actorId, StringComparison.Ordinal) && !corrected.Contains(note.Id),
-            note.RedactedAt, note.RedactedBy, note.RedactionReason, StaffPhoto(note.AuthorId), StaffPhoto(note.RedactedById))).ToArray(), history.Select(Summary).ToArray(), attendance, enrollmentChanges);
+            note.RedactedAt, note.RedactedBy, note.RedactionReason, StaffPhoto(note.AuthorId), StaffPhoto(note.RedactedById))).ToArray(), history.Select(Summary).ToArray(), enrollmentChanges);
     }
 }

@@ -11,6 +11,8 @@
         <p><a href="@($"/clubs/{ClubId}/tryouts/{TryoutId}")">@data.Tryout.Name</a></p>
         <header class="sport-heading"><div><h1>Place returning players</h1><p>Place returning players on the same club team as their previous season.</p></div></header>
         <nav class="workflow-actions" aria-label="Returning placement setup"><a class="secondary-action" href="@($"/clubs/{ClubId}/seasons/{data.Season.Id}/teams?tryout={TryoutId}")">Manage team availability</a><a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/enrollments")">Manage tryout players</a></nav>
+        <WorkflowProgress Steps="_steps" Current="Step" Label="Returning placement progress" />
+        <h2 tabindex="-1" @ref="_listHeading">@_steps[Step]</h2>
         @if (!CanEdit) { <p class="notice" data-kind="information">Reopen the season and tryout before placing returning players.</p> }
         @if (_report is { Kind: SportReplyKind.Saved } report)
         {
@@ -18,7 +20,7 @@
         }
         else if (_input is not null)
         {
-            <section class="sport-section"><h2 tabindex="-1" @ref="_listHeading">Confirm @_input.Players.Count returning placements</h2><p>Previous season: @overview.Seasons.Single(value => value.Id == _input.SourceSeasonId).Name. New season: @data.Season.Name.</p>
+            <section class="sport-section"><p><strong>Confirm @_input.Players.Count returning placements</strong></p><p>Previous season: @overview.Seasons.Single(value => value.Id == _input.SourceSeasonId).Name. New season: @data.Season.Name.</p>
                 <p class="notice" data-kind="information">Pino checks each player again before saving. Players whose records changed or who cannot join that team are skipped. Existing decisions and team placements stay as they are.</p>
                 <RosterPager Count="_input.Players.Count" Page="_page" PageChanged="ChangePageAsync" Label="Returning confirmation pages" Disabled="Disabled" />
                 <ul class="record-list">@foreach (var selection in _input.Players.Skip(_page * 50).Take(50))
@@ -31,14 +33,18 @@
                 <div class="actions"><button class="primary-action" disabled="@(Disabled || !CanEdit)" @onclick="PlaceAsync">Place reviewed players</button><button class="text-action" disabled="@Disabled" @onclick="BackToSelection">Back to selection</button></div>
             </section>
         }
-        else
+        else if (_choosingSeason)
         {
-            <div class="sport-form"><div class="form-field"><label for="returning-source">Previous season</label><select id="returning-source" @bind="_sourceSeasonId" @bind:after="RefreshAsync" disabled="@Disabled"><option value="">Choose a season</option>@foreach (var source in overview.Seasons.Where(value => value.StartsOn < data.Season.StartsOn)) { <option value="@source.Id">@source.Name</option> }</select></div></div>
-            @if (_sourceSeasonId is not null)
-            {
-                <h2 tabindex="-1" @ref="_listHeading">Select returning players</h2><p>@overview.Seasons.Single(value => value.Id == _sourceSeasonId).Name · @_players.Count returning players · @_players.Count(value => value.Selection is not null) ready · @_selected.Count selected</p>
+            <p>Choose which earlier season to use. You'll review individual players before saving any placements.</p>
+            <div class="sport-form"><div class="form-field"><label for="returning-source">Previous season</label><select id="returning-source" @bind="_sourceSeasonId" disabled="@Disabled"><option value="">Choose a season</option>@foreach (var source in overview.Seasons.Where(value => value.StartsOn < data.Season.StartsOn)) { <option value="@source.Id">@source.Name</option> }</select></div></div>
+            <button class="primary-action" disabled="@(Disabled || !CanEdit || _sourceSeasonId is null)" @onclick="ContinueFromSeasonAsync">Continue to players</button>
+            @if (!overview.Seasons.Any(value => value.StartsOn < data.Season.StartsOn)) { <p>No earlier seasons are available. You can place players individually from the tryout notebook.</p> }
+        }
+        else if (_sourceSeasonId is not null)
+        {
+                <p>@overview.Seasons.Single(value => value.Id == _sourceSeasonId).Name · @_players.Count returning players · @_players.Count(value => value.Selection is not null) ready · @_selected.Count selected</p>
                 <div class="sport-form"><div class="field-pair"><div class="form-field"><label for="returning-query">Find returning players</label><input id="returning-query" type="search" @bind="_query" @bind:event="oninput" @bind:after="ResetPage" /></div><div class="form-field"><label for="returning-status">Review status</label><select id="returning-status" @bind="_status" @bind:after="ResetPage"><option value="">All players</option><option value="ready">Ready to place</option><option value="attention">Needs attention</option></select></div></div></div>
-                <div class="actions"><button class="secondary-action" disabled="@(Disabled || !CanEdit)" @onclick="SelectReady">Select ready matches</button><button class="text-action" disabled="@Disabled" @onclick="() => _selected.Clear()">Clear selection</button><button class="primary-action" disabled="@(Disabled || !CanEdit || _selected.Count == 0)" @onclick="Review">Review selected placements</button><button class="text-action" disabled="@Disabled" @onclick="RefreshAsync">Refresh records</button></div>
+                <div class="actions"><button class="secondary-action" disabled="@Disabled" @onclick="BackToSeason">Back to previous season</button><button class="secondary-action" disabled="@(Disabled || !CanEdit)" @onclick="SelectReady">Select ready matches</button><button class="text-action" disabled="@Disabled" @onclick="() => _selected.Clear()">Clear selection</button><button class="primary-action" disabled="@(Disabled || !CanEdit || _selected.Count == 0)" @onclick="Review">Review selected placements</button><button class="text-action" disabled="@Disabled" @onclick="RefreshAsync">Refresh records</button></div>
                 <RosterPager Count="Filtered.Count()" Page="_page" PageChanged="ChangePageAsync" Label="Returning player pages" Disabled="Disabled" />
                 <ul class="record-list">@foreach (var player in Filtered.Skip(_page * 50).Take(50))
                 {
@@ -46,7 +52,6 @@
                 }</ul>
                 @if (!Filtered.Any()) { <p class="muted">No returning players match this view. Check the source season and filters.</p> }
                 <RosterPager Count="Filtered.Count()" Page="_page" PageChanged="ChangePageAsync" Label="Returning player pages after players" Disabled="Disabled" />
-            }
         }
     }
 </SportFrame>

@@ -1,5 +1,10 @@
 # Simple tryouts and staff activity
 
+Attendance requirements in this earlier delivery brief are superseded by
+[Guided workflows and steady navigation](guided-workflows-and-navigation.md).
+Current product rules are in PRODUCT.md; the earlier scope below records why the
+removed attendance capability originally existed.
+
 The owner asked to remove tryout sessions, show staff photos beside notes and
 other staff activity, and make every screen easier to read. This is a refinement
 of the existing Sideline notebook design. The owner delegated remaining choices.

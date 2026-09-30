@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
 
 namespace Pino.UI.Layout;
 
 public sealed partial class NavMenu
 {
+    [Parameter] public Guid? ClubId { get; set; }
+    private string WorkspaceUrl => ClubId is { } id ? $"/clubs/{id}" : "/club";
     private string? _currentUrl;
 
     private bool IsWorkspace

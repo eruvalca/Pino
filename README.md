@@ -17,7 +17,8 @@ See the [early-development migration workflow](#ef-migrations).
 - [Application shell](docs/features/application-shell.md): shared club/account navigation, page width and responsive layout.
 - [Tryout demonstration](docs/features/tryout-evaluation.md): the separate fictional sample and its design direction.
 - [Club onboarding and access](docs/features/club-onboarding-access.md): persisted profiles, private photos, requests, roles, and membership management.
-- [Simple tryouts and staff activity](docs/features/simple-tryouts-and-staff-activity.md): tryout-level attendance, staff photos and plain-language screens.
+- [Simple tryouts and staff activity](docs/features/simple-tryouts-and-staff-activity.md): session removal, staff photos and plain-language screens.
+- [Guided workflows and navigation](docs/features/guided-workflows-and-navigation.md): attendance removal, step-based preparation and Blazor state handoff.
 - [Design system](DESIGN.md): the implemented Sideline notebook visual system.
 - [Agent guidance](AGENTS.md): project boundaries, design process, and authoring rules.
 - [Build conventions](build/README.md): analyzers, formatting, and Razor policy.
@@ -32,13 +33,13 @@ from Aspire), then sign in. Complete your profile and create or join a club.
 From the club navigation:
 
 1. **Players:** add individual records or download the CSV template, preview a
-   file and import its valid batch. Edit or archive records from player details.
+   file through the file, column mapping and player review steps, then import its valid batch. Edit or archive records from player details.
 2. **Seasons & teams:** maintain the club's graduation-year teams and create a
-   season and tryout. Club teams are available across seasons by default.
+   season and tryout. New tryouts show a roster/team review before creation. Club teams are available across seasons by default.
 3. Open the tryout. Active catalog players were included automatically. Use
    **Manage tryout players** for reasoned exclusions or restoration, or select a player to write shared notes
-   and record their decision. Mark attendance in the same notebook; it never changes
-   a decision. Each save persists to PostgreSQL. Refresh saved
+   and record their decision, including **Did not attend** for a player who missed
+   the tryout. Each save persists to PostgreSQL. Refresh saved
    decisions before resolving a stale-save message.
    Assign, change or clear an optional bib under **Bib number** in their notebook. Bibs are specific to
    that tryout; a separate import reference is generated automatically for manual
@@ -48,12 +49,12 @@ From the club navigation:
    a team link for the decisions behind current placements.
 5. Open **Review results** in a tryout. Once every player has a decision,
    review the results and confirm **Close tryout**. Closing preserves a result
-   edition and locks that tryout's roster, attendance, bibs, notes, decisions and setup.
+   edition and locks that tryout's roster, bibs, notes, decisions and setup.
    Reopen it with a reason when corrections are needed; earlier editions remain.
 6. Archive a season when finished. Restoring it permits sporting changes again
    but leaves its closed tryouts closed until explicitly reopened.
 
-Coaches and administrators can assess players, manage attendance, correct the
+Coaches and administrators can assess players, correct the
 tryout roster and export ordinary results. Administrators also manage **People**,
 club settings, planning targets, group import/preparation and personal-data controls. All operations recheck current club membership on the
 server. The first version requires a connection; save drafts before navigating
@@ -95,7 +96,7 @@ the `profileblobs` connection to the server and migration resource. Profile
 images live in the private `profile-photos` blob container, served through
 authorized, non-cacheable endpoints. The browser accepts JPEG/PNG up to 5 MB;
 the server validates and re-encodes the saved 512 × 512 crop using SkiaSharp.
-Staff photos also appear beside notes, decisions, attendance and history. They
+Staff photos also appear beside notes, decisions and history. They
 use the same protected endpoint; missing or inaccessible photos show initials.
 Original uploads and metadata are not retained. A database-backed cleanup queue
 retries deletion of replaced/deleted photos every minute and abandoned uploads
@@ -367,7 +368,7 @@ Feature code uses these properties (`db.Players`, `db.Seasons`, and so on).
 EF Core derives application table names from the set names: `Clubs`,
 `ClubProfiles`, `ClubMemberships`, `ClubJoinRequests`, `ClubInvitations`, `StaffEmails`,
 `PhotoDeletions`, `Players`, `Seasons`, `SportTeams`, `SeasonTeamAvailabilities`,
-`TryoutTeamAvailabilities`, `TryoutEvents`, `TryoutAttendances`, `Participations`, `EnrollmentChanges`, `SeasonPlacements`,
+`TryoutTeamAvailabilities`, `TryoutEvents`, `Participations`, `EnrollmentChanges`, `SeasonPlacements`,
 `PlayerNotes`, `DecisionEvents`, `TryoutCloseouts`, `TryoutCloseoutPlayers`,
 `PlayerErasures`, `PlayerImportReceipts`, `SportingBatchReceipts`, and `TeamPositionTargets`.
 Teams belong to the club; availability rules scope exclusions, while placements

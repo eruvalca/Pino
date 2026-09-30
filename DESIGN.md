@@ -104,6 +104,13 @@ components:
     textColor: "{colors.navy}"
     rounded: "{rounded.radius}"
     padding: "0.65rem 0.75rem"
+  workflow-step:
+    textColor: "{colors.muted}"
+    padding: "0.65rem 0"
+  workflow-step-current:
+    textColor: "{colors.blue}"
+  workflow-step-complete:
+    textColor: "{colors.navy}"
   badge-awaiting:
     backgroundColor: "{colors.blue-soft}"
     textColor: "{colors.blue}"
@@ -299,6 +306,10 @@ list with player identity beside the row's status and actions on desktop. These
 sections stack in reading order on phones, keeping mapping and confirmation
 controls within the viewport.
 
+Guided preparation places its numbered progress list above the current task.
+Steps occupy equal-width columns on desktop; at 40rem and below they reflow
+into two columns in reading order. Labels wrap within their columns.
+
 Player records align a portrait or initials and the name in one header, with
 the edit action beside it on wide screens. Placements and history occupy the
 larger column beside a softly tinted facts panel; at 50rem the facts panel is
@@ -381,6 +392,22 @@ outlined secondary actions. Masthead logout remains a quiet navigation action.
 Primary and secondary backgrounds and borders transition over 150ms ease-out
 when reduced motion is not requested. Pressing either offsets it down by 1px.
 
+### Guided preparation
+
+The shared `WorkflowProgress` is a labelled ordered list, with numbered steps
+and equal-width columns on desktop. Fine top rules separate the stages:
+upcoming steps use muted text and the neutral line, the current step uses
+cobalt text and rule with bold weight (700), and completed steps use navy. The
+current stage also has `aria-current="step"`; color does not carry progress
+alone. Step numbers use tabular numerals.
+
+Preparation pages show one task at a time and move keyboard focus to the
+new task heading after Next or Back. Club setup keeps its page identity and
+profile context above the focused task heading. Back retains the current
+input, and explicit review actions precede consequential writes. Progress
+steps are indicators, not navigation links. Daily notebook actions retain
+their direct controls. See the [guided workflow brief](docs/features/guided-workflows-and-navigation.md).
+
 ### Inputs / Fields
 
 Native fields use white fill, a strong neutral border, visible labels and a
@@ -439,7 +466,7 @@ tinted, bordered surface.
 ### Staff activity
 
 The shared staff avatar sits beside the recorded name in notes and activity
-history. Notes use the regular size; decision, attendance, roster-change,
+history. Notes use the regular size; decision, roster-change,
 private-text-removal and closeout attribution use the compact size. Both use
 navy initials on pale blue when a photo is missing, inaccessible or fails to load.
 Initials use weight 700, with regular text at 0.75rem and compact text at
@@ -516,8 +543,10 @@ a written outcome and team, when applicable.
 The receipt settles upward from 0.4rem over 400ms using
 `cubic-bezier(0.16, 1, 0.3, 1)` when an edition appears. The effect runs only under
 `prefers-reduced-motion: no-preference`; receipt content is immediately available
-in either motion preference. A confirmation checkbox and primary close action
-follow the results; reopening uses a separate native disclosure and reason field.
+in either motion preference. A separate confirmation step follows results review,
+with the player total and counts by outcome above an acknowledgement checkbox,
+primary close action and outlined Back to results action. Reopening uses a
+separate native disclosure and reason field.
 
 ### Decision choices
 

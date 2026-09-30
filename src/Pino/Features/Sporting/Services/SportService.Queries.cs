@@ -48,7 +48,8 @@ internal sealed partial class SportService
             .Select(value => new TryoutSummary(value.Id, value.SeasonId, value.Name, value.Date, value.Location,
                 db.Participations.Count(entry => entry.ClubId == clubId && entry.TryoutId == value.Id && !entry.Removed),
                 db.Participations.Count(entry => entry.ClubId == clubId && entry.TryoutId == value.Id && !entry.Removed && entry.Decision != DecisionKind.Awaiting), value.Revision, value.Closed)).ToListAsync(ct);
-        return new(seasons.Select(Summary).ToArray(), teams.Select(Summary).ToArray(), tryouts);
+        var activePlayers = await db.Players.CountAsync(value => value.ClubId == clubId && !value.Archived, ct);
+        return new(seasons.Select(Summary).ToArray(), teams.Select(Summary).ToArray(), tryouts, activePlayers);
     }
 
     internal async Task<PlayerPage> GetPlayersAsync(ClaimsPrincipal actor, Guid clubId, string query, bool archived, int page, CancellationToken ct)

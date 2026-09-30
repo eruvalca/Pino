@@ -32,6 +32,7 @@ public sealed partial class SportingWorkflowTests
         var preview = await session.GetAsync<ReturningPlayerReview[]>(tryoutPath + $"/returning?sourceSeasonId={data.Season.Id}");
         preview.Count(value => value.Selection is not null).ShouldBe(2);
         await page.GotoAsync($"/clubs/{data.ClubId}/tryouts/{tryout.Id}/returning");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Continue to players", Exact = true }).ClickAsync();
         await page.GetByRole(AriaRole.Button, new() { Name = "Select ready matches", Exact = true }).ClickAsync();
         await page.GetByRole(AriaRole.Button, new() { Name = "Review selected placements", Exact = true }).ClickAsync();
         await CapturePreparationAsync(session, "returning-players");

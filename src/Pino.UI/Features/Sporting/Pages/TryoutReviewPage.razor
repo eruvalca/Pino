@@ -10,11 +10,15 @@
     {
         <p><a href="@($"/clubs/{ClubId}/seasons/{review.Season.Id}/review")">@review.Season.Name · Season review</a></p>
         <header class="sport-heading"><div><h1>@review.Tryout.Name</h1><p>@review.Tryout.Date.ToString("MMM d, yyyy") · Review results</p></div><span class="decision-badge" data-kind="@(review.Tryout.Closed ? "placed" : "awaiting")">@(review.Tryout.Closed ? "Closed" : "Open")</span></header>
-        <nav class="workflow-actions" aria-label="Review actions"><a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}")">Open player notebooks</a><button class="text-action" disabled="@Disabled" @onclick="ReloadAsync">Reload results</button>@if (_editionId is null && !review.Tryout.Closed && review.Tryout.Complete && !review.Season.Archived) { <a class="primary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/review#close-tryout")">Go to final confirmation</a> }</nav>
+        <nav class="workflow-actions" aria-label="Review actions"><a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}")">Open player notebooks</a><button class="text-action" disabled="@Disabled" @onclick="ReloadAsync">Reload results</button></nav>
+        <WorkflowProgress Steps="_steps" Current="Step" Label="Tryout closeout progress" />
+        <h2 @ref="_stepHeading" tabindex="-1">@_steps[Step]</h2>
         @if (review.Season.Archived) { <p class="notice" data-kind="information">This season is archived. Reopen it in season setup before changing the tryout's state.</p> }
+        @if (!_confirmationStep)
+        {
         @if (review.Closeouts.Count > 0)
         {
-            <div class="form-field edition-picker"><label for="closeout-edition">Saved results</label><select id="closeout-edition" @bind="_editionId"><option value="">Current tryout decisions</option>@foreach (var edition in review.Closeouts) { <option value="@edition.Id">Closed @edition.ClosedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm:ss tt") · @edition.ClosedBy</option> }</select></div>
+            <div class="form-field edition-picker"><label for="closeout-edition">Saved results</label><select id="closeout-edition" @bind="_editionId" @bind:after="ChangeEdition"><option value="">Current tryout decisions</option>@foreach (var edition in review.Closeouts) { <option value="@edition.Id">Closed @edition.ClosedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm:ss tt") · @edition.ClosedBy</option> }</select></div>
         }
         @if (Edition is { } closed)
         {
@@ -31,18 +35,26 @@
         {
             <section class="review-readiness"><h2>@(review.Tryout.Complete ? "Ready for your final review" : "Decisions still to record")</h2><p>@review.Tryout.Decided of @review.Tryout.Players players have a decision. @(review.Tryout.Complete ? "Check the results below, then close the tryout to save them." : "Each included player needs a final decision: Placed, Withdrawn, Not selected or Did not attend.")</p></section>
         }
-        <div class="actions"><a class="secondary-action" href="@ExportUrl" download data-enhance-nav="false">@(Edition is null ? "Download current results (CSV)" : "Download saved results (CSV)")</a><a href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/print")">Print attendance &amp; bib list</a></div>
+        <div class="actions"><a class="secondary-action" href="@ExportUrl" download data-enhance-nav="false">@(Edition is null ? "Download current results (CSV)" : "Download saved results (CSV)")</a><a href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/print")">Print player &amp; bib list</a></div>
         <p class="muted">The download includes every player in the selected results. The filters below only change what you see here.</p>
-        <div class="sport-toolbar"><div class="form-field"><label for="result-search">Find a result</label><input id="result-search" type="search" @bind="_query" @bind:event="oninput" placeholder="Player, bib or team" /></div><div class="form-field"><label for="result-decision">Result</label><select id="result-decision" @bind="_decision"><option value="">All results</option>@foreach (var kind in Enum.GetValues<DecisionKind>()) { <option value="@kind">@SportLabels.Decision(kind)</option> }</select></div></div>
-        <p class="muted" role="status">@Results.Count() of @(Edition?.Results.Count ?? review.Results.Count) results shown</p>
-        <ul class="result-ledger">@foreach (var result in Results)
+        <div class="sport-toolbar"><div class="form-field"><label for="result-search">Find a result</label><input id="result-search" type="search" disabled="@Disabled" @bind="_query" @bind:event="oninput" @bind:after="ResetPage" placeholder="Player, bib or team" /></div><div class="form-field"><label for="result-decision">Result</label><select id="result-decision" disabled="@Disabled" @bind="_decision" @bind:after="ResetPage"><option value="">All results</option>@foreach (var kind in Enum.GetValues<DecisionKind>()) { <option value="@kind">@SportLabels.Decision(kind)</option> }</select></div></div>
+        <p class="muted" role="status">@Results.Count() of @(Edition?.Results.Count ?? review.Results.Count) results match</p>
+        <RosterPager Count="Results.Count()" Page="_page" PageChanged="ChangePage" Label="Result pages" Disabled="Disabled" />
+        <ul class="result-ledger">@foreach (var result in Results.Skip(_page * 50).Take(50))
         {
             <li @key="result.PlayerId"><span class="result-bib"><span class="result-bib-label">Bib </span>@(result.Bib.Length > 0 ? result.Bib : "—")</span><div><a href="@($"/clubs/{ClubId}/players/{result.PlayerId}")">@result.FullName</a><small>Class of @result.GraduationYear</small></div><div class="result-outcome"><span class="decision-badge" data-kind="@SportLabels.Kind(result.Decision)">@SportLabels.Decision(result.Decision)</span>@if (result.TeamName is not null) { <span>@result.TeamName</span> }</div></li>
         }</ul>
         @if (!Results.Any()) { <p>@(review.Results.Count == 0 ? "No players enrolled yet. Add players from the notebooks to begin." : "No results match these filters.")</p> }
         @if (!review.Tryout.Closed && _editionId is null)
         {
-            <form id="close-tryout" class="closeout-action sport-form" @onsubmit="CloseAsync" @onsubmit:preventDefault><fieldset class="sport-fields" disabled="@(Disabled || review.Season.Archived || !review.Tryout.Complete)"><legend>Close this tryout</legend><p>Closing stops changes to players, attendance, bibs, decisions, notes and tryout details. Staff can reopen it with a reason. Players keep their current teams.</p><label class="closeout-confirm"><input type="checkbox" @bind="_confirmed" /> I have reviewed all @review.Tryout.Players player results.</label><button class="primary-action" type="submit" disabled="@(!_confirmed)">Close tryout &amp; record results</button></fieldset></form>
+            <button type="button" class="primary-action" disabled="@(Disabled || review.Season.Archived || !review.Tryout.Complete)" @onclick="ReviewCloseout">Continue to confirmation</button>
+        }
+        }
+        @if (_confirmationStep && !review.Tryout.Closed && _editionId is null)
+        {
+            <p>Save the current results for <strong>@review.Tryout.Name</strong>, with all @review.Tryout.Players players included.</p>
+            <ul>@foreach (var group in review.Results.GroupBy(value => value.Decision)) { <li>@group.Count() · @SportLabels.Decision(group.Key)</li> }</ul>
+            <form id="close-tryout" class="closeout-action sport-form" @onsubmit="CloseAsync" @onsubmit:preventDefault><fieldset class="sport-fields" disabled="@(Disabled || review.Season.Archived || !review.Tryout.Complete)"><legend>Close this tryout</legend><p>Closing stops changes to players, bibs, decisions, notes and tryout details. Staff can reopen it with a reason. Players keep their current teams.</p><label class="closeout-confirm"><input type="checkbox" @bind="_confirmed" /> I have reviewed all @review.Tryout.Players player results.</label><button class="primary-action" type="submit" disabled="@(!_confirmed)">Close tryout &amp; record results</button><button type="button" class="secondary-action" @onclick="BackToResults">Back to results</button></fieldset></form>
         }
         else if (review.Tryout.Closed && Edition is { ReopenedAt: null })
         {

@@ -20,7 +20,6 @@ internal sealed partial class BrowserSession
               UNION SELECT "PhotoKey", NOW() FROM "Players" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs) AND "PhotoKey" IS NOT NULL
               ON CONFLICT ("PhotoKey") DO UPDATE SET "NotBefore" = NOW();
             DELETE FROM "PlayerNotes" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
-            DELETE FROM "TryoutAttendances" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "EnrollmentChanges" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "PlayerErasures" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "PlayerImportReceipts" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);

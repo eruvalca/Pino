@@ -36,7 +36,7 @@ public sealed partial class TeamComparison : SportPageBase
     {
         _review = null;
         ClearPlayer();
-        var review = await Gateway.GetSeasonReviewAsync(ClubId, SeasonId, Token);
+        var review = await ReadInitialAsync("GetSeasonReviewAsync", () => Gateway.GetSeasonReviewAsync(ClubId, SeasonId, Token));
         _review = review;
         if (!review.Teams.Any(value => value.Team.Id == _firstTeam)) { _firstTeam = review.Teams.Count > 0 ? review.Teams[0].Team.Id : Guid.Empty; }
         if (!review.Teams.Any(value => value.Team.Id == _secondTeam)) { _secondTeam = review.Teams.Skip(1).FirstOrDefault()?.Team.Id ?? Guid.Empty; }
@@ -65,17 +65,17 @@ public sealed partial class TeamComparison : SportPageBase
         _selectedId = id;
         _showNotebook = true;
         _focusPlayer = true;
-        var detail = await Gateway.GetPlayerAsync(ClubId, id, Token);
+        var detail = await ReadInitialAsync("GetPlayerAsync", () => Gateway.GetPlayerAsync(ClubId, id, Token));
         PlayerTryouts = (detail.Tryouts ?? []).Where(value => _review?.Tryouts.Any(tryout => tryout.Id == value.Id) == true).OrderByDescending(value => value.Date).ToArray();
         _playerLoaded = true;
         _tryoutId = PlayerTryouts.Length > 0 ? PlayerTryouts[0].Id : Guid.Empty;
-        if (_tryoutId != Guid.Empty) { _notebook = await Gateway.GetNotebookAsync(ClubId, _tryoutId, id, Token); }
+        if (_tryoutId != Guid.Empty) { _notebook = await ReadInitialAsync("GetNotebookAsync", () => Gateway.GetNotebookAsync(ClubId, _tryoutId, id, Token)); }
     });
 
     private Task LoadNotebookAsync() => ExecuteAsync(async () =>
     {
         _notebook = null;
-        if (SelectedTryout is not null) { _notebook = await Gateway.GetNotebookAsync(ClubId, _tryoutId, _selectedId, Token); }
+        if (SelectedTryout is not null) { _notebook = await ReadInitialAsync("GetNotebookAsync", () => Gateway.GetNotebookAsync(ClubId, _tryoutId, _selectedId, Token)); }
     });
 
     private void ResetPreview() => _previewTeam = Guid.Empty;

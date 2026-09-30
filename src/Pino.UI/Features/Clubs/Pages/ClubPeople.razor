@@ -5,7 +5,7 @@
 
 <PageTitle>People · Pino</PageTitle>
 <ClubPageShell Club="_data?.Club" CanManagePeople="@(_data is not null)">
-<article class="people-sheet" aria-busy="@IsBusy">
+<article class="people-sheet" aria-busy="@(IsBusy ? "true" : "false")">
     <a href="@($"/clubs/{ClubId}")">Back to club</a>
     <h1 @ref="_heading" tabindex="-1">People</h1>
     @if (_data is not null)

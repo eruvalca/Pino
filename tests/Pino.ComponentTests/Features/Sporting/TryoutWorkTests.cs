@@ -27,6 +27,7 @@ public sealed partial class TryoutWorkTests
     }
     private static ISportGateway Configure(BunitContext context, TryoutDetail data, ClubRole role = ClubRole.Coach)
     {
+        context.AddBunitPersistentComponentState();
         context.AddAuthorization().SetAuthorized("member");
         var clubs = Substitute.For<IClubGateway>();
         clubs.GetAccessAsync(Arg.Any<CancellationToken>()).Returns(new AccessSnapshot(new("Avery", "Coach", new("/photo", UriKind.Relative)),
@@ -35,7 +36,6 @@ public sealed partial class TryoutWorkTests
         sport.GetTryoutAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(data);
         sport.GetOverviewAsync(_clubId, Arg.Any<CancellationToken>()).Returns(new SportOverview([data.Season], data.Teams, [data.Tryout]));
         sport.GetNotebookAsync(_clubId, _tryoutId, Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(call => new PlayerNotebook(call.ArgAt<Guid>(2), false, [], [], []));
-        sport.GetAttendanceAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(Array.Empty<AttendanceSummary>());
         context.Services.AddSingleton(clubs);
         context.Services.AddSingleton(sport);
         context.SetRendererInfo(new("Server", isInteractive: true));

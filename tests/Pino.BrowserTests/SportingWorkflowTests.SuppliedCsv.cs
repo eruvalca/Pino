@@ -32,11 +32,12 @@ public sealed partial class SportingWorkflowTests
         await session.Page.GotoAsync($"/clubs/{clubId}/players/import");
         await session.Page.Locator("#import-file:enabled").WaitForAsync();
         await session.Page.GetByLabel("Player CSV", new() { Exact = true }).SetInputFilesAsync(file);
+        await session.Page.GetByRole(AriaRole.Button, new() { Name = "Continue to columns", Exact = true }).ClickAsync();
         await session.Page.GetByLabel("Graduation year", new() { Exact = true }).SelectOptionAsync(Array.IndexOf(csv.HeaderRecord!, "grad_year").ToString(CultureInfo.InvariantCulture));
         // This export reformatted many identifiers. Generate Pino references and omit family account contact data.
         await session.Page.GetByLabel("Player ID from file (optional)", new() { Exact = true }).SelectOptionAsync("-1");
         await session.Page.GetByLabel("Contact email (optional)", new() { Exact = true }).SelectOptionAsync("-1");
-        await session.Page.GetByRole(AriaRole.Button, new() { Name = "Preview mapped file", Exact = true }).ClickAsync();
+        await session.Page.GetByRole(AriaRole.Button, new() { Name = "Review players", Exact = true }).ClickAsync();
         await session.Page.GetByRole(AriaRole.Button, new() { Name = "Import reviewed players", Exact = true }).ClickAsync();
         await session.Page.GetByRole(AriaRole.Link, new() { Name = "Open players", Exact = true }).ClickAsync();
         await session.Page.GetByRole(AriaRole.Heading, new() { Name = "Players", Exact = true }).WaitForAsync();

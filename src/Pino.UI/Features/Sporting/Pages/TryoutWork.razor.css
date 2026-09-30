@@ -67,8 +67,5 @@
 }
 .planning-filters summary { padding-block: 0.5rem; }
 .planning-filters .form-field { margin-block: 0.75rem; }
-.attendance-counts { display: grid; grid-template-columns: repeat(3, auto); align-items: center; gap: .5rem 1rem; font-variant-numeric: tabular-nums; }
-.attendance-counts span { white-space: nowrap; }
 .bib-details { margin-bottom: 1rem; }
 .bib-details .bib-editor { max-width: 26rem; padding-top: .75rem; }
-@media (max-width: 35rem) { .attendance-counts { grid-template-columns: minmax(0, 1fr); gap: .25rem; } }

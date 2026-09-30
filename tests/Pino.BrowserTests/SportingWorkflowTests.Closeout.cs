@@ -40,7 +40,9 @@ public sealed partial class SportingWorkflowTests
         // Model switching back to the review tab before waiting for its interactive renderer.
         await page.BringToFrontAsync();
         await page.GotoAsync($"/clubs/{data.ClubId}/tryouts/{data.Tryout.Id}/review");
+        await page.GetByRole(AriaRole.Button, new() { Name = "Continue to confirmation", Exact = true }).ClickAsync();
         await page.Locator(".closeout-action fieldset:not([disabled])").WaitForAsync();
+        await CapturePreparationAsync(session, "closeout-confirmation");
         (await page.GetByRole(AriaRole.Button, new() { Name = "Close tryout & record results", Exact = true }).IsEnabledAsync()).ShouldBeFalse();
         await page.GetByLabel("I have reviewed all 3 player results.").CheckAsync();
         await page.GetByRole(AriaRole.Button, new() { Name = "Close tryout & record results", Exact = true }).ClickAsync();

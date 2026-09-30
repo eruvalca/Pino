@@ -213,7 +213,7 @@ internal sealed partial class BrowserSession(IPlaywright playwright, IBrowser br
             Directory.CreateDirectory(output);
             var prefix = Path.Combine(output, _emails.Count > 0 ? _emails[0] : "browser");
             await File.WriteAllTextAsync(prefix + ".txt", await Page.Locator("body").InnerTextAsync(), CancellationToken.None);
-            await Page.ScreenshotAsync(new() { Path = prefix + ".png", FullPage = true });
+            await Page.ScreenshotAsync(new() { Path = prefix + ".png", FullPage = await Page.EvaluateAsync<bool>("document.documentElement.scrollHeight <= 16000") });
         }
     }
 

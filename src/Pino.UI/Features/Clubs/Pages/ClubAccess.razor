@@ -6,9 +6,10 @@
 
 <PageTitle>Your club · Pino</PageTitle>
 <ClubPageShell Club="_access?.Membership?.Club" CanManagePeople="@(_access?.Membership?.Role == ClubRole.Administrator)">
-<article class="access-sheet" aria-busy="@IsBusy">
+<article class="access-sheet" aria-busy="@(IsBusy ? "true" : "false")">
     <h1 @ref="_heading" tabindex="-1">Your club</h1>
     <p><a href="/guide#get-started">Help with joining or setting up a club</a></p>
+    @if (_access is { Membership: null }) { <WorkflowProgress Steps="_setupSteps" Current="SetupStep" Label="Club setup progress" /> }
     @if (_message is not null)
     {
         <p class="notice" data-kind="@_kind" role="status">@_message</p>
@@ -36,7 +37,7 @@
         <section class="access-task" aria-labelledby="task-heading">
             @if (_access.Membership is { } member)
             {
-                <h2 id="task-heading">@member.Club.Name</h2>
+                <h2 id="task-heading" @ref="_taskHeading" tabindex="-1">@member.Club.Name</h2>
                 <p class="muted">@member.Club.Sport · @member.Club.City, @UsStates.All[member.Club.State]</p>
                 <p>You have access as @RoleLabel(member.Role).</p>
                 <div class="actions"><a class="primary-action" href="@($"/clubs/{member.Club.Id}")">Open club</a>
@@ -60,18 +61,33 @@
             }
             else if (_access.Request is { Status: JoinRequestStatus.Pending } request)
             {
-                <h2 id="task-heading">Waiting for approval</h2>
+                <h2 id="task-heading" @ref="_taskHeading" tabindex="-1">Waiting for approval</h2>
                 <h3>@request.Club.Name</h3>
                 <p class="muted">@request.Club.Sport · @request.Club.City, @UsStates.All[request.Club.State]</p>
                 <p>A club administrator needs to review your request before you can enter the workspace.</p>
                 <p class="muted">Requested @request.CreatedAt.ToLocalTime().ToString("g")</p>
                 <div class="actions"><button class="secondary-action" disabled="@IsBusy" @onclick="RefreshAsync">Check status</button><button class="text-action" disabled="@IsBusy" @onclick="() => CancelRequestAsync(request.Id)">Cancel request</button></div>
             }
+            else if (_joinClub is { } joining)
+            {
+                <h2 id="task-heading" @ref="_taskHeading" tabindex="-1">Review your join request</h2>
+                <h3>@joining.Name</h3><p>@joining.Sport · @joining.City, @UsStates.All[joining.State]</p>
+                <p>You are requesting access as a coach. This club's administrators will review your request before you can open its workspace.</p>
+                <div class="actions"><button class="primary-action" disabled="@IsBusy" @onclick="() => RequestAsync(joining.Id)">Send join request</button><button class="secondary-action" disabled="@IsBusy" @onclick="ShowSearch">Back to club search</button></div>
+            }
+            else if (_creating && _reviewClub)
+            {
+                <h2 id="task-heading" @ref="_taskHeading" tabindex="-1">Review your new club</h2>
+                <h3>@_club.Name</h3><p>@_club.Sport · @_club.City, @UsStates.All[_club.State]</p>
+                <p>You'll become the first administrator. You can invite staff, approve join requests and set up the club's player list and teams.</p>
+                <p>Check that your club doesn't already exist before creating another one.</p>
+                <div class="actions"><button class="primary-action" disabled="@IsBusy" @onclick="CreateAsync">Create club</button><button class="secondary-action" disabled="@IsBusy" @onclick="BackToClubDetails">Back to club details</button><button class="text-action" disabled="@IsBusy" @onclick="ShowSearch">Find an existing club</button></div>
+            }
             else if (_creating)
             {
-                <h2 id="task-heading">Create a club</h2>
+                <h2 id="task-heading" @ref="_taskHeading" tabindex="-1">Create a club</h2>
                 <p>You'll become this club's first administrator and manage who can join.</p>
-                <EditForm Model="_club" OnValidSubmit="CreateAsync" FormName="create-club">
+                <EditForm Model="_club" OnValidSubmit="ReviewCreate" FormName="create-club">
                     <DataAnnotationsValidator />
                     <fieldset disabled="@IsBusy" class="club-form">
                         <div class="form-field"><label for="club-name">Club name</label><InputText id="club-name" maxlength="120" @bind-Value="_club.Name" /><ValidationMessage For="() => _club.Name" /></div>
@@ -80,13 +96,13 @@
                             <div class="form-field"><label for="club-city">City</label><InputText id="club-city" maxlength="100" @bind-Value="_club.City" /><ValidationMessage For="() => _club.City" /></div>
                             <div class="form-field"><label for="club-state">State</label><InputSelect id="club-state" @bind-Value="_club.State"><option value="">Select a state</option>@foreach (var state in UsStates.All) { <option value="@state.Key">@state.Value</option> }</InputSelect><ValidationMessage For="() => _club.State" /></div>
                         </div>
-                        <div class="actions"><button class="primary-action" type="submit">@(IsBusy ? "Creating club…" : "Create club")</button><button class="text-action" type="button" @onclick="ShowSearch">Back to club search</button></div>
+                        <div class="actions"><button class="primary-action" type="submit">Review club</button><button class="text-action" type="button" @onclick="ShowSearch">Back to club search</button></div>
                     </fieldset>
                 </EditForm>
             }
             else
             {
-                <h2 id="task-heading">Find your club</h2>
+                <h2 id="task-heading" @ref="_taskHeading" tabindex="-1">Find your club</h2>
                 @if (_access.Request is { Status: JoinRequestStatus.Denied } denied)
                 {
                     <p class="notice" data-kind="information">Your request to @denied.Club.Name was denied. You may reapply or choose another club.</p>
@@ -106,7 +122,7 @@
                     <ul class="club-results" aria-label="Club search results">
                         @foreach (var club in _results.Clubs)
                         {
-                            <li @key="club.Id"><div><h3>@club.Name</h3><p>@club.Sport · @club.City, @UsStates.All[club.State]</p></div><button class="primary-action" disabled="@IsBusy" @onclick="() => RequestAsync(club.Id)" aria-label="@($"Request to join {club.Name} in {club.City}, {club.State}")">Request to join</button></li>
+                            <li @key="club.Id"><div><h3>@club.Name</h3><p>@club.Sport · @club.City, @UsStates.All[club.State]</p></div><button class="primary-action" disabled="@IsBusy" @onclick="() => ReviewJoin(club)" aria-label="@($"Review joining {club.Name} in {club.City}, {club.State}")">Review club</button></li>
                         }
                     </ul>
                     @if (_results.Page > 0 || _results.HasMore)

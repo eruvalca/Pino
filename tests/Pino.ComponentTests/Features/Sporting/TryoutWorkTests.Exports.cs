@@ -31,7 +31,7 @@ public sealed partial class TryoutWorkTests
         page.Markup.ShouldNotContain("Original tryout only");
         page.Markup.ShouldContain("History is unavailable");
         page.Markup.ShouldNotContain("Download player personal data");
-        gateway.GetNotebookAsync(_clubId, otherTryout, player.Id, Arg.Any<CancellationToken>()).Returns(new PlayerNotebook(player.Id, true, [], [], [],
+        gateway.GetNotebookAsync(_clubId, otherTryout, player.Id, Arg.Any<CancellationToken>()).Returns(new PlayerNotebook(player.Id, true, [], [],
             [new(Guid.NewGuid(), true, "Wrong session enrollment", "Coach", DateTimeOffset.UtcNow, "14")]));
         await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Reload this history", StringComparison.Ordinal)).ClickAsync();
         page.Markup.ShouldContain("Wrong session enrollment");
@@ -47,34 +47,32 @@ public sealed partial class TryoutWorkTests
         var time = DateTimeOffset.UtcNow;
         var notebook = new PlayerNotebook(player, false,
             [new(Guid.NewGuid(), player, "Do not render sensitive content", "Coach", time, null, false, time, "Administrator", "Inappropriate content"),
-             new(Guid.NewGuid(), player, "Corrected observation", "Coach", time, original, false), new(original, player, "Earlier observation", "Coach", time, null, false)], [],
-            [new(AttendanceKind.Absent, "Coach", time)]);
+             new(Guid.NewGuid(), player, "Corrected observation", "Coach", time, original, false), new(original, player, "Earlier observation", "Coach", time, null, false)], []);
         var page = context.Render<PlayerHistory>(parameters => parameters.Add(value => value.Notebook, notebook));
         page.Markup.ShouldNotContain("Do not render sensitive content");
         page.Markup.ShouldContain("Private text removed");
         page.Markup.ShouldContain("Inappropriate content");
         page.Markup.ShouldContain("Earlier version");
         page.Markup.ShouldContain("Earlier observation");
-        page.Markup.ShouldContain("Absent");
     }
 
     [Fact]
-    public async Task PrintReloadRemovesStaleAttendanceAndSupportsRetryAsync()
+    public async Task PrintReloadRemovesStalePlayersAndSupportsRetryAsync()
     {
         await using var context = new BunitContext();
         var data = Data();
         var gateway = Configure(context, data);
-        gateway.GetAttendanceAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(new AttendanceSummary[] { new(data.Roster[0].Player.Id, AttendanceKind.Present, 1, "Coach", DateTimeOffset.UtcNow) });
         var page = context.Render<TryoutPrint>(parameters => parameters.Add(value => value.ClubId, _clubId).Add(value => value.TryoutId, _tryoutId));
         page.FindAll("tbody tr").Count.ShouldBe(2);
-        page.Find("tbody").TextContent.ShouldContain("Present");
-        gateway.GetAttendanceAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(Task.FromException<IReadOnlyList<AttendanceSummary>>(new HttpRequestException("Unavailable")));
+        page.Find("tbody").TextContent.ShouldContain(data.Roster[0].Player.FullName);
+        gateway.GetTryoutAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(Task.FromException<TryoutDetail>(new HttpRequestException("Unavailable")));
         await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Refresh print list", StringComparison.Ordinal)).ClickAsync();
-        page.FindAll(".attendance-sheet").ShouldBeEmpty();
+        page.FindAll(".roster-sheet").ShouldBeEmpty();
         page.FindAll("button").ShouldNotContain(value => string.Equals(value.TextContent, "Print list", StringComparison.Ordinal));
-        gateway.GetAttendanceAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(Array.Empty<AttendanceSummary>());
+        gateway.GetTryoutAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(data with { Roster = [data.Roster[1]] });
         await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Reload", StringComparison.Ordinal)).ClickAsync();
-        page.Find("tbody").TextContent.ShouldNotContain("Present");
-        page.FindAll("tbody tr").ShouldAllBe(value => value.TextContent.Contains("Not recorded", StringComparison.Ordinal));
+        page.Find("tbody").TextContent.ShouldNotContain(data.Roster[0].Player.FullName);
+        page.FindAll("tbody tr").ShouldHaveSingleItem().TextContent.ShouldContain(data.Roster[1].Player.FullName);
+        page.FindAll("thead th").Select(value => value.TextContent).ShouldBe(["Bib", "Player", "Grad year"]);
     }
 }

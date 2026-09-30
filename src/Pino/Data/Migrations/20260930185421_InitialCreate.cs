@@ -1,10 +1,10 @@
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace Pino.Migrations;
-
 /// <inheritdoc />
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments", Justification = "EF-generated schema declarations execute once per database migration; keeping column arrays beside each operation makes schema review reliable.")]
 internal sealed partial class InitialCreate : Migration
@@ -810,31 +810,6 @@ internal sealed partial class InitialCreate : Migration
             });
 
         migrationBuilder.CreateTable(
-            name: "TryoutAttendances",
-            columns: table => new
-            {
-                ClubId = table.Column<Guid>(type: "uuid", nullable: false),
-                TryoutId = table.Column<Guid>(type: "uuid", nullable: false),
-                PlayerId = table.Column<Guid>(type: "uuid", nullable: false),
-                Kind = table.Column<int>(type: "integer", nullable: false),
-                Revision = table.Column<long>(type: "bigint", nullable: false),
-                RecordedById = table.Column<string>(type: "character varying(450)", maxLength: 450, nullable: false),
-                RecordedBy = table.Column<string>(type: "character varying(161)", maxLength: 161, nullable: false),
-                RecordedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
-            },
-            constraints: table =>
-            {
-                table.PrimaryKey("PK_TryoutAttendances", x => new { x.ClubId, x.TryoutId, x.PlayerId });
-                table.CheckConstraint("CK_TryoutAttendance_Kind", "\"Kind\" BETWEEN 0 AND 2");
-                table.ForeignKey(
-                    name: "FK_TryoutAttendances_Participations_ClubId_TryoutId_PlayerId",
-                    columns: x => new { x.ClubId, x.TryoutId, x.PlayerId },
-                    principalTable: "Participations",
-                    principalColumns: new[] { "ClubId", "TryoutId", "PlayerId" },
-                    onDelete: ReferentialAction.Restrict);
-            });
-
-        migrationBuilder.CreateTable(
             name: "TryoutCloseoutPlayers",
             columns: table => new
             {
@@ -1127,9 +1102,6 @@ internal sealed partial class InitialCreate : Migration
             name: "TeamPositionTargets");
 
         migrationBuilder.DropTable(
-            name: "TryoutAttendances");
-
-        migrationBuilder.DropTable(
             name: "TryoutCloseoutPlayers");
 
         migrationBuilder.DropTable(
@@ -1142,13 +1114,13 @@ internal sealed partial class InitialCreate : Migration
             name: "PhotoDeletions");
 
         migrationBuilder.DropTable(
+            name: "Participations");
+
+        migrationBuilder.DropTable(
             name: "AspNetUsers");
 
         migrationBuilder.DropTable(
             name: "ClubInvitations");
-
-        migrationBuilder.DropTable(
-            name: "Participations");
 
         migrationBuilder.DropTable(
             name: "TryoutCloseouts");

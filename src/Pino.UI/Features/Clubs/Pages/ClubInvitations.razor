@@ -20,7 +20,7 @@
                 <p class="notice" data-kind="warning">Administrators can manage staff access, club setup, imports and personal-data removal.</p>
                 <label class="checkbox-field"><input type="checkbox" @bind="_confirmAdministrator" /> I intend to grant administrator access.</label>
             }
-            else { <p class="muted">Coaches share club-wide sporting access, attendance and ordinary roster exports.</p> }
+            else { <p class="muted">Coaches share club-wide sporting access, notes and ordinary roster exports.</p> }
             <div class="actions"><button class="primary-action" type="submit" disabled="@(_input.Role == ClubRole.Administrator && !_confirmAdministrator)">Send invitation</button></div>
         </fieldset>
     </EditForm>

@@ -4,33 +4,29 @@
 @layout ClubLayout
 @inherits SportPageBase
 
-<PageTitle>Attendance &amp; bib list · Pino</PageTitle>
+<PageTitle>Player &amp; bib list · Pino</PageTitle>
 <div class="print-workspace">
     <SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
         @if (_data is { } data)
         {
             <div class="print-controls">
                 <p><a href="@($"/clubs/{ClubId}/tryouts/{TryoutId}")">Back to @data.Tryout.Name</a></p>
-                <h1>Attendance &amp; bib list</h1><p>Print the players in this tryout and their attendance. This list leaves out excluded players, decisions and notes.</p>
+                <h1>Player &amp; bib list</h1><p>Print the players included in this tryout. This list leaves out excluded players, decisions and notes.</p>
                 <div class="sport-toolbar">
                     <div class="form-field"><label for="print-order">List order</label><select id="print-order" @bind="_order" disabled="@Disabled"><option value="name">Last name</option><option value="bib">Bib number</option></select></div>
                 </div>
-                <div class="actions"><TryoutPrintButton Disabled="@(Disabled || !_attendanceLoaded)" /><button class="secondary-action" @onclick="ReloadAsync" disabled="@Disabled">Refresh print list</button></div>
-                <p class="muted">Use the blank Check-in column on paper, then record attendance in Pino. Printing does not change any records.</p>
+                <div class="actions"><TryoutPrintButton Disabled="Disabled" /><button class="secondary-action" @onclick="ReloadAsync" disabled="@Disabled">Refresh print list</button></div>
+                <p class="muted">Printing does not change any records.</p>
             </div>
-            @if (_attendanceLoaded)
-            {
-                <section class="attendance-sheet" aria-labelledby="attendance-sheet-title">
-                    <header><p class="sheet-club">@Membership?.Club.Name · @data.Season.Name</p><h2 id="attendance-sheet-title">@data.Tryout.Name</h2><p>@data.Tryout.Date.ToString("MMM d, yyyy")@(data.Tryout.Location.Length == 0 ? "" : $" · {data.Tryout.Location}")</p><p>@data.Roster.Count @(data.Roster.Count == 1 ? "player" : "players") · Saved attendance loaded @_loadedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</p></header>
-                    <table class="attendance-table"><caption>Attendance &amp; bib list · @(_order == "bib" ? "Bib number order" : "Last name order")</caption><thead><tr><th scope="col">Bib</th><th scope="col">Player</th><th scope="col">Grad year</th><th scope="col">Saved attendance</th><th scope="col">Check-in</th></tr></thead><tbody>@foreach (var entry in Entries)
-                    {
-                        <tr @key="entry.Player.Id"><td>@(entry.Bib.Length == 0 ? "—" : entry.Bib)</td><th scope="row">@entry.Player.FullName</th><td>@entry.Player.GraduationYear</td><td>@SportLabels.Attendance(_attendance.GetValueOrDefault(entry.Player.Id))</td><td aria-label="Blank for handwritten check-in"></td></tr>
-                    }</tbody></table>
-                    @if (data.Roster.Count == 0) { <p>No players in this tryout.</p> }
-                    <p class="sheet-footer">Pino · Attendance is separate from selection decisions.</p>
-                </section>
-            }
-            else { <p role="status">@(Busy ? "Loading attendance…" : "The print list is unavailable. Refresh to try again.")</p> }
+            <section class="roster-sheet" aria-labelledby="roster-sheet-title">
+                <header><p class="sheet-club">@Membership?.Club.Name · @data.Season.Name</p><h2 id="roster-sheet-title">@data.Tryout.Name</h2><p>@data.Tryout.Date.ToString("MMM d, yyyy")@(data.Tryout.Location.Length == 0 ? "" : $" · {data.Tryout.Location}")</p><p>@data.Roster.Count @(data.Roster.Count == 1 ? "player" : "players") · Roster loaded @_loadedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</p></header>
+                <table class="roster-table"><caption>Player &amp; bib list · @(_order == "bib" ? "Bib number order" : "Last name order")</caption><thead><tr><th scope="col">Bib</th><th scope="col">Player</th><th scope="col">Grad year</th></tr></thead><tbody>@foreach (var entry in Entries)
+                {
+                    <tr @key="entry.Player.Id"><td>@(entry.Bib.Length == 0 ? "—" : entry.Bib)</td><th scope="row">@entry.Player.FullName</th><td>@entry.Player.GraduationYear</td></tr>
+                }</tbody></table>
+                @if (data.Roster.Count == 0) { <p>No players in this tryout.</p> }
+                <p class="sheet-footer">Pino · Player &amp; bib list</p>
+            </section>
         }
     </SportFrame>
 </div>

@@ -54,7 +54,6 @@ internal sealed partial class SportService
             .ExecuteUpdateAsync(setters => setters.SetProperty(value => value.ErasedPlayers, value => value.ErasedPlayers + 1), ct);
         await db.TryoutCloseoutPlayers.Where(value => value.PlayerId == playerId && db.TryoutCloseouts.Any(closeout => closeout.Id == value.CloseoutId && closeout.ClubId == clubId)).ExecuteDeleteAsync(ct);
         await db.PlayerNotes.Where(value => value.ClubId == clubId && value.PlayerId == playerId).ExecuteDeleteAsync(ct);
-        await db.TryoutAttendances.Where(value => value.ClubId == clubId && value.PlayerId == playerId).ExecuteDeleteAsync(ct);
         await db.EnrollmentChanges.Where(value => value.ClubId == clubId && value.PlayerId == playerId).ExecuteDeleteAsync(ct);
         await db.DecisionEvents.Where(value => value.ClubId == clubId && value.PlayerId == playerId).ExecuteDeleteAsync(ct);
         await db.SeasonPlacements.Where(value => value.ClubId == clubId && value.PlayerId == playerId).ExecuteDeleteAsync(ct);

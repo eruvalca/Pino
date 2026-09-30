@@ -33,9 +33,6 @@ public sealed partial class TryoutWork : SportPageBase
     private bool _focusRoster;
     private Guid? _savedNoteId;
     private Guid? _redactingId;
-    private IReadOnlyList<AttendanceSummary> _attendance = [];
-    private Dictionary<Guid, AttendanceSummary> _attendanceByPlayer = [];
-    private string _attendanceFilter = "";
 
     private bool CanEnroll => _data is { Season.Archived: false, Tryout.Closed: false };
     private bool HasPlayerNotice => !Failed && !_enrolling && Selected is not null && Message is not null && string.Equals(MessageKind, "success", StringComparison.Ordinal);
@@ -47,17 +44,15 @@ public sealed partial class TryoutWork : SportPageBase
         (_filter.Length == 0 || string.Equals(entry.Decision.ToString(), _filter, StringComparison.Ordinal)) &&
         (_year.Length == 0 || string.Equals(entry.Player.GraduationYear.ToString(System.Globalization.CultureInfo.InvariantCulture), _year, StringComparison.Ordinal)) &&
         MatchesPlanning(entry) &&
-        (_attendanceFilter.Length == 0 || string.Equals((_attendanceByPlayer.GetValueOrDefault(entry.Player.Id)?.Kind ?? AttendanceKind.NotRecorded).ToString(), _attendanceFilter, StringComparison.Ordinal)) &&
         (_teamFilter.Length == 0 || (string.Equals(_teamFilter, "none", StringComparison.Ordinal) ? entry.CurrentTeamId is null : string.Equals(entry.CurrentTeamId?.ToString(), _teamFilter, StringComparison.Ordinal)));
 
     protected override async Task LoadAsync()
     {
-        var data = await Gateway.GetTryoutAsync(ClubId, TryoutId, Token);
+        var data = await ReadInitialAsync("GetTryoutAsync", () => Gateway.GetTryoutAsync(ClubId, TryoutId, Token));
         if (_data?.Tryout.Id != data.Tryout.Id) { _drafts.Clear(); _selectedId = Guid.Empty; _appliedPlayer = null; }
         _data = data;
-        _otherSeasons = (await Gateway.GetOverviewAsync(ClubId, Token)).Seasons.Where(value => value.Id != data.Season.Id).ToArray();
+        _otherSeasons = (await ReadInitialAsync("GetOverviewAsync", () => Gateway.GetOverviewAsync(ClubId, Token))).Seasons.Where(value => value.Id != data.Season.Id).ToArray();
         if (_previousSeasonId != Guid.Empty) { await LoadPreviousTeamsAsync(); }
-        await LoadAttendanceAsync();
         if (!CanEnroll) { _enrolling = false; }
         if (!string.Equals(_appliedPlayer, RequestedPlayer, StringComparison.Ordinal))
         {
@@ -80,7 +75,7 @@ public sealed partial class TryoutWork : SportPageBase
     {
         _notebook = null;
         if (_selectedId == Guid.Empty) { return; }
-        _notebook = await Gateway.GetNotebookAsync(ClubId, TryoutId, _selectedId, Token);
+        _notebook = await ReadInitialAsync("GetNotebookAsync", () => Gateway.GetNotebookAsync(ClubId, TryoutId, _selectedId, Token));
         if (_data is not null)
         {
             _data = _data with { Roster = _data.Roster.Select(value => value.Player.Id == _selectedId ? value with { HasObservations = _notebook.Notes.Any(note => note.RedactedAt is null) } : value).ToArray() };
@@ -115,12 +110,12 @@ public sealed partial class TryoutWork : SportPageBase
     private Task ToggleEnrollmentAsync() => ExecuteAsync(async () =>
     {
         _enrolling = CanEnroll && !_enrolling;
-        if (_enrolling) { _candidates = await Gateway.GetPlayersAsync(ClubId, _candidateQuery, archived: false, _candidatePage, Token); }
+        if (_enrolling) { _candidates = await ReadInitialAsync("GetPlayersAsync", () => Gateway.GetPlayersAsync(ClubId, _candidateQuery, archived: false, _candidatePage, Token)); }
     });
     private Task SearchCandidatesAsync() { _candidatePage = 0; return LoadCandidatesAsync(); }
     private Task PreviousCandidatesAsync() { _candidatePage = Math.Max(0, _candidatePage - 1); return LoadCandidatesAsync(); }
     private Task NextCandidatesAsync() { _candidatePage++; return LoadCandidatesAsync(); }
-    private Task LoadCandidatesAsync() => ExecuteAsync(async () => _candidates = await Gateway.GetPlayersAsync(ClubId, _candidateQuery, archived: false, _candidatePage, Token));
+    private Task LoadCandidatesAsync() => ExecuteAsync(async () => _candidates = await ReadInitialAsync("GetPlayersAsync", () => Gateway.GetPlayersAsync(ClubId, _candidateQuery, archived: false, _candidatePage, Token)));
     private async Task EnrollAsync(Guid playerId)
     {
         if (!CanEnroll) { return; }
@@ -214,14 +209,4 @@ public sealed partial class TryoutWork : SportPageBase
         }
     }
 
-    private async Task LoadAttendanceAsync()
-    {
-        _attendance = await Gateway.GetAttendanceAsync(ClubId, TryoutId, Token);
-        _attendanceByPlayer = _attendance.ToDictionary(value => value.PlayerId);
-    }
-
-    private async Task SaveAttendanceAsync(AttendanceInput input)
-    {
-        if (await SaveAsync(() => Gateway.SaveAttendanceAsync(ClubId, TryoutId, input, Token))) { await ExecuteAsync(LoadAttendanceAsync); }
-    }
 }

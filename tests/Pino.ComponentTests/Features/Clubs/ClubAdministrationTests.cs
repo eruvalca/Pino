@@ -20,6 +20,7 @@ public sealed class ClubAdministrationTests
 
     private static IClubGateway Configure(BunitContext context)
     {
+        context.AddBunitPersistentComponentState();
         context.AddAuthorization().SetAuthorized("staff");
         var gateway = Substitute.For<IClubGateway>();
         gateway.GetAccessAsync(Arg.Any<CancellationToken>()).Returns(new AccessSnapshot(_profile, new(_club, ClubRole.Administrator), null));

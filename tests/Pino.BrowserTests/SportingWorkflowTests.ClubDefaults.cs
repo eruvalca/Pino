@@ -37,7 +37,6 @@ public sealed partial class SportingWorkflowTests
         var playerId = data.Player.Id;
         await PlaceAsync(session, path, tryout.Id, playerId, data.Blue.Id);
         (await session.PostAsync<SportReply>(tryoutPath + "/notes", new NoteInput(Guid.NewGuid(), playerId, "Keep this observation in exclusion history"))).Kind.ShouldBe(SportReplyKind.Saved);
-        (await session.PostAsync<SportReply>(tryoutPath + "/attendance", new AttendanceInput(playerId, AttendanceKind.Present, 0))).Kind.ShouldBe(SportReplyKind.Saved);
         (await session.PostAsync<SportReply>(tryoutPath + "/bib", new BibNumberInput(playerId, "17", ""))).Kind.ShouldBe(SportReplyKind.Saved);
         var ready = await session.GetAsync<TryoutDetail>(tryoutPath);
         var first = ready.Roster.Single(value => value.Player.Id == playerId);
@@ -54,7 +53,6 @@ public sealed partial class SportingWorkflowTests
         var notebook = await session.GetAsync<PlayerNotebook>($"{tryoutPath}/players/{playerId}/notebook");
         notebook.Removed.ShouldBeTrue();
         notebook.Notes.ShouldHaveSingleItem().Text.ShouldBe("Keep this observation in exclusion history");
-        notebook.Attendance.ShouldHaveSingleItem().Kind.ShouldBe(AttendanceKind.Present);
         (await session.GetAsync<TeamDetail>($"{path}/teams/{data.Blue.Id}?seasonId={target.Id}")).Members.ShouldBeEmpty();
         (await session.GetAsync<TeamDetail>($"{path}/teams/{data.Blue.Id}?seasonId={data.Season.Id}")).Members.ShouldHaveSingleItem().Id.ShouldBe(playerId);
         var late = new PlayerInput { FirstName = "Late", LastName = "Addition", GraduationYear = 2030 };

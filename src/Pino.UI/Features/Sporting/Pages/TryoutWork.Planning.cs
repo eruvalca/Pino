@@ -39,7 +39,7 @@ public sealed partial class TryoutWork
         _previousTeamByPlayer.Clear();
         var selectedTeam = _previousTeamFilter;
         _previousTeamFilter = "";
-        var review = await Gateway.GetSeasonReviewAsync(ClubId, _previousSeasonId, Token);
+        var review = await ReadInitialAsync("GetSeasonReviewAsync", () => Gateway.GetSeasonReviewAsync(ClubId, _previousSeasonId, Token));
         _previousTeams = review.Teams;
         _previousTeamByPlayer = review.Teams.SelectMany(team => team.Players.Select(player => (player.Id, TeamId: team.Team.Id))).ToDictionary(value => value.Id, value => value.TeamId);
         _previousTeamFilter = selectedTeam;
@@ -47,7 +47,7 @@ public sealed partial class TryoutWork
 
     private void ClearRosterFilters()
     {
-        _query = ""; _filter = ""; _year = ""; _teamFilter = ""; _attendanceFilter = "";
+        _query = ""; _filter = ""; _year = ""; _teamFilter = "";
         _positionFilter = ""; _observationFilter = ""; _previousTeamFilter = "";
         ResetRosterPage();
     }

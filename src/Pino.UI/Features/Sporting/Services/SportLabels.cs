@@ -18,12 +18,6 @@ internal static class SportLabels
         _ => "Included",
     };
 
-    internal static string Attendance(AttendanceKind kind) => kind switch
-    {
-        AttendanceKind.Present => "Present",
-        AttendanceKind.Absent => "Absent",
-        _ => "Not recorded",
-    };
     internal static string Progress(TryoutSummary tryout) => tryout switch
     {
         { Closed: true } => "Closed · results recorded",

@@ -20,6 +20,30 @@ public sealed partial class ReturningPlayers : SportPageBase
     private string _status = "";
     private int _page;
     private ElementReference _listHeading;
+    private static readonly string[] _steps = ["Previous season", "Select players", "Review placements", "Placement results"];
+    private bool _choosingSeason = true;
+    private Guid? _loadedSourceSeasonId;
+    private bool _focusStep;
+    private int Step => (_report?.Kind == SportReplyKind.Saved, _input is not null, _choosingSeason) switch
+    {
+        (true, _, _) => 3,
+        (_, true, _) => 2,
+        (_, _, true) => 0,
+        _ => 1,
+    };
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusStep) { _focusStep = false; await _listHeading.FocusAsync(); }
+    }
+    private Task ContinueFromSeasonAsync() => ExecuteAsync(async () =>
+    {
+        if (_sourceSeasonId is null) { return; }
+        if (_loadedSourceSeasonId != _sourceSeasonId) { await LoadPlayersAsync(); }
+        _choosingSeason = false;
+        _focusStep = true;
+    });
+    private void BackToSeason() { _choosingSeason = true; _focusStep = true; }
+
     private bool CanEdit => _tryout is { Tryout.Closed: false, Season.Archived: false };
     private IEnumerable<ReturningPlayerReview> Filtered => _players.Where(value => value.Player.FullName.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase) &&
         (string.IsNullOrEmpty(_status) || (string.Equals(_status, "ready", StringComparison.Ordinal) == (value.Selection is not null))));
@@ -27,10 +51,10 @@ public sealed partial class ReturningPlayers : SportPageBase
     protected override async Task LoadAsync()
     {
         if (Membership?.Role != ClubRole.Administrator) { throw new UnauthorizedAccessException(); }
-        _tryout = await Gateway.GetTryoutAsync(ClubId, TryoutId, Token);
-        _overview = await Gateway.GetOverviewAsync(ClubId, Token);
+        _tryout = await ReadInitialAsync("GetTryoutAsync", () => Gateway.GetTryoutAsync(ClubId, TryoutId, Token));
+        _overview = await ReadInitialAsync("GetOverviewAsync", () => Gateway.GetOverviewAsync(ClubId, Token));
         _sourceSeasonId ??= _overview.Seasons.Where(value => value.StartsOn < _tryout.Season.StartsOn).OrderByDescending(value => value.StartsOn).Select(value => (Guid?)value.Id).FirstOrDefault();
-        await LoadPlayersAsync();
+        _choosingSeason = true;
     }
 
     private async Task LoadPlayersAsync()
@@ -43,11 +67,12 @@ public sealed partial class ReturningPlayers : SportPageBase
         _page = 0;
         Message = null;
         if (_sourceSeasonId is not { } sourceId) { return; }
-        _players = await Gateway.GetReturningPlayersAsync(ClubId, TryoutId, sourceId, Token);
+        _players = await ReadInitialAsync("GetReturningPlayersAsync", () => Gateway.GetReturningPlayersAsync(ClubId, TryoutId, sourceId, Token));
         _names = _players.ToDictionary(value => value.Player.Id, value => value.Player.FullName);
+        _loadedSourceSeasonId = sourceId;
     }
 
-    private Task RefreshAsync() => ExecuteAsync(LoadPlayersAsync);
+    private Task RefreshAsync() => ExecuteAsync(async () => { await LoadPlayersAsync(); _focusStep = true; });
     private void Select(Guid id, ChangeEventArgs args)
     {
         if (args.Value is true)
@@ -72,6 +97,7 @@ public sealed partial class ReturningPlayers : SportPageBase
         _input = new(Guid.NewGuid(), sourceId, _players.Where(value => _selected.Contains(value.Player.Id) && value.Selection is not null).Select(value => value.Selection!).ToArray());
         _report = null;
         _page = 0;
+        _focusStep = true;
     }
 
     private Task PlaceAsync() => ExecuteAsync(async () =>
@@ -79,10 +105,11 @@ public sealed partial class ReturningPlayers : SportPageBase
         if (_input is null) { return; }
         Message = null;
         _report = await Gateway.PlaceReturningPlayersAsync(ClubId, TryoutId, _input, Token);
+        _focusStep = true;
         _page = 0;
     });
 
     private void ResetPage() => _page = 0;
     private async Task ChangePageAsync(int page) { _page = page; await _listHeading.FocusAsync(); }
-    private void BackToSelection() { _input = null; _report = null; _page = 0; }
+    private void BackToSelection() { _input = null; _report = null; _page = 0; _focusStep = true; }
 }

@@ -165,8 +165,8 @@ existence. These in-process request/email counters reset when the app restarts.
 Join requests are capped at five per account per rolling hour using persisted
 request history, preventing repeated cancel/reapply notification floods.
 
-Tryout filters combine name/bib, graduation year, outcome, current team, tryout
-attendance, primary or secondary position, missing observations and a team from
+Tryout filters combine name/bib, graduation year, outcome, current team,
+primary or secondary position, missing observations and a team from
 an explicitly chosen comparison season. Missing observations means no unredacted
 note anywhere in this tryout. Comparison uses that season's current placements,
 not a closed edition. Filtering preserves the selected notebook and its in-page
@@ -189,7 +189,7 @@ closed editions. Closed results remain distinct from current season placements.
 ### History and handoff
 
 Player records list every tryout enrollment, including removed entries. Choosing
-one loads only that player's saved attendance, observations and earlier versions,
+one loads only that player's saved observations and earlier versions,
 redaction audit, and enrollment corrections. Existing cross-season placements
 and decision history remain alongside this view. A failed history change clears
 the previous selection's details and offers an explicit reload.
@@ -203,13 +203,14 @@ identify their type, export time and, for recorded results, edition and closeout
 time. Ordinary CSV files omit contact email and observations, use UTF-8, and
 protect spreadsheet cells from formula execution.
 
-**Print attendance & bib list** shows the entire included tryout roster, ordered by name or bib. It includes saved attendance and a blank
-paper check-in column; printing does not write attendance or decisions. Print
+**Print player & bib list** shows the entire included tryout roster, ordered by
+name or bib, with graduation years. It has no attendance or check-in columns.
+Printing does not change records. Print
 styles hide navigation and controls, repeat table headings, and keep rows intact.
 Removed enrollments do not appear. Reload before printing to refresh saved data.
 
 Administrators can download a player's comprehensive JSON package from **Player data**. It contains catalog fields, the saved JPEG photo, all saved
-note versions and redaction metadata, attendance, enrollment changes, placements,
+note versions and redaction metadata, enrollment changes, placements,
 decision events and that player's recorded-edition copies. Redacted text remains
 removed and other players' records are excluded. A photo retrieval failure fails
 the download instead of silently producing an incomplete package. Permanent
@@ -232,8 +233,8 @@ All download endpoints recheck club access and send no-store cache headers.
 - **Manage tryout players** is available to both staff roles, with paged search,
   group selection and a review before exclusion/restoration. A
   required reason records each removal/restoration with actor, time and bib.
-  Removal excludes the entry from roster, attendance and completion totals;
-  notes, attendance records, decisions and earlier closeout editions remain.
+  Removal excludes the entry from roster and completion totals;
+  notes, decisions and earlier closeout editions remain.
   A current season placement made by this tryout is cleared, while a placement
   from another tryout is preserved. Removed entries reject new sporting writes.
 - Restoration requires an active catalog record and a currently available bib.
@@ -285,13 +286,10 @@ All download endpoints recheck club access and send no-store cache headers.
   notebook clears affected correction drafts.
 - A tryout has one date and optional location. There is no session setup,
   session selection or staff assignment. Season dates must include each tryout.
-- Attendance is Not recorded, Present or Absent per tryout and player, with
-  the recording staff member, time and revision. Both roles can change it in open
-  tryouts and active seasons; stale competing changes require reload. Attendance
-  never changes a decision or team. Missing attendance does not prevent closing
-  a tryout whose included players all have explicit final decisions.
-- Notes belong directly to the tryout. Corrections keep that context. Filtering
-  attendance preserves the selected player and their unsaved note.
+- Attendance tracking has been removed. Did not attend remains an explicit
+  non-placement decision, available to both sporting roles, and counts toward
+  completion. It follows the same cross-tryout placement protection as Withdrawn.
+- Notes belong directly to the tryout. Corrections keep that context.
 - Notes and all displayed staff activity show the current protected profile photo
   beside the historical name, with initials for absent or inaccessible photos.
   Decision and closeout history retain stable author IDs without Identity foreign

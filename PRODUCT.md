@@ -26,8 +26,8 @@ playing careers.
 A tryout is ready to close once a decision has been made for every participating
 player on a nonempty roster. A completed decision is placement on a team,
 withdrawal from the tryout, a club/coach decision not to place the player on
-any team, or an explicit Did not attend outcome. Attendance never determines a
-selection decision automatically. Staff review the results and explicitly close the tryout to preserve
+any team, or an explicit Did not attend outcome. There is no separate attendance
+tracking. Staff review the results and explicitly close the tryout to preserve
 that edition. Closing does not require every player to receive a team placement.
 
 ## Operating Context
@@ -174,11 +174,13 @@ The implemented flow and remaining product boundaries are recorded in the
 - Evaluation uses shared notes only; scores and evaluation rubrics are outside
   the current scope. Authors append corrections to their own notes, retaining
   the earlier text, authorship and timestamp. Other staff cannot rewrite a note.
-- A tryout has one roster, one bib per player, one attendance mark per player,
+- A tryout has one roster, one bib per player,
   shared notes and one final decision per player. Its date and optional location
   describe the whole tryout. There are no tryout sessions or staff assignments.
-- Both roles can mark attendance as Not recorded, Present or Absent. Attendance
-  remains separate from the final decision, including Did not attend.
+- Both roles can choose Did not attend as an explicit final decision. Like other
+  non-placement decisions, it clears a placement made by this tryout and leaves
+  another tryout's placement protected. It counts toward completion and is
+  retained in history, saved results and exports. No attendance marks are stored.
 - Notes and displayed staff activity show a protected current profile photo beside
   the recorded name. Missing or inaccessible photos use initials. Historical names
   stay as recorded, and former staff photos do not bypass membership checks.
@@ -189,8 +191,8 @@ The implemented flow and remaining product boundaries are recorded in the
   in reviewed groups, with a required reason. Earlier work remains in history;
   excluded entries leave active and completion counts. Group changes report each
   changed record and any conflicts.
-  Closed tryouts must first be reopened. Attendance never automatically selects
-  an outcome, and absent players can still receive valid placements.
+  Closed tryouts must first be reopened. Every retained player still needs an
+  explicit final result.
 - Excluding a player clears a current placement only when this tryout made it.
   Reasoned restoration requires an active catalog player and an available bib;
   it preserves earlier work but starts a new outstanding decision and does not
@@ -211,7 +213,7 @@ The implemented flow and remaining product boundaries are recorded in the
   readiness. Readiness alone does not close the tryout.
 - Coaches and administrators can close reviewed results and reopen a closed
   tryout with a reason. Closing rejects stale reviews and locks enrollment, bibs,
-  attendance, decisions, notes/corrections and tryout metadata. Catalog and team maintenance
+  decisions, notes/corrections and tryout metadata. Catalog and team maintenance
   remain independent. Neither closing nor reopening changes current placements.
 - Reopening requires an active season. Restoring an archived season does not
   automatically reopen its closed tryouts.
@@ -233,7 +235,7 @@ The implemented flow and remaining product boundaries are recorded in the
   [closeout brief](docs/features/season-review-closeout.md).
 - Player history brings placements, outcomes, and observations together with
   season/tryout/author context. Ordinary roster/results exports and printable
-  attendance/bib lists are available to both roles. Closed editions remain
+  player/bib lists are available to both roles. Closed editions remain
   distinct from current rosters.
 
 ### Administration and personal content
@@ -241,7 +243,7 @@ The implemented flow and remaining product boundaries are recorded in the
 - Existing sporting permissions remain intact. New administrative configuration,
   bulk enrollment and returning-player placement controls, sensitive import
   resolutions, personal-data exports, erasure, and redaction are administrator-only.
-  Both roles manage attendance and individual or group enrollment exclusions
+  Both roles manage individual or group enrollment exclusions
   and restorations.
 - Archival retains all content and is reversible. A separate strongly confirmed
   erasure removes personal content, photos, earlier versions, and snapshot copies,
@@ -297,3 +299,21 @@ its representative roster sizes are demonstration cases, not product limits.
    earlier tryouts and seasons.
 5. **Support staff collaboration.** Player notes and placement workflows support
    the administrators and coaches working the tryout.
+
+### Guided preparation and navigation
+
+- Import follows file selection, column mapping, player review and a saved result.
+  Going back preserves in-page input; changing a file, mapping or resolution
+  requires a new review. An interrupted import keeps its retry identifier.
+- Club onboarding shows profile, club choice, review and access. Join requests
+  and club creation have a separate identity review before the committing action.
+- New tryouts show details followed by a current active-player count and available
+  teams. Creation still includes all players active at save time; routine editing
+  remains direct. Returning placements begin with an explicit previous-season choice.
+- Closeout separates the result ledger from final confirmation and saved results.
+  Incomplete tryouts cannot advance. Going back preserves result filters.
+- Routine notes, decisions, record editing, search, comparison and account settings
+  stay direct. Guided steps do not introduce persistent draft recovery.
+- Initial authorized read models pass from Blazor prerendering to the first
+  interactive render. This is a display handoff, not an authorization cache;
+  refreshes, later reads and every write still check current server access.

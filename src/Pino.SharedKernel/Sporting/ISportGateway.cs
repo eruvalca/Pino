@@ -15,8 +15,6 @@ public interface ISportGateway
     Task<IReadOnlyList<EnrollmentDetail>> GetEnrollmentsAsync(Guid clubId, Guid tryoutId, CancellationToken cancellationToken = default);
     Task<SportReply> ChangeEnrollmentAsync(Guid clubId, Guid tryoutId, EnrollmentChangeInput input, CancellationToken cancellationToken = default);
     Task<SportingBatchReport> ChangeEnrollmentsAsync(Guid clubId, Guid tryoutId, BulkEnrollmentChangeInput input, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<AttendanceSummary>> GetAttendanceAsync(Guid clubId, Guid tryoutId, CancellationToken cancellationToken = default);
-    Task<SportReply> SaveAttendanceAsync(Guid clubId, Guid tryoutId, AttendanceInput input, CancellationToken cancellationToken = default);
     Task<ErasureReport> ErasePlayerAsync(Guid clubId, ErasePlayerInput input, CancellationToken cancellationToken = default);
     Task<ErasureReport> GetErasureAsync(Guid clubId, Guid operationId, CancellationToken cancellationToken = default);
     Task<SeasonReview> GetSeasonReviewAsync(Guid clubId, Guid seasonId, CancellationToken cancellationToken = default);

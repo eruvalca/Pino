@@ -27,9 +27,9 @@ public sealed partial class SportingWorkflowTests
         review.Results.Count.ShouldBe(2000);
         review.Tryout.Complete.ShouldBeTrue();
         await session.Page.GotoAsync($"/clubs/{clubId}/tryouts/{tryout.Id}/review");
-        await session.Page.Locator(".closeout-action fieldset:not([disabled])").WaitForAsync();
+        await session.Page.Locator("#result-search:enabled").WaitForAsync();
         await session.Page.GetByLabel("Find a result", new() { Exact = true }).FillAsync("00000000000000002000");
-        await session.Page.GetByText("1 of 2000 results shown", new() { Exact = true }).WaitForAsync();
+        await session.Page.GetByText("1 of 2000 results match", new() { Exact = true }).WaitForAsync();
         (await session.Page.Locator(".result-ledger li").CountAsync()).ShouldBe(1);
         await session.Page.SetViewportSizeAsync(320, 800);
         (await session.Page.EvaluateAsync<bool>("document.documentElement.scrollWidth <= window.innerWidth")).ShouldBeTrue("Maximum name and bib lengths must fit a narrow review.");

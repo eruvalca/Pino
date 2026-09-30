@@ -50,6 +50,9 @@ Parser tests cover 1,000-player boundaries, wide/reordered exports, optional mid
 names and secondary positions, blank rows/columns, date-shaped identifier warnings,
 and rejection of invalid mappings without inferring graduation years. Component
 tests exercise the column mapper's rendered change events and disabled state.
+Guided preparation tests cover file/columns/review boundaries, Back preserving
+input, tryout setup review before creation, and locked choices during an
+unconfirmed import retry. New preparation steps do not persist draft input.
 Duplicate matching tests distinguish known middle names and graduation years,
 require current archived candidates and explicit replacement confirmation, and
 verify that review never edits an existing record. The privacy browser journey
@@ -62,13 +65,13 @@ unrelated observations, administrator-only controls, explicit reason/confirmatio
 and clearing an affected correction draft. The redaction browser journey verifies
 closed/archived access, durable removal of every version's text, retained audit
 metadata, safe acknowledgement retries and rejection of stale corrections.
-Tryout attendance tests cover filtering and observed revisions without decision
-writes or loss of an unfinished note. The browser journey covers conflicting
-attendance writes, explicit Did not attend decisions, close/reopen guards and
-staff-photo attribution in notes, decisions, attendance and saved results.
+Did not attend tests cover explicit selection, observed revisions, placement
+clearing, final-result filtering and preservation of an unfinished note. The
+browser journey checks removal of the attendance endpoint and controls,
+close/reopen guards, exports and staff-photo attribution in notes and decisions.
 StaffAvatar component tests cover missing and failed photos, replacement URLs,
 compact sizing, accessible decorative images and Unicode initials. Access checks
-preserve coach attendance and note permissions. Erasure removes attendance.
+preserve coach note and decision permissions.
 Enrollment correction tests exercise required reasons, retry identifiers, coach
 permissions, stale and competing writes, active-only counts, current placement
 cleanup, preserved placements from another tryout, reused bibs, restoration and
@@ -78,7 +81,7 @@ spreadsheet-formula protection. History/print component tests cover lazy loading
 removed enrollment history, redaction rendering and retry without stale data.
 The export browser journey compares current rosters with recorded editions after
 renaming and placement changes, verifies scoped personal data and photo failures,
-downloads through the UI, and checks printable tryout attendance at desktop and
+downloads through the UI, and checks printable player/bib lists at desktop and
 phone widths. The 1,000-player journey also verifies full CSV and print output;
 print-media captures and PDFs are saved when an artifact directory is configured.
 
@@ -111,7 +114,8 @@ Tryout review component tests exercise close confirmation and the reviewed token
 archive/incomplete/prerender restrictions, historical-edition selection, result
 filters, retention of a reopening reason after failure and safe retries after an
 uncertain close. The opt-in closeout browser journey exercises PostgreSQL locking,
-stale reviews, empty/incomplete rosters, edit restrictions, archived seasons,
+staged confirmation, result paging, stale reviews, empty/incomplete rosters,
+edit restrictions, archived seasons,
 reopening, retained editions and their independence from current season rosters.
 Enrollment refresh tests cover closure and season archival, dismissal of the open
 panel and preservation of unsaved notes; the browser journey exercises closure
@@ -136,6 +140,12 @@ skip navigation and protected logout from an interactive club page. Component
 tests retain Seasons & teams selection on nested team/tryout routes and keep
 People available only to administrators. Read layout dimensions after
 InteractiveAuto has replaced prerendered elements, not during that transition.
+
+The enhanced-navigation journey observes DOM updates during cold and warm
+WebAssembly startup, club links, keyboard activation and browser Back/Forward.
+It checks that the document is retained without temporary workspace loading
+headings or a missing club strip, repeats at phone width with reduced motion,
+and crosses the account SSR boundary while preserving antiforgery forms.
 
 `PhotoEditorTests` covers interactive readiness, file validation, cancellation,
 source cleanup, load recovery and Cropper's external ready/error callbacks.

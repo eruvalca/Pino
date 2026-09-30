@@ -19,14 +19,21 @@ public sealed partial class BulkEnrollment : SportPageBase
     private int _page;
     private bool _showEnrolled;
     private ElementReference _listHeading;
+    private static readonly string[] _steps = ["Select players", "Review selection", "Enrollment results"];
+    private bool _focusStep;
+    private int Step => (_report?.Kind == SportReplyKind.Saved, _input is not null) switch { (true, _) => 2, (_, true) => 1, _ => 0 };
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusStep) { _focusStep = false; await _listHeading.FocusAsync(); }
+    }
     private bool CanEdit => _tryout is { Tryout.Closed: false, Season.Archived: false };
     private IEnumerable<EnrollmentCandidate> Filtered => _candidates.Where(value => (_showEnrolled || !value.Enrolled) && (_year is null || value.Player.GraduationYear == _year) && value.Player.FullName.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase));
 
     protected override async Task LoadAsync()
     {
         if (Membership?.Role != ClubRole.Administrator) { throw new UnauthorizedAccessException(); }
-        _tryout = await Gateway.GetTryoutAsync(ClubId, TryoutId, Token);
-        _candidates = await Gateway.GetEnrollmentCandidatesAsync(ClubId, TryoutId, Token);
+        _tryout = await ReadInitialAsync("GetTryoutAsync", () => Gateway.GetTryoutAsync(ClubId, TryoutId, Token));
+        _candidates = await ReadInitialAsync("GetEnrollmentCandidatesAsync", () => Gateway.GetEnrollmentCandidatesAsync(ClubId, TryoutId, Token));
         _names = _candidates.ToDictionary(value => value.Player.Id, value => value.Player.FullName);
         _selected.Clear();
         _input = null;
@@ -59,6 +66,7 @@ public sealed partial class BulkEnrollment : SportPageBase
         _input = new(Guid.NewGuid(), _candidates.Where(value => _selected.Contains(value.Player.Id)).Select(value => new EnrollmentSelection(value.Player.Id, value.Player.Revision)).ToArray());
         _report = null;
         _page = 0;
+        _focusStep = true;
     }
 
     private Task EnrollAsync() => ExecuteAsync(async () =>
@@ -66,10 +74,11 @@ public sealed partial class BulkEnrollment : SportPageBase
         if (_input is null) { return; }
         Message = null;
         _report = await Gateway.EnrollBulkAsync(ClubId, TryoutId, _input, Token);
+        _focusStep = true;
         _page = 0;
     });
 
     private void ResetPage() => _page = 0;
     private async Task ChangePageAsync(int page) { _page = page; await _listHeading.FocusAsync(); }
-    private void BackToSelection() { _input = null; _report = null; _page = 0; }
+    private void BackToSelection() { _input = null; _report = null; _page = 0; _focusStep = true; }
 }

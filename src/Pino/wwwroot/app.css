@@ -351,12 +351,8 @@ tbody tr:hover { background: var(--subtle); }
         justify-items: start;
     }
 }
-.task-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; padding: 0; margin-block: 1.5rem; list-style-position: inside; color: var(--muted); }
-.task-steps li { padding: .75rem; border-bottom: 1px solid var(--line-strong); }
-.task-steps [aria-current="step"] { color: var(--blue); background: var(--blue-soft); font-weight: 700; border-color: var(--blue); }
 .selection-review { max-height: 18rem; overflow-y: auto; padding-block: .5rem; }
 .selection-review li { padding-block: .25rem; }
-@media (max-width: 35rem) { .task-steps { grid-template-columns: minmax(0, 1fr); gap: .25rem; } }
 .status-definitions { display: grid; gap: 1rem; max-width: 65ch; }
 .status-definitions > div { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: .75rem; }
 .status-definitions dt { font-weight: 700; }

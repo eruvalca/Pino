@@ -27,10 +27,6 @@ internal sealed class HttpSportGateway(HttpClient http) : ISportGateway
         PostAsync<SportReply, EnrollmentChangeInput>(clubId, $"tryouts/{tryoutId}/enrollments", input, cancellationToken);
     public Task<SportingBatchReport> ChangeEnrollmentsAsync(Guid clubId, Guid tryoutId, BulkEnrollmentChangeInput input, CancellationToken cancellationToken = default) =>
         PostAsync<SportingBatchReport, BulkEnrollmentChangeInput>(clubId, $"tryouts/{tryoutId}/enrollments/batch", input, cancellationToken);
-    public Task<IReadOnlyList<AttendanceSummary>> GetAttendanceAsync(Guid clubId, Guid tryoutId, CancellationToken cancellationToken = default) =>
-        GetAsync<IReadOnlyList<AttendanceSummary>>(clubId, $"tryouts/{tryoutId}/attendance", cancellationToken);
-    public Task<SportReply> SaveAttendanceAsync(Guid clubId, Guid tryoutId, AttendanceInput input, CancellationToken cancellationToken = default) =>
-        PostAsync<SportReply, AttendanceInput>(clubId, $"tryouts/{tryoutId}/attendance", input, cancellationToken);
     public Task<ErasureReport> ErasePlayerAsync(Guid clubId, ErasePlayerInput input, CancellationToken cancellationToken = default) =>
         PostAsync<ErasureReport, ErasePlayerInput>(clubId, "players/erase", input, cancellationToken);
     public Task<ErasureReport> GetErasureAsync(Guid clubId, Guid operationId, CancellationToken cancellationToken = default) =>

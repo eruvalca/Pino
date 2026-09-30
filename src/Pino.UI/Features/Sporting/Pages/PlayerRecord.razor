@@ -44,13 +44,13 @@
     }
     else if (_detail is { } detail)
     {
-        @if (Membership?.Role == ClubRole.Administrator) { <details class="sport-section"><summary>Player data</summary><p>Download this player's details, photo, notes and earlier versions, attendance, roster changes, decisions and saved results. Deleted private text stays removed.</p><p><a href="@($"/api/clubs/{ClubId}/sport/players/{PlayerId}/personal-data")" download data-enhance-nav="false">Download player personal data (JSON)</a></p><p>Archiving keeps this player's history. Permanent deletion removes it, including copies in saved results.</p><a href="@($"/clubs/{ClubId}/players/{PlayerId}/erase")">Review permanent deletion</a></details> }
+        @if (Membership?.Role == ClubRole.Administrator) { <details class="sport-section"><summary>Player data</summary><p>Download this player's details, photo, notes and earlier versions, roster changes, decisions and saved results. Deleted private text stays removed.</p><p><a href="@($"/api/clubs/{ClubId}/sport/players/{PlayerId}/personal-data")" download data-enhance-nav="false">Download player personal data (JSON)</a></p><p>Archiving keeps this player's history. Permanent deletion removes it, including copies in saved results.</p><a href="@($"/clubs/{ClubId}/players/{PlayerId}/erase")">Review permanent deletion</a></details> }
         <div class="player-record-layout"><section>
             <h2>Season placements</h2>
             @if (detail.Placements.Count == 0) { <p class="muted">This player has not joined a tryout yet. Open a season's tryout to add them.</p> }
             <ul class="record-list">@foreach (var placement in detail.Placements) { <li class="record-row" @key="placement.SeasonId"><div><h3>@placement.Season</h3><p>@(placement.Team ?? "No current team")</p>@if (placement.Tryout is not null) { <small>Placed through @placement.Tryout</small> }</div><a href="@($"/clubs/{ClubId}/seasons/{placement.SeasonId}")">View season</a></li> }</ul>
             <section class="sport-section" aria-labelledby="player-tryout-history">
-                <h2 id="player-tryout-history">Tryout history</h2><p class="muted">Choose a tryout to see attendance, notes and roster changes. Players excluded from a tryout still have a history here.</p>
+                <h2 id="player-tryout-history">Tryout history</h2><p class="muted">Choose a tryout to see notes and roster changes. Players excluded from a tryout still have a history here.</p>
                 @if (detail.Tryouts is not { Count: > 0 }) { <p>No tryout history yet.</p> }
                 else
                 {

@@ -25,10 +25,6 @@ internal sealed class ServerSportGateway(SportService service, AuthenticationSta
         (await service.ChangeEnrollmentAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, tryoutId, input, cancellationToken)).ToReply();
     public async Task<SportingBatchReport> ChangeEnrollmentsAsync(Guid clubId, Guid tryoutId, BulkEnrollmentChangeInput input, CancellationToken cancellationToken = default) =>
         await service.ChangeEnrollmentsAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, tryoutId, input, cancellationToken);
-    public async Task<IReadOnlyList<AttendanceSummary>> GetAttendanceAsync(Guid clubId, Guid tryoutId, CancellationToken cancellationToken = default) =>
-        await service.GetAttendanceAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, tryoutId, cancellationToken);
-    public async Task<SportReply> SaveAttendanceAsync(Guid clubId, Guid tryoutId, AttendanceInput input, CancellationToken cancellationToken = default) =>
-        (await service.SaveAttendanceAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, tryoutId, input, cancellationToken)).ToReply();
     public async Task<ErasureReport> ErasePlayerAsync(Guid clubId, ErasePlayerInput input, CancellationToken cancellationToken = default) =>
         (await service.ErasePlayerAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, input, cancellationToken)).ToReply(input.OperationId);
     public async Task<ErasureReport> GetErasureAsync(Guid clubId, Guid operationId, CancellationToken cancellationToken = default) =>

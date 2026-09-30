@@ -54,6 +54,7 @@ public sealed partial class SportingWorkflowTests
         await page.SetViewportSizeAsync(390, 844);
         await page.GetByRole(AriaRole.Link, new() { Name = "Players", Exact = true }).ClickAsync();
         await page.GetByRole(AriaRole.Heading, new() { Name = "Players", Exact = true }).WaitForAsync();
+        await page.Locator("form:has(#player-search) button:enabled").WaitForAsync();
         await page.Locator(".site-name").FocusAsync();
         await page.Keyboard.PressAsync("Shift+Tab");
         (await page.Locator(":focus").GetAttributeAsync("class")).ShouldBe("skip-link");

@@ -18,7 +18,6 @@ public sealed partial class SportingWorkflowTests
         var data = await PrepareCloseoutAsync(session);
         var path = $"/api/clubs/{data.ClubId}/sport";
         var tryoutPath = $"{path}/tryouts/{data.Tryout.Id}";
-        (await session.PostAsync<SportReply>(tryoutPath + "/attendance", new AttendanceInput(data.Player.Id, AttendanceKind.Present, 0))).Kind.ShouldBe(SportReplyKind.Saved);
         (await session.PostAsync<SportReply>(tryoutPath + "/notes", new NoteInput(Guid.NewGuid(), data.Player.Id, "An earlier version must also be erased.", data.Note.Id))).Kind.ShouldBe(SportReplyKind.Saved);
         await PrepareEnrollmentHistoryForErasureAsync(session, data);
         var review = await session.GetAsync<TryoutReview>(tryoutPath + "/review");
@@ -81,6 +80,8 @@ public sealed partial class SportingWorkflowTests
         await page.GotoAsync($"/clubs/{clubId}/players/import");
         await page.Locator("#import-file:enabled").WaitForAsync();
         await page.GetByLabel("Player CSV", new() { Exact = true }).SetInputFilesAsync(new FilePayload { Name = "returning.csv", MimeType = "text/csv", Buffer = System.Text.Encoding.UTF8.GetBytes(csv) });
+        await page.GetByRole(AriaRole.Button, new() { Name = "Continue to columns", Exact = true }).ClickAsync();
+        await page.GetByRole(AriaRole.Button, new() { Name = "Review players", Exact = true }).ClickAsync();
         await page.GetByLabel("Action for row 2", new() { Exact = true }).SelectOptionAsync("Replace");
         await page.GetByLabel("Archived player to review", new() { Exact = true }).SelectOptionAsync(playerId.ToString());
         await page.GetByLabel("Type Jordan Rivera to confirm", new() { Exact = true }).FillAsync("Jordan Rivera");
@@ -105,7 +106,6 @@ public sealed partial class SportingWorkflowTests
         var ct = TestContext.Current.CancellationToken;
         (await db.Players.AnyAsync(value => value.Id == oldPlayerId, ct)).ShouldBeFalse();
         (await db.PlayerNotes.AnyAsync(value => value.PlayerId == oldPlayerId, ct)).ShouldBeFalse();
-        (await db.TryoutAttendances.AnyAsync(value => value.PlayerId == oldPlayerId, ct)).ShouldBeFalse();
         (await db.EnrollmentChanges.AnyAsync(value => value.PlayerId == oldPlayerId, ct)).ShouldBeFalse();
         (await db.DecisionEvents.AnyAsync(value => value.PlayerId == oldPlayerId, ct)).ShouldBeFalse();
         (await db.SeasonPlacements.AnyAsync(value => value.PlayerId == oldPlayerId, ct)).ShouldBeFalse();

@@ -1,5 +1,10 @@
 # Public v1 product completion
 
+Attendance requirements in this earlier delivery brief are superseded by
+[Guided workflows and steady navigation](guided-workflows-and-navigation.md).
+Current product rules are in PRODUCT.md; the earlier scope below records why the
+removed attendance capability originally existed.
+
 This is the implementation and acceptance scope approved after the product review.
 PRODUCT.md owns the confirmed rules. Production deployment and operating-model
 work, family offers/acceptance, persistent drafts, offline capture, general player

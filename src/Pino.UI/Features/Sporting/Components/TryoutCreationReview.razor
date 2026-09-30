@@ -1,0 +1,9 @@
+<section class="sport-form" aria-label="Tryout setup review">
+    <dl class="record-details"><dt>Tryout</dt><dd>@Input.Name</dd><dt>Date</dt><dd>@Input.Date.ToString("MMM d, yyyy")</dd><dt>Location</dt><dd>@(Input.Location.Length == 0 ? "Not specified" : Input.Location)</dd></dl>
+    <p><strong>@ActivePlayers active @(ActivePlayers == 1 ? "player" : "players")</strong> will start on the roster, with no bibs or decisions assigned. Archived players are left out.</p>
+    <p>All players active when you create the tryout will be included. You can exclude mistakes afterward with a reason.</p>
+    <h4>Available teams</h4>
+    @if (IncludedTeams.Count == 0) { <p class="notice" data-kind="warning">No teams are currently available. Add or include a team before making team placements.</p> }
+    else { <ul>@foreach (var team in IncludedTeams) { <li>@team.Name · Class of @team.GraduationYear or later</li> }</ul> }
+    <div class="actions"><button type="button" class="primary-action" disabled="@Disabled" @onclick="Confirm">Create &amp; open tryout</button><button type="button" class="secondary-action" disabled="@Disabled" @onclick="Back">Back to details</button><button type="button" class="text-action" disabled="@Disabled" @onclick="Cancel">Cancel</button></div>
+</section>

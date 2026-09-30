@@ -5,7 +5,7 @@
 
 <PageTitle>Join your club · Pino</PageTitle>
 <ClubPageShell Club="_access?.Membership?.Club" CanManagePeople="@(_access?.Membership?.Role == ClubRole.Administrator)">
-    <article class="invitation-sheet" aria-busy="@IsBusy">
+    <article class="invitation-sheet" aria-busy="@(IsBusy ? "true" : "false")">
         <h1>Join your club</h1>
         <p>Pino accounts are for adults acting as club staff. Accepting this invitation gives you the club role shown below.</p>
         @if (_message is not null) { <p class="notice" data-kind="@_kind" role="status">@_message</p> }

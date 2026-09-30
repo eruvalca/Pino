@@ -21,10 +21,10 @@ public sealed partial class TeamAvailability : SportPageBase
     protected override async Task LoadAsync()
     {
         if (Membership?.Role != ClubRole.Administrator) { throw new UnauthorizedAccessException(); }
-        var overview = await Gateway.GetOverviewAsync(ClubId, Token);
+        var overview = await ReadInitialAsync("GetOverviewAsync", () => Gateway.GetOverviewAsync(ClubId, Token));
         _season = overview.Seasons.SingleOrDefault(value => value.Id == SeasonId) ?? throw new KeyNotFoundException();
         _tryout = TryoutId is { } id ? overview.Tryouts.SingleOrDefault(value => value.Id == id && value.SeasonId == SeasonId) ?? throw new KeyNotFoundException() : null;
-        _teams = await Gateway.GetTeamAvailabilityAsync(ClubId, SeasonId, TryoutId, Token);
+        _teams = await ReadInitialAsync("GetTeamAvailabilityAsync", () => Gateway.GetTeamAvailabilityAsync(ClubId, SeasonId, TryoutId, Token));
         _page = Math.Min(_page, Math.Max(0, (Filtered.Count() - 1) / 50));
     }
 

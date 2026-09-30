@@ -38,7 +38,16 @@
             @if (selected.Archived) { <p class="notice" data-kind="information">Archived season. Reopen it to change tryouts or placements.</p> }
             <section class="sport-section">
                 <header class="sport-heading"><div><h2>Tryouts</h2><p>New tryouts include all active club players.</p></div><button class="primary-action" disabled="@(Disabled || selected.Archived)" @onclick="NewTryout">Add tryout</button></header>
-                @if (_tryoutInput is not null) { <div class="sport-edit"><h3>@(_tryoutInput.Revision == 0 ? "New tryout" : "Edit tryout")</h3><TryoutEditor @key="_tryoutInput" Input="_tryoutInput" Save="SaveTryoutAsync" Cancel="CloseForms" Busy="Busy" /></div> }
+                @if (_tryoutInput is { } tryoutInput)
+                {
+                    <div class="sport-edit">
+                        @if (tryoutInput.Revision == 0) { <WorkflowProgress Steps="_tryoutSteps" Current="@(_reviewTryout ? 1 : 0)" Label="New tryout progress" /> }
+                        <h3 @ref="_tryoutHeading" tabindex="-1">@TryoutHeading</h3>
+                        @if (_reviewTryout) { <TryoutCreationReview Input="tryoutInput" ActivePlayers="overview.ActivePlayers" Teams="_teams" Disabled="Disabled" Confirm="() => SaveTryoutAsync(tryoutInput)" Back="BackToTryoutDetails" Cancel="CloseForms" /> }
+                        else if (tryoutInput.Revision == 0) { <TryoutEditor @key="tryoutInput" Input="tryoutInput" Save="ReviewTryoutAsync" Cancel="CloseForms" Busy="Busy" SubmitLabel="Review roster & teams" /> }
+                        else { <TryoutEditor @key="tryoutInput" Input="tryoutInput" Save="SaveTryoutAsync" Cancel="CloseForms" Busy="Busy" /> }
+                    </div>
+                }
                 @if (!overview.Tryouts.Any(tryout => tryout.SeasonId == SeasonId)) { <p class="muted">Create a tryout to start evaluating. You can exclude players afterward.</p> }
                 <ul class="record-list">
                     @foreach (var tryout in overview.Tryouts.Where(tryout => tryout.SeasonId == SeasonId))

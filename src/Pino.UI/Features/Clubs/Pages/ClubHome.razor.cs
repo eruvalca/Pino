@@ -16,14 +16,12 @@ public sealed partial class ClubHome : SportPageBase
 
     protected override async Task LoadAsync()
     {
-        _overview = await Gateway.GetOverviewAsync(ClubId, Token);
+        _overview = await ReadInitialAsync("GetOverviewAsync", () => Gateway.GetOverviewAsync(ClubId, Token));
         if (Membership?.Role == ClubRole.Administrator)
         {
-            var players = Gateway.GetPlayersAsync(ClubId, "", false, 0, Token);
-            var people = Clubs.GetPeopleAsync(ClubId, false, 0, Token);
-            await Task.WhenAll(players, people);
-            _hasPlayers = (await players).Players.Count > 0;
-            _hasOtherStaff = (await people).People.Count > 1 || (await people).HasMore;
+            _hasPlayers = _overview.ActivePlayers > 0;
+            var people = await ReadInitialAsync("GetPeopleAsync", () => Clubs.GetPeopleAsync(ClubId, false, 0, Token));
+            _hasOtherStaff = people.People.Count > 1 || people.HasMore;
         }
     }
 }

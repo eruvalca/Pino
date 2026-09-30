@@ -21,7 +21,7 @@
                     <li><strong>@(_hasPlayers ? "Ready" : "To do") · Player list</strong><p>Review new and returning players, including their graduation years. <a href="@($"/clubs/{ClubId}/players")">Open players</a>.</p></li>
                     <li><strong>@(HasSeasonTeams ? "Ready" : "To do") · Season and teams</strong><p>Create a season and review your club teams' graduation years. Teams carry across seasons. <a href="@($"/clubs/{ClubId}/seasons")">Open seasons &amp; teams</a>.</p></li>
                     <li><strong>@(HasTryout ? "Ready" : "To do") · Tryout setup</strong><p>Set the tryout date and location. <a href="@($"/clubs/{ClubId}/seasons")">Review tryout setup</a>.</p></li>
-                    <li><strong>@(HasRoster ? "Ready" : "To do") · Tryout players</strong><p>Active club players are included automatically. Review players to excludes, assign bibs and place returning players. Use the tryout links below to continue.</p></li>
+                    <li><strong>@(HasRoster ? "Ready" : "To do") · Tryout players</strong><p>Active club players are included automatically. Review players to exclude, assign bibs and place returning players. Use the tryout links below to continue.</p></li>
                     <li><strong>@(_hasOtherStaff ? "Ready" : "Optional") · Other staff</strong><p>Invite coaches and administrators to share the work. <a href="@($"/clubs/{ClubId}/invitations")">Manage invitations</a>.</p></li>
                 </ol>
             </details>

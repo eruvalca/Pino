@@ -82,14 +82,14 @@ public sealed partial class SportingWorkflowTests
             await page.SetViewportSizeAsync(1440, 1000);
             await page.GotoAsync($"/clubs/{data.ClubId}/tryouts/{data.Tryout.Id}/print");
             await page.Locator("#print-order:enabled").WaitForAsync();
-            (await page.Locator(".attendance-table tbody tr").CountAsync()).ShouldBe(1000);
+            (await page.Locator(".roster-table tbody tr").CountAsync()).ShouldBe(1000);
             (await ReadCsvAsync(session, $"/api/clubs/{data.ClubId}/sport/tryouts/{data.Tryout.Id}/results.csv")).Count.ShouldBe(1000);
-            (await page.Locator(".attendance-sheet").InnerTextAsync()).ShouldNotContain("Synthetic observation");
+            (await page.Locator(".roster-sheet").InnerTextAsync()).ShouldNotContain("Synthetic observation");
             await page.EmulateMediaAsync(new() { Media = Media.Print });
-            (await page.Locator(".attendance-table tbody tr").CountAsync()).ShouldBe(1000);
+            (await page.Locator(".roster-table tbody tr").CountAsync()).ShouldBe(1000);
             if (Environment.GetEnvironmentVariable("PINO_BROWSER_ARTIFACTS") is { Length: > 0 } output)
             {
-                await page.PdfAsync(new() { Path = Path.Combine(output, "thousand-player-attendance.pdf"), Format = "A4", Margin = new() { Top = "12mm", Bottom = "12mm", Left = "12mm", Right = "12mm" } });
+                await page.PdfAsync(new() { Path = Path.Combine(output, "thousand-player-roster.pdf"), Format = "A4", Margin = new() { Top = "12mm", Bottom = "12mm", Left = "12mm", Right = "12mm" } });
             }
             await page.EmulateMediaAsync(new() { Media = Media.Screen });
         }

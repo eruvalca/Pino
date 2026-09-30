@@ -17,7 +17,7 @@ public sealed partial class ClubInvitations : SportPageBase
     protected override async Task LoadAsync()
     {
         if (Membership?.Role != ClubRole.Administrator) { throw new UnauthorizedAccessException(); }
-        _data = await Clubs.GetInvitationsAsync(ClubId, _page, Token);
+        _data = await ReadInitialAsync("GetInvitationsAsync", () => Clubs.GetInvitationsAsync(ClubId, _page, Token));
     }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

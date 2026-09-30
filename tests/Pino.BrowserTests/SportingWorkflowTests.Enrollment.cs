@@ -26,7 +26,6 @@ public sealed partial class SportingWorkflowTests
         (await session.PostAsync<SportReply>(tryoutPath + "/close", new CloseTryoutInput(firstEdition, review.ReviewToken))).Kind.ShouldBe(SportReplyKind.Saved);
         (await session.PostAsync<SportReply>(tryoutPath + "/enrollments", removal)).Kind.ShouldBe(SportReplyKind.Invalid);
         (await session.PostAsync<SportReply>(tryoutPath + "/reopen", new ReopenTryoutInput(firstEdition, "Correct enrollment"))).Kind.ShouldBe(SportReplyKind.Saved);
-        (await session.PostAsync<SportReply>(tryoutPath + "/attendance", new AttendanceInput(data.Player.Id, AttendanceKind.Present, 0))).Kind.ShouldBe(SportReplyKind.Saved);
 
         var page = session.Page;
         await page.GotoAsync($"/clubs/{data.ClubId}/tryouts/{data.Tryout.Id}/enrollments");
@@ -96,12 +95,9 @@ public sealed partial class SportingWorkflowTests
         notebook.Removed.ShouldBeTrue();
         notebook.Notes.ShouldHaveSingleItem().Text.ShouldBe(data.Note.Text);
         notebook.History.ShouldHaveSingleItem().Kind.ShouldBe(DecisionKind.Placed);
-        notebook.Attendance.ShouldHaveSingleItem().Kind.ShouldBe(AttendanceKind.Present);
-        (await session.GetAsync<AttendanceSummary[]>($"{tryoutPath}/attendance")).ShouldBeEmpty();
         (await session.GetAsync<SeasonReview>($"{path}/seasons/{data.Season.Id}/review")).Players.ShouldBe(2);
         var old = before.Roster.Single(value => value.Player.Id == data.Player.Id);
         (await session.PostAsync<SportReply>(tryoutPath + "/notes", new NoteInput(Guid.NewGuid(), data.Player.Id, "Rejected on removed entry"))).Kind.ShouldBe(SportReplyKind.Invalid);
-        (await session.PostAsync<SportReply>(tryoutPath + "/attendance", new AttendanceInput(data.Player.Id, AttendanceKind.Absent, 1))).Kind.ShouldBe(SportReplyKind.Invalid);
         (await session.PostAsync<SportReply>(tryoutPath + "/bib", new BibNumberInput(data.Player.Id, "99", "17"))).Kind.ShouldBe(SportReplyKind.Invalid);
         (await session.PostAsync<SportReply>(tryoutPath + "/decisions", new DecisionInput(Guid.NewGuid(), data.Player.Id, DecisionKind.Withdrawn, null, old.Revision, old.PlacementRevision, "Rejected"))).Kind.ShouldBe(SportReplyKind.Invalid);
         (await session.PostAsync<SportReply>(tryoutPath + "/players", new EnrollmentInput(data.Player.Id, ""))).Kind.ShouldBe(SportReplyKind.Conflict);

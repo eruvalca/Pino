@@ -20,6 +20,7 @@ public sealed class ClubAccessTests
 
     private static IClubGateway Configure(BunitContext context, AccessSnapshot snapshot)
     {
+        context.AddBunitPersistentComponentState();
         context.AddAuthorization().SetAuthorized("member");
         var gateway = Substitute.For<IClubGateway>();
         gateway.GetAccessAsync(Arg.Any<CancellationToken>()).Returns(snapshot);
@@ -102,6 +103,9 @@ public sealed class ClubAccessTests
         await page.Find(".search-form").SubmitAsync();
         page.Find(".club-results").TextContent.ShouldContain("Chicago, Illinois");
         await page.Find(".club-results button").ClickAsync();
+        await gateway.DidNotReceive().RequestAsync(_club.Id, Arg.Any<CancellationToken>());
+        page.Find("#task-heading").TextContent.ShouldBe("Review your join request");
+        await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Send join request", StringComparison.Ordinal)).ClickAsync();
         await page.WaitForAssertionAsync(() => page.Find("#task-heading").TextContent.ShouldBe("Waiting for approval"));
         await gateway.Received(1).RequestAsync(_club.Id, Arg.Any<CancellationToken>());
         page.FindAll(".club-results").ShouldBeEmpty();
@@ -121,6 +125,10 @@ public sealed class ClubAccessTests
         await page.Find("#club-city").ChangeAsync("Chicago");
         await page.Find("#club-state").ChangeAsync("IL");
         await page.Find("main form").SubmitAsync();
+        await gateway.DidNotReceive().CreateAsync(Arg.Any<CreateClubInput>(), Arg.Any<CancellationToken>());
+        page.Find("#task-heading").TextContent.ShouldBe("Review your new club");
+        await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Create club", StringComparison.Ordinal)).ClickAsync();
+        await page.FindAll("button").Single(value => string.Equals(value.TextContent, "Back to club details", StringComparison.Ordinal)).ClickAsync();
         await gateway.Received(1).CreateAsync(Arg.Is<CreateClubInput>(value => value.State == "IL" && value.City == "Chicago" && value.OperationId != Guid.Empty), Arg.Any<CancellationToken>());
         page.Find("#club-name").GetAttribute("value").ShouldBe("Northside FC");
         page.Find(".notice").TextContent.ShouldBe("Try again.");

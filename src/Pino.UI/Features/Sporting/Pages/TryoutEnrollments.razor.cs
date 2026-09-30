@@ -23,6 +23,12 @@ public sealed partial class TryoutEnrollments : SportPageBase
     private int _page;
     private ElementReference _heading;
     private bool _focusHeading;
+    private bool _focusBatch;
+    private ElementReference _batchHeading;
+    private static readonly string[] _batchSteps = ["Select players", "Review roster change", "Roster results"];
+    private int BatchStep => (_batchReport?.Kind == SportReplyKind.Saved, _reviewPlayers is not null) switch { (true, _) => 2, (_, true) => 1, _ => 0 };
+    private void BackToPlayers() { _reviewPlayers = null; _batchReport = null; _focusBatch = true; }
+
     private bool CanEdit => _tryout is { Tryout.Closed: false, Season.Archived: false };
     private EnrollmentDetail? Selected => _entries.FirstOrDefault(value => value.Entry.Player.Id == _selectedId);
     private IEnumerable<EnrollmentDetail> BatchSelection => _entries.Where(value => _selectedPlayers.Contains(value.Entry.Player.Id));
@@ -34,8 +40,8 @@ public sealed partial class TryoutEnrollments : SportPageBase
 
     protected override async Task LoadAsync()
     {
-        _tryout = await Gateway.GetTryoutAsync(ClubId, TryoutId, Token);
-        _entries = await Gateway.GetEnrollmentsAsync(ClubId, TryoutId, Token);
+        _tryout = await ReadInitialAsync("GetTryoutAsync", () => Gateway.GetTryoutAsync(ClubId, TryoutId, Token));
+        _entries = await ReadInitialAsync("GetEnrollmentsAsync", () => Gateway.GetEnrollmentsAsync(ClubId, TryoutId, Token));
         _names = _entries.ToDictionary(value => value.Entry.Player.Id, value => value.Entry.Player.FullName);
         _page = Math.Min(_page, Math.Max(0, (Filtered.Count() - 1) / 50));
         await LoadNotebookAsync();
@@ -44,7 +50,7 @@ public sealed partial class TryoutEnrollments : SportPageBase
     private async Task LoadNotebookAsync()
     {
         _notebook = null;
-        if (Selected is not null) { _notebook = await Gateway.GetNotebookAsync(ClubId, TryoutId, _selectedId, Token); }
+        if (Selected is not null) { _notebook = await ReadInitialAsync("GetNotebookAsync", () => Gateway.GetNotebookAsync(ClubId, TryoutId, _selectedId, Token)); }
     }
 
     private Task SelectAsync(Guid id) => ExecuteAsync(async () =>
@@ -82,11 +88,13 @@ public sealed partial class TryoutEnrollments : SportPageBase
         _reviewRemove = remove;
         _reviewId = Guid.NewGuid();
         _batchReport = null;
+        _focusBatch = true;
     }
 
     private Task SaveBatchAsync(BulkEnrollmentChangeInput input) => ExecuteAsync(async () =>
     {
         _batchReport = await Gateway.ChangeEnrollmentsAsync(ClubId, TryoutId, input, Token);
+        _focusBatch = true;
         if (_batchReport.Kind != SportReplyKind.Saved) { return; }
         _reviewPlayers = null;
         _selectedPlayers.Clear();
@@ -101,10 +109,10 @@ public sealed partial class TryoutEnrollments : SportPageBase
     }
 
     private void ResetPage() => _page = 0;
-    private static string AttendanceLabel(AttendanceKind kind) => kind == AttendanceKind.NotRecorded ? "Not recorded" : kind.ToString();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_focusBatch) { _focusBatch = false; await _batchHeading.FocusAsync(); }
         if (_focusHeading) { _focusHeading = false; await _heading.FocusAsync(); }
     }
 }

@@ -142,8 +142,8 @@ the access home. Treat a saved return URL as navigation intent, not authority.
    access to member management. A newly created club has one member and no
    requests; do not invent a tryout or populate it with sample players.
 3. **Find and request.** Search by club name; distinguish results using sport
-   and location. Show the selected club's full identity before **Request to
-   join**. Explain that approval grants coach access. Search results expose no
+   and location. Show the selected club's full identity on a separate review step before **Send join
+   request**. Explain that approval grants coach access. Search results expose no
    roster, staff directory, or private activity. A no-results state offers
    editing the search and the explicit Create club alternative. Do not silently
    create a club when search fails or assume same-name clubs are duplicates.

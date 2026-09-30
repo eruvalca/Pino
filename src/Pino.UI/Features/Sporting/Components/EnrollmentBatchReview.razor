@@ -1,6 +1,6 @@
 <section class="sport-edit" aria-labelledby="enrollment-batch-heading">
     <h2 id="enrollment-batch-heading" tabindex="-1" @ref="_heading">@(Remove ? "Exclude" : "Restore") @Players.Count players</h2>
-    <p>@(Remove ? "Excluded players leave the active roster and completion counts. Placements made by this tryout are cleared; earlier work stays in history." : "Players return with their saved bibs and need a new final decision. Earlier attendance and notes stay in history.")</p>
+    <p>@(Remove ? "Excluded players leave the active roster and completion counts. Placements made by this tryout are cleared; earlier work stays in history." : "Players return with their saved bibs and need a new final decision. Earlier notes stay in history.")</p>
     <details><summary>Review selected players (@Players.Count)</summary><ul class="selection-review">@foreach (var player in Players.Select(value => value.Entry.Player)) { <li @key="player.Id">@player.FullName · @player.GraduationYear</li> }</ul></details>
     <form class="sport-form" @onsubmit="SubmitAsync" @onsubmit:preventDefault>
         <fieldset class="sport-fields" disabled="@Disabled">

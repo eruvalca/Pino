@@ -10,7 +10,7 @@ public sealed partial class ClubEmails : SportPageBase
     protected override async Task LoadAsync()
     {
         if (Membership?.Role != ClubRole.Administrator) { throw new UnauthorizedAccessException(); }
-        _data = await Clubs.GetEmailsAsync(ClubId, _page, Token);
+        _data = await ReadInitialAsync("GetEmailsAsync", () => Clubs.GetEmailsAsync(ClubId, _page, Token));
     }
     private Task RetryAsync(StaffEmailSummary email) => ExecuteAsync(async () =>
     {

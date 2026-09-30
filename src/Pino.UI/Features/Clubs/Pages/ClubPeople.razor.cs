@@ -1,12 +1,16 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging;
 using Pino.SharedKernel.Clubs;
+using Pino.UI.Services;
 
 namespace Pino.UI.Features.Clubs.Pages;
 
 [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1031:Do not catch general exception types", Justification = "The page logs failures and clears protected member data when access cannot be verified.")]
-public sealed partial class ClubPeople(IClubGateway gateway, ILogger<ClubPeople> logger)
+public sealed partial class ClubPeople(IClubGateway gateway, ILogger<ClubPeople> logger) : IDisposable
 {
+    [Inject] private PersistentComponentState PageState { get; set; } = default!;
+    [Inject] private NavigationManager PageNavigation { get; set; } = default!;
+    private InitialPageState? _initialState;
     private PeoplePage? _data;
     private bool _requests = true;
     private bool _busy;
@@ -24,7 +28,15 @@ public sealed partial class ClubPeople(IClubGateway gateway, ILogger<ClubPeople>
 
     [Parameter] public Guid ClubId { get; set; }
 
-    protected override Task OnParametersSetAsync() => LoadAsync();
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        // Keep prerendered content in place until the first interactive read finishes.
+        parameters.SetParameterProperties(this);
+        _initialState ??= new(PageState, $"ClubPeople:{PageNavigation.Uri.Split('#')[0]}", RendererInfo.IsInteractive);
+        await LoadAsync();
+        _initialState.Complete(!_failed);
+        await base.SetParametersAsync(ParameterView.Empty);
+    }
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (_focusConfirmation)
@@ -55,7 +67,7 @@ public sealed partial class ClubPeople(IClubGateway gateway, ILogger<ClubPeople>
         }
         try
         {
-            var data = await gateway.GetPeopleAsync(clubId, requests, page);
+            var data = await (_initialState is null ? gateway.GetPeopleAsync(clubId, requests, page) : _initialState.ReadAsync("people", () => gateway.GetPeopleAsync(clubId, requests, page)));
             if (version != _loadVersion) { return; }
             // Commit the view and its rows together; previous rows keep their own actions while loading.
             _data = data;
@@ -133,4 +145,5 @@ public sealed partial class ClubPeople(IClubGateway gateway, ILogger<ClubPeople>
     private static partial void LogPeopleFailed(ILogger logger, Exception exception);
 
     private sealed record Confirmation(string Title, string Description, string Action, Func<Task<ClubReply>> Operation);
+    public void Dispose() => _initialState?.Dispose();
 }

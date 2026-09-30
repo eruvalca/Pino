@@ -32,8 +32,6 @@ public sealed partial class SportingWorkflowTests
         data.Player.Photo = Convert.ToBase64String(BrowserSession.Photo());
         (await session.PostAsync<SportReply>(path + "/players", data.Player)).Kind.ShouldBe(SportReplyKind.Saved);
         await PrepareEnrollmentHistoryForErasureAsync(session, data);
-        (await session.PostAsync<SportReply>(tryoutPath + "/attendance", new AttendanceInput(data.Player.Id, AttendanceKind.Present, 0))).Kind.ShouldBe(SportReplyKind.Saved);
-        (await session.PostAsync<SportReply>(tryoutPath + "/attendance", new AttendanceInput(data.Player.Id, AttendanceKind.Absent, 1))).Kind.ShouldBe(SportReplyKind.Saved);
         var corrected = new NoteInput(Guid.NewGuid(), data.Player.Id, "Corrected sporting observation", data.Note.Id);
         (await session.PostAsync<SportReply>(tryoutPath + "/notes", corrected)).Kind.ShouldBe(SportReplyKind.Saved);
         var sensitive = new NoteInput(Guid.NewGuid(), data.Player.Id, "Synthetic sensitive content to remove");
@@ -73,7 +71,7 @@ public sealed partial class SportingWorkflowTests
         (await session.Context.APIRequest.GetAsync($"{path}/tryouts/{Guid.NewGuid()}/results.csv?editionId={editionId}")).Status.ShouldBe(404);
         await VerifyPersonalExportAsync(session, data, email, sensitive.Id);
         await VerifyHistoryAndExportUiAsync(session, data, editionId, removed.Player.Id);
-        await VerifyAttendancePrintAsync(session, data);
+        await VerifyPlayerPrintAsync(session, data);
         var player = (await session.GetAsync<PlayerDetail>($"{path}/players/{data.Player.Id}")).Player;
         (await session.PostAsync<ErasureReport>(path + "/players/erase", new ErasePlayerInput(Guid.NewGuid(), player.Id, player.Revision, player.FullName, true))).Kind.ShouldBe(SportReplyKind.Saved);
         (await session.Context.APIRequest.GetAsync($"{path}/players/{data.Player.Id}/personal-data")).Status.ShouldBe(404);
@@ -114,7 +112,6 @@ public sealed partial class SportingWorkflowTests
         package.GetProperty("Player").GetProperty("ContactEmail").GetString().ShouldBe("private-player@example.test");
         package.GetProperty("Notes").GetArrayLength().ShouldBe(3);
         package.GetProperty("Notes").EnumerateArray().Single(value => value.GetProperty("Note").GetProperty("Id").GetGuid() == redactedId).GetProperty("Note").GetProperty("Text").GetString().ShouldBeEmpty();
-        package.GetProperty("Attendance").GetArrayLength().ShouldBe(1);
         package.GetProperty("EnrollmentChanges").GetArrayLength().ShouldBe(2);
         package.GetProperty("Placements").GetArrayLength().ShouldBe(1);
         package.GetProperty("Participation").GetArrayLength().ShouldBe(1);
@@ -159,7 +156,7 @@ public sealed partial class SportingWorkflowTests
         await page.GotoAsync($"/clubs/{data.ClubId}/tryouts/{data.Tryout.Id}/review");
         await page.Locator(".sport-sheet button:enabled").First.WaitForAsync();
         await page.GetByLabel("Find a result", new() { Exact = true }).FillAsync("no matching player");
-        await page.GetByText("0 of 2 results shown", new() { Exact = true }).WaitForAsync();
+        await page.GetByText("0 of 2 results match", new() { Exact = true }).WaitForAsync();
         var currentDownload = await page.RunAndWaitForDownloadAsync(() => page.GetByRole(AriaRole.Link, new() { Name = "Download current results (CSV)", Exact = true }).ClickAsync());
         currentDownload.SuggestedFilename.ShouldBe("Pino-current-tryout-results.csv");
         (await File.ReadAllTextAsync((await currentDownload.PathAsync()).ShouldNotBeNull(), TestContext.Current.CancellationToken)).ShouldContain("Current Jordan");
@@ -168,27 +165,25 @@ public sealed partial class SportingWorkflowTests
         (await recordedLink.GetAttributeAsync("href")).ShouldEndWith($"?editionId={editionId}");
         await recordedLink.FocusAsync();
         await page.GetByLabel("Find a result", new() { Exact = true }).FillAsync("");
-        await page.GetByText("3 of 3 results shown", new() { Exact = true }).WaitForAsync();
+        await page.GetByText("3 of 3 results match", new() { Exact = true }).WaitForAsync();
         await CapturePreparationAsync(session, "recorded-edition-export");
         var download = await page.RunAndWaitForDownloadAsync(() => recordedLink.ClickAsync());
         download.SuggestedFilename.ShouldBe($"Pino-recorded-results-{editionId}.csv");
         (await File.ReadAllTextAsync((await download.PathAsync()).ShouldNotBeNull(), TestContext.Current.CancellationToken)).ShouldNotContain("Current Jordan");
     }
 
-    private static async Task VerifyAttendancePrintAsync(BrowserSession session, CloseoutFixture data)
+    private static async Task VerifyPlayerPrintAsync(BrowserSession session, CloseoutFixture data)
     {
         var page = session.Page;
         await page.GotoAsync($"/clubs/{data.ClubId}/tryouts/{data.Tryout.Id}/print");
         await page.GetByRole(AriaRole.Button, new() { Name = "Print list", Exact = true }).WaitForAsync();
         await page.Locator("#print-order:enabled").WaitForAsync();
         (await page.Locator("tbody tr").CountAsync()).ShouldBe(2);
-        (await page.Locator(".attendance-sheet").InnerTextAsync()).ShouldContain("Absent");
-        (await page.Locator(".attendance-sheet").InnerTextAsync()).ShouldNotContain("Present");
-        (await page.Locator(".attendance-sheet").InnerTextAsync()).ShouldNotContain("private-player@example.test");
+        (await page.Locator(".roster-sheet").InnerTextAsync()).ShouldNotContain("private-player@example.test");
         await page.GetByLabel("List order", new() { Exact = true }).SelectOptionAsync("bib");
         (await page.Locator("tbody tr").First.InnerTextAsync()).ShouldContain("Current Jordan");
         await page.GetByRole(AriaRole.Button, new() { Name = "Print list", Exact = true }).FocusAsync();
-        await CapturePreparationAsync(session, "attendance-print-list");
+        await CapturePreparationAsync(session, "roster-print-list");
         // Observe the browser print event without opening an unattended OS print dialog.
         await page.EvaluateAsync("() => { window.pinoPrintInvoked = false; window.print = () => { window.pinoPrintInvoked = true; }; }");
         await page.GetByRole(AriaRole.Button, new() { Name = "Print list", Exact = true }).FocusAsync();
@@ -199,10 +194,10 @@ public sealed partial class SportingWorkflowTests
         (await page.Locator(".app-masthead").IsVisibleAsync()).ShouldBeFalse();
         (await page.Locator(".club-context").IsVisibleAsync()).ShouldBeFalse();
         (await page.Locator("thead").EvaluateAsync<string>("element => getComputedStyle(element).display")).ShouldBe("table-header-group");
-        await session.CaptureAsync("attendance-print-media");
+        await session.CaptureAsync("roster-print-media");
         if (Environment.GetEnvironmentVariable("PINO_BROWSER_ARTIFACTS") is { Length: > 0 } output)
         {
-            await page.PdfAsync(new() { Path = Path.Combine(output, "attendance-list.pdf"), Format = "A4", Margin = new() { Top = "12mm", Bottom = "12mm", Left = "12mm", Right = "12mm" } });
+            await page.PdfAsync(new() { Path = Path.Combine(output, "roster-list.pdf"), Format = "A4", Margin = new() { Top = "12mm", Bottom = "12mm", Left = "12mm", Right = "12mm" } });
         }
         await page.EmulateMediaAsync(new() { Media = Media.Screen });
     }

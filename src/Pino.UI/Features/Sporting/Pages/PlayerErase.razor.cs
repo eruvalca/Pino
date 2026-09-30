@@ -18,9 +18,9 @@ public sealed partial class PlayerErase : SportPageBase
     protected override async Task LoadAsync()
     {
         if (Membership?.Role != ClubRole.Administrator) { _player = null; return; }
-        if (OperationId != Guid.Empty) { _operationId = OperationId; _result = await Gateway.GetErasureAsync(ClubId, OperationId, Token); return; }
-        if (_result is { Kind: SportReplyKind.Saved }) { _result = await Gateway.GetErasureAsync(ClubId, _operationId, Token); return; }
-        _player = (await Gateway.GetPlayerAsync(ClubId, PlayerId, Token)).Player;
+        if (OperationId != Guid.Empty) { _operationId = OperationId; _result = await ReadInitialAsync("GetErasureAsync", () => Gateway.GetErasureAsync(ClubId, OperationId, Token)); return; }
+        if (_result is { Kind: SportReplyKind.Saved }) { _result = await ReadInitialAsync("GetErasureAsync", () => Gateway.GetErasureAsync(ClubId, _operationId, Token)); return; }
+        _player = (await ReadInitialAsync("GetPlayerAsync", () => Gateway.GetPlayerAsync(ClubId, PlayerId, Token))).Player;
         _operationId = Guid.NewGuid();
         _confirmation = "";
         _acknowledge = false;
@@ -33,5 +33,5 @@ public sealed partial class PlayerErase : SportPageBase
         if (_result.Kind == SportReplyKind.Saved) { _player = null; _confirmation = ""; _acknowledge = false; Navigation.NavigateTo($"/clubs/{ClubId}/erasures/{_operationId}"); }
         else { Message = _result.Message; MessageKind = "error"; }
     });
-    private Task CheckAsync() => ExecuteAsync(async () => _result = await Gateway.GetErasureAsync(ClubId, _operationId, Token));
+    private Task CheckAsync() => ExecuteAsync(async () => _result = await ReadInitialAsync("GetErasureAsync", () => Gateway.GetErasureAsync(ClubId, _operationId, Token)));
 }

@@ -34,11 +34,6 @@ internal sealed partial class SportService
                                        where entry.ClubId == clubId && entry.PlayerId == playerId
                                        orderby tryout.Date, tryout.Id
                                        select new { Enrollment = entry, Tryout = new { tryout.Name, tryout.Date, tryout.Location, tryout.Closed }, Season = season.Name }).AsNoTracking().ToArrayAsync(token);
-            var attendance = await (from entry in db.TryoutAttendances
-                                    join tryout in db.TryoutEvents on entry.TryoutId equals tryout.Id
-                                    where entry.ClubId == clubId && entry.PlayerId == playerId
-                                    orderby tryout.Date, tryout.Id
-                                    select new { Attendance = entry, Tryout = new { tryout.Name, tryout.Date, tryout.Location } }).AsNoTracking().ToArrayAsync(token);
             var enrollmentChanges = await db.EnrollmentChanges.AsNoTracking().Where(value => value.ClubId == clubId && value.PlayerId == playerId).OrderBy(value => value.CreatedAt).ThenBy(value => value.Id).ToArrayAsync(token);
             var editions = await (from result in db.TryoutCloseoutPlayers
                                   join edition in db.TryoutCloseouts on result.CloseoutId equals edition.Id
@@ -57,7 +52,6 @@ internal sealed partial class SportService
                     Decisions = decisions,
                     Placements = placements,
                     Participation = participation,
-                    Attendance = attendance,
                     EnrollmentChanges = enrollmentChanges,
                     RecordedEditions = editions,
                 },
