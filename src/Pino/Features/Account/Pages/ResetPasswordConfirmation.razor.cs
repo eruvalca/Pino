@@ -1,5 +1,3 @@
 namespace Pino.Features.Account.Pages;
 
-public sealed partial class ResetPasswordConfirmation
-{
-}
+public sealed partial class ResetPasswordConfirmation;

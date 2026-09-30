@@ -154,6 +154,6 @@ public sealed class PasskeyManagementTests
     }
 
     private static UserPasskeyInfo CreatePasskey() => new([251, 255, 0], [4, 5, 6], DateTimeOffset.UnixEpoch,
-        0, ["internal"], true, false, false, [], [])
+        0, ["internal"], isUserVerified: true, isBackupEligible: false, isBackedUp: false, [], [])
     { Name = "Laptop" };
 }

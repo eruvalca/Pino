@@ -135,6 +135,6 @@ internal sealed partial class ClubService
             var member = await db.ClubMemberships.SingleOrDefaultAsync(value => value.UserId == id && value.ClubId == clubId, ct);
             return member is null
                 ? new ClubOperationOutcome.Conflict("You no longer belong to this club.")
-                : await ChangeMemberCoreAsync(db, clubId, new(id, member.Role, null), ct);
+                : await ChangeMemberCoreAsync(db, clubId, new(id, member.Role, NewRole: null), ct);
         }, cancellationToken);
 }

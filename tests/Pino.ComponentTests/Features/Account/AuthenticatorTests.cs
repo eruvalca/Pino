@@ -53,7 +53,7 @@ public sealed class AuthenticatorTests
         var (account, user) = ConfigureAuthenticator(context);
         var logger = context.CaptureLogs<EnableAuthenticator>();
         account.Users.VerifyTwoFactorTokenAsync(user, account.Users.Options.Tokens.AuthenticatorTokenProvider, "123456").Returns(validCode);
-        account.Users.SetTwoFactorEnabledAsync(user, true).Returns(enableSucceeds ? IdentityResult.Success : IdentityResult.Failed());
+        account.Users.SetTwoFactorEnabledAsync(user, enabled: true).Returns(enableSucceeds ? IdentityResult.Success : IdentityResult.Failed());
         account.Users.GenerateNewTwoFactorRecoveryCodesAsync(user, 10).Returns((IEnumerable<string>?)null);
         var component = account.Render<EnableAuthenticator>(context);
         await component.Find("input[name='Input.Code']").ChangeAsync(new ChangeEventArgs { Value = "123-456" });
@@ -80,8 +80,8 @@ public sealed class AuthenticatorTests
         await using var context = new BunitContext();
         var (account, user) = ConfigureAuthenticator(context);
         var logger = context.CaptureLogs<EnableAuthenticator>();
-        account.Users.VerifyTwoFactorTokenAsync(user, account.Users.Options.Tokens.AuthenticatorTokenProvider, "123456").Returns(true);
-        account.Users.SetTwoFactorEnabledAsync(user, true).Returns(IdentityResult.Success);
+        account.Users.VerifyTwoFactorTokenAsync(user, account.Users.Options.Tokens.AuthenticatorTokenProvider, "123456").Returns(returnThis: true);
+        account.Users.SetTwoFactorEnabledAsync(user, enabled: true).Returns(IdentityResult.Success);
         string[] codes = ["first-code", "second-code"];
         account.Users.GenerateNewTwoFactorRecoveryCodesAsync(user, 10).Returns(codes);
         var component = account.Render<EnableAuthenticator>(context);
@@ -100,8 +100,8 @@ public sealed class AuthenticatorTests
     {
         await using var context = new BunitContext();
         var (account, user) = ConfigureAuthenticator(context);
-        account.Users.VerifyTwoFactorTokenAsync(user, account.Users.Options.Tokens.AuthenticatorTokenProvider, "123456").Returns(true);
-        account.Users.SetTwoFactorEnabledAsync(user, true).Returns(IdentityResult.Success);
+        account.Users.VerifyTwoFactorTokenAsync(user, account.Users.Options.Tokens.AuthenticatorTokenProvider, "123456").Returns(returnThis: true);
+        account.Users.SetTwoFactorEnabledAsync(user, enabled: true).Returns(IdentityResult.Success);
         account.Users.CountRecoveryCodesAsync(user).Returns(1);
         var component = account.Render<EnableAuthenticator>(context);
         await component.Find("input[name='Input.Code']").ChangeAsync(new ChangeEventArgs { Value = "123456" });
@@ -121,7 +121,7 @@ public sealed class AuthenticatorTests
         await using var context = new BunitContext();
         var (account, user) = ConfigureAuthenticator(context);
         var logger = context.CaptureLogs<ResetAuthenticator>();
-        account.Users.SetTwoFactorEnabledAsync(user, false).Returns(disabled ? IdentityResult.Success : IdentityResult.Failed());
+        account.Users.SetTwoFactorEnabledAsync(user, enabled: false).Returns(disabled ? IdentityResult.Success : IdentityResult.Failed());
         account.Users.ResetAuthenticatorKeyAsync(user).Returns(IdentityResult.Failed());
         var component = account.Render<ResetAuthenticator>(context);
 
@@ -143,7 +143,7 @@ public sealed class AuthenticatorTests
         await using var context = new BunitContext();
         var (account, user) = ConfigureAuthenticator(context);
         var logger = context.CaptureLogs<ResetAuthenticator>();
-        account.Users.SetTwoFactorEnabledAsync(user, false).Returns(IdentityResult.Success);
+        account.Users.SetTwoFactorEnabledAsync(user, enabled: false).Returns(IdentityResult.Success);
         account.Users.ResetAuthenticatorKeyAsync(user).Returns(IdentityResult.Success);
         var component = account.Render<ResetAuthenticator>(context);
 

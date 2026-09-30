@@ -44,12 +44,13 @@ public sealed class ServiceDefaultsExtensionsTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    [SuppressMessage("Style", "IDE0007:Use implicit type", Justification = "The explicit result type verifies that the fluent API preserves WebApplicationBuilder at compile time.")]
     public async Task ServiceDefaultsPreserveConcreteBuilderAndRegisterSharedServicesAsync(bool explicitStaticCall)
     {
         var builder = CreateBuilder(Environments.Development);
 
         WebApplicationBuilder result = explicitStaticCall
-            ? ServiceDefaultsApi.AddServiceDefaults<WebApplicationBuilder>(builder: builder)
+            ? ServiceDefaultsApi.AddServiceDefaults(builder: builder)
             : builder.AddServiceDefaults();
 
         result.ShouldBeSameAs(builder);
@@ -64,12 +65,13 @@ public sealed class ServiceDefaultsExtensionsTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    [SuppressMessage("Style", "IDE0007:Use implicit type", Justification = "The explicit result type verifies that the fluent API preserves WebApplicationBuilder at compile time.")]
     public async Task OpenTelemetryPreservesConcreteBuilderAndRegistersProvidersAsync(bool explicitStaticCall)
     {
         var builder = CreateBuilder(Environments.Development);
 
         WebApplicationBuilder result = explicitStaticCall
-            ? ServiceDefaultsApi.ConfigureOpenTelemetry<WebApplicationBuilder>(builder: builder)
+            ? ServiceDefaultsApi.ConfigureOpenTelemetry(builder: builder)
             : builder.ConfigureOpenTelemetry();
 
         result.ShouldBeSameAs(builder);
@@ -81,12 +83,13 @@ public sealed class ServiceDefaultsExtensionsTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    [SuppressMessage("Style", "IDE0007:Use implicit type", Justification = "The explicit result type verifies that the fluent API preserves WebApplicationBuilder at compile time.")]
     public async Task DefaultHealthChecksPreserveConcreteBuilderAndSelfCheckAsync(bool explicitStaticCall)
     {
         var builder = CreateBuilder(Environments.Development);
 
         WebApplicationBuilder result = explicitStaticCall
-            ? ServiceDefaultsApi.AddDefaultHealthChecks<WebApplicationBuilder>(builder: builder)
+            ? ServiceDefaultsApi.AddDefaultHealthChecks(builder: builder)
             : builder.AddDefaultHealthChecks();
 
         result.ShouldBeSameAs(builder);

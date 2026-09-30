@@ -43,6 +43,7 @@ Read the relevant references as needed:
 | `src/Pino.ServiceDefaults` | Health checks, telemetry, and service defaults |
 | `tests/Pino.UnitTests` | Server logic tests |
 | `tests/Pino.ComponentTests` | Blazor rendering and interaction tests with bUnit |
+| `tests/Pino.BrowserTests` | Opt-in browser and persistence journeys against local Aspire |
 | `build/Pino.Build` | Razor code-behind policy validator |
 
 - Preserve dependency direction: `Pino.Client` and `Pino.UI` must not reference
@@ -203,8 +204,9 @@ Read the relevant references as needed:
   let the generator supply constructors/conversions. Small local helpers need
   not become named union classes.
 - Use exhaustive `Match` for values and `Switch` for synchronous side effects.
-  Return and await `Match<Task>` or `Match<Task<T>>` for asynchronous branches;
-  never pass async lambdas to `Switch`. Use `TryPick` for deliberate separation
+  Return or await asynchronous `Match` calls returning `Task` or `Task<T>`; let
+  the compiler infer type arguments when possible. Never pass async lambdas to
+  `Switch`. Use `TryPick` for deliberate separation
   of one case; avoid routine `.Value`, `IsTn`, or `AsTn` control flow. Direct case
   inspection is appropriate in tests.
 - Represent anticipated failure and partial completion accurately, including
@@ -251,6 +253,14 @@ Read the relevant references as needed:
   or hard-code credentials.
 - Use `IDbContextFactory<ApplicationDbContext>` for independent Blazor operations
   and dispose created contexts. Preserve Identity schema version 3 and passkeys.
+- Expose each application entity through a named plural `DbSet<T>` property on
+  `ApplicationDbContext` and use those properties in feature code. Let EF Core
+  derive table names from the set names; preserve Identity's own mappings.
+  Keep each entity's explicit mapping in a colocated `IEntityTypeConfiguration<T>`
+  class. Register configurations with `ApplyConfigurationsFromAssembly` after
+  Identity's model configuration, and keep them independent of discovery order.
+  Apply only constraints or relationships that conventions cannot express.
+  Preserve deliberate club-scoped keys, concurrency tokens, and delete restrictions.
 - Author migrations through the built-in `pino-migrations` resource using the
   web startup model. Keep migrations/snapshot in `src/Pino/Data/Migrations`,
   namespace `Pino.Migrations`, and rebuild after generation. The web resource
@@ -270,24 +280,39 @@ Read the relevant references as needed:
   Keep secrets, dashboard tokens, local runtime state, telemetry exports, and
   temporary browser captures out of source control. Do not enable preview
   browser logging unless requested.
-- The no-op email sender and scaffold confirmation link are development setup,
-  not a production delivery mechanism. Follow the README's production requirements
-  before deployment; do not weaken authentication to make a design demo work.
+- Account mail uses SMTP with Mailpit supplied by Aspire for local development.
+  Keep the confirmation requirement and do not restore an inline confirmation
+  shortcut. Follow the README's SMTP and storage requirements before deployment.
 
 ## Validation and tests
 
 Run commands from the repository root so `global.json` selects the SDK and native
 Microsoft.Testing.Platform (MTP) runner. After code changes, run the full solution
-build and both test projects; use relevant focused tests during development:
+build, formatting/analyzer verification, and tests; use relevant focused tests during development:
 
 ```powershell
 dotnet build Pino.slnx
+dotnet format Pino.slnx --verify-no-changes --no-restore --severity warn
 dotnet test --solution Pino.slnx
 ```
 
+- Before any authorized commit, including documentation-only commits, run the
+  full-solution formatting/analyzer verification above and resolve every failure. Run
+  `dotnet restore Pino.slnx` first if dependencies have not been restored or have
+  changed since the last restore/build. Rerun verification after any subsequent
+  C# or style/project configuration edits; do not narrow the pre-commit check to
+  selected files or diagnostics. A passing build does not cover editor-only
+  style rules. Use the build guide's suggestion-level audit when reviewing all
+  enabled rules; assess advisory findings and framework uses before applying fixes.
+  See [build/README.md](build/README.md#pre-commit-style-verification).
 - Unit and component tests are headless and need no Aspire, database, browser,
   or editor. Use `Pino.UnitTests` for server logic and `Pino.ComponentTests` for
   rendering/interactions. See the test guide for focused project commands.
+- The browser journeys in `Pino.BrowserTests` are opt-in and exercise the local
+  Aspire application and persistence; its fixture-cleanup tests run headlessly.
+  Build before starting Aspire, then use `scripts/Invoke-BrowserTests.ps1`.
+  The tests clean only their own accounts, clubs and messages; do not replace
+  this cleanup with a database reset. See the test guide for browser setup.
 - Use xUnit discovery/execution with `xunit.v3.core.mtp-v2` and Shouldly assertions
   exclusively. Do not add xUnit assertions, FluentAssertions, or bUnit assertion
   helpers such as `MarkupMatches`. For semantic markup, assert that `CompareTo`
@@ -317,6 +342,7 @@ dotnet test --solution Pino.slnx
   changes need integration validation when they affect database behavior.
 - For documentation-only changes, verify accuracy, referenced paths, and the diff;
   application builds/tests are unnecessary unless executable behavior also changes.
+  The pre-commit style verification requirement still applies.
 - Report what changed, the checks actually run, and any remaining limitations.
   For tests, report actual passed, failed, and skipped counts. State blockers
   clearly rather than claiming unperformed validation.

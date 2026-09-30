@@ -52,7 +52,7 @@ internal static class SampleRoster
         {
             for (var index = 17; index <= 96; index++)
             {
-                players.Add(new(index, $"Sample player {index}", 2030 + (index % 3), "Position not recorded", index + 30));
+                players.Add(new(index, string.Create(System.Globalization.CultureInfo.CurrentCulture, $"Sample player {index}"), 2030 + (index % 3), "Position not recorded", index + 30));
             }
         }
 

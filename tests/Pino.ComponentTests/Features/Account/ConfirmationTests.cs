@@ -80,7 +80,7 @@ public sealed class ConfirmationTests
         navigation.Uri.ShouldBe("http://localhost/Account/Login");
         account.StatusCookie.ShouldContain("Invalid email change confirmation link");
         await account.Users.DidNotReceiveWithAnyArgs().ChangeEmailAsync(default!, default!, default!);
-        await account.Users.DidNotReceiveWithAnyArgs().SetUserNameAsync(default!, default!);
+        await account.Users.DidNotReceiveWithAnyArgs().SetUserNameAsync(default!, default);
         await account.SignIn.DidNotReceiveWithAnyArgs().RefreshSignInAsync(default!);
     }
 

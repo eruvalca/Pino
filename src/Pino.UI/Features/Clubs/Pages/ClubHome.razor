@@ -2,29 +2,37 @@
 @attribute [Authorize]
 @rendermode InteractiveAuto
 @layout ClubLayout
+@inherits Pino.UI.Features.Sporting.Services.SportPageBase
+@using Pino.UI.Features.Sporting.Components
 
-<PageTitle>Club workspace · Pino</PageTitle>
-<ClubPageShell Club="_membership?.Club">
-<article class="club-home">
-    @if (_membership is { } member)
+<PageTitle>@(Membership?.Club.Name ?? "Club workspace") · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    <header class="sport-heading">
+        <div><h1>@Membership?.Club.Name</h1><p>@Membership?.Club.Sport · @Membership?.Club.City · Your club notebook</p></div>
+        <a class="primary-action" href="@($"/clubs/{ClubId}/seasons")">Plan a season</a>
+    </header>
+    @if (_overview is not null)
     {
-        <h1>@member.Club.Name</h1>
-        <p class="muted">@member.Club.Sport · @member.Club.City, @UsStates.All[member.Club.State]</p>
-        <p>Your role: <strong>@member.Role</strong></p>
-        <section class="club-start"><h2>Your club is ready</h2><p>This workspace has no player or season workflows yet. Club access and member management are available now.</p>
-            <div class="actions">
-                @if (member.Role == ClubRole.Administrator) { <a class="primary-action" href="@($"/clubs/{ClubId}/people")">Manage people</a> }
-                <a class="secondary-action" href="/club/access">Your club access</a>
-            </div>
-        </section>
-        <p class="muted">You can explore the <a href="/tryouts/spring-2027">fictional tryout demonstration</a>. It is separate from your club's records.</p>
+        @if (_overview.Seasons.Count == 0)
+        {
+            <section class="sport-empty"><h2>Start with your players and a season</h2><p>Add your club's player catalog, create a season and its teams, then open a tryout to record notes and decisions. Each season keeps its own placement history.</p><a class="secondary-action" href="@($"/clubs/{ClubId}/players")">Add your first players</a></section>
+        }
+        else
+        {
+            <section><h2>Tryouts</h2>
+                @if (_overview.Tryouts.Count == 0) { <p class="muted">Your season is ready for a tryout. Open Seasons &amp; teams to set the date and add a roster.</p> }
+                <ul class="record-list">
+                @foreach (var tryout in _overview.Tryouts.Where(value => _overview.Seasons.Any(season => season.Id == value.SeasonId && !season.Archived)))
+                {
+                    <li class="record-row" @key="tryout.Id"><div><h3><a href="@($"/clubs/{ClubId}/tryouts/{tryout.Id}")">@tryout.Name</a></h3><p class="muted">@_overview.Seasons.First(season => season.Id == tryout.SeasonId).Name · @tryout.Date.ToString("MMM d, yyyy")</p></div><span class="decision-badge" data-kind="@(tryout.Complete ? "placed" : "awaiting")">@Pino.UI.Features.Sporting.Services.SportLabels.Progress(tryout)</span></li>
+                }
+                </ul>
+                <a href="@($"/clubs/{ClubId}/seasons")">View all seasons, teams and archived tryouts</a>
+            </section>
+        }
+        <section class="sport-section"><h2>Club records</h2><ul class="record-list">
+            <li class="record-row"><div><h3><a href="@($"/clubs/{ClubId}/players")">Player catalog</a></h3><p class="muted">Player details, CSV import and placement history across seasons.</p></div></li>
+            @if (Membership?.Role == ClubRole.Administrator) { <li class="record-row"><div><h3><a href="@($"/clubs/{ClubId}/people")">People &amp; requests</a></h3><p class="muted">Review join requests and manage your club's coaches and administrators.</p></div></li> }
+        </ul></section>
     }
-    else
-    {
-        <h1>Club workspace</h1><p>@(_unavailable ? "This club isn't available to your account. Check your current access." : "Checking your membership…")</p>
-        <a href="/club/access">Your club access</a>
-        @if (_unavailable) { <button class="secondary-action" @onclick="LoadAsync">Check again</button> }
-    }
-</article>
-<AccessWatch Tick="LoadAsync" />
-</ClubPageShell>
+</SportFrame>

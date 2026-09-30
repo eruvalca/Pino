@@ -85,7 +85,7 @@ public sealed class AuthenticatorGuardTests
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
         account.Http.Request.Method = HttpMethods.Get;
-        account.Users.GetTwoFactorEnabledAsync(user).Returns(true);
+        account.Users.GetTwoFactorEnabledAsync(user).Returns(returnThis: true);
         var navigation = context.Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo("Account/Manage/Disable2fa");
 

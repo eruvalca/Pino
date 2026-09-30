@@ -22,7 +22,7 @@ public sealed class TwoFactorSignInTests
     {
         await using var context = new BunitContext();
         var account = Configure(context);
-        account.SignIn.TwoFactorAuthenticatorSignInAsync("123456", false, false).Returns(Rejected(outcome));
+        account.SignIn.TwoFactorAuthenticatorSignInAsync("123456", isPersistent: false, rememberClient: false).Returns(Rejected(outcome));
         var component = account.Render<LoginWith2fa>(context);
         await component.Find("input[name='Input.TwoFactorCode']").ChangeAsync(new ChangeEventArgs { Value = "123-456" });
 
@@ -55,7 +55,7 @@ public sealed class TwoFactorSignInTests
         var account = Configure(context);
         var navigation = context.Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo("Account/LoginWith2fa?rememberMe=true&returnUrl=%2Fevents");
-        account.SignIn.TwoFactorAuthenticatorSignInAsync("123456", true, true).Returns(SignInResult.Success);
+        account.SignIn.TwoFactorAuthenticatorSignInAsync("123456", isPersistent: true, rememberClient: true).Returns(SignInResult.Success);
         var component = account.Render<LoginWith2fa>(context);
         await component.Find("input[name='Input.TwoFactorCode']").ChangeAsync(new ChangeEventArgs { Value = "123 456" });
         await component.Find("input[type='checkbox']").ChangeAsync(new ChangeEventArgs { Value = true });
@@ -63,7 +63,7 @@ public sealed class TwoFactorSignInTests
         await component.Find("form").SubmitAsync();
 
         navigation.Uri.ShouldBe("http://localhost/events");
-        await account.SignIn.Received(1).TwoFactorAuthenticatorSignInAsync("123456", true, true);
+        await account.SignIn.Received(1).TwoFactorAuthenticatorSignInAsync("123456", isPersistent: true, rememberClient: true);
     }
 
     [Fact]

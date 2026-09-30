@@ -1,0 +1,48 @@
+@page "/clubs/{ClubId:guid}/seasons"
+@page "/clubs/{ClubId:guid}/seasons/{SeasonId:guid}"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits SportPageBase
+
+<PageTitle>@(_selected?.Name ?? "Seasons & teams") · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    @if (_selected is not null) { <p><a href="@($"/clubs/{ClubId}/seasons")">All seasons</a></p> }
+    <header class="sport-heading"><div><h1>@(_selected?.Name ?? "Seasons & teams")</h1><p>@(_selected is null ? "Prepare the season, then bring players into a tryout." : $"{_selected.StartsOn:MMM d, yyyy} – {_selected.EndsOn:MMM d, yyyy}")</p></div>
+        @if (_selected is null) { <button class="primary-action" @onclick="NewSeason" disabled="@Disabled">Add season</button> }
+        else { <button class="secondary-action" @onclick="EditSeason" disabled="@Disabled">@(_selected.Archived ? "Reopen or edit season" : "Edit season")</button> }
+    </header>
+    @if (_seasonInput is not null) { <section class="sport-edit"><h2>@(_seasonInput.Revision == 0 ? "New season" : "Edit season")</h2><SeasonEditor @key="_seasonInput" Input="_seasonInput" Save="SaveSeasonAsync" Cancel="CloseForms" Busy="Busy" /></section> }
+    @if (_overview is not null && _selected is null)
+    {
+        @if (_overview.Seasons.Count == 0) { <section class="sport-empty"><h2>A season gives every placement its context</h2><p>Create your first season, set its dates, then add teams and tryouts. Players can move teams in later seasons without losing their history.</p></section> }
+        <ul class="record-list">
+        @foreach (var season in _overview.Seasons)
+        {
+            <li class="record-row" @key="season.Id"><div><h2><a href="@($"/clubs/{ClubId}/seasons/{season.Id}")">@season.Name</a></h2><p class="muted">@season.StartsOn.ToString("MMM d, yyyy") – @season.EndsOn.ToString("MMM d, yyyy") · @_overview.Teams.Count(team => team.SeasonId == season.Id) teams · @_overview.Tryouts.Count(tryout => tryout.SeasonId == season.Id) tryouts</p></div><span class="decision-badge" data-kind="@(season.Archived ? "withdrawn" : "awaiting")">@(season.Archived ? "Archived" : "Active season")</span></li>
+        }
+        </ul>
+    }
+    else if (_overview is not null && _selected is { } selected)
+    {
+        @if (selected.Archived) { <p class="notice" data-kind="information">Archived season. Notes, rosters and history remain readable. Reopen the season to make corrections.</p> }
+        <section class="sport-section">
+            <header class="sport-heading"><div><h2>Tryouts</h2><p>Enroll players, share observations and record every outcome.</p></div><button class="primary-action" disabled="@(Disabled || selected.Archived)" @onclick="NewTryout">Add tryout</button></header>
+            @if (_tryoutInput is not null) { <div class="sport-edit"><h3>@(_tryoutInput.Revision == 0 ? "New tryout" : "Edit tryout")</h3><TryoutEditor @key="_tryoutInput" Input="_tryoutInput" Save="SaveTryoutAsync" Cancel="CloseForms" Busy="Busy" /></div> }
+            @if (!_overview.Tryouts.Any(tryout => tryout.SeasonId == SeasonId)) { <p class="muted">No tryouts yet. Add one when you're ready to build the roster.</p> }
+            <ul class="record-list">@foreach (var tryout in _overview.Tryouts.Where(tryout => tryout.SeasonId == SeasonId))
+            {
+                <li class="record-row" @key="tryout.Id"><div><h3><a href="@($"/clubs/{ClubId}/tryouts/{tryout.Id}")">@tryout.Name</a></h3><p class="muted">@tryout.Date.ToString("MMM d, yyyy")@(tryout.Location.Length > 0 ? $" · {tryout.Location}" : "")</p><p>@SportLabels.Progress(tryout) · @tryout.Decided / @tryout.Players decisions</p></div><button class="text-action" disabled="@(Disabled || selected.Archived)" @onclick="() => EditTryout(tryout)" aria-label="@($"Edit {tryout.Name}")">Edit</button></li>
+            }</ul>
+        </section>
+        <section class="sport-section">
+            <header class="sport-heading"><div><h2>Teams</h2><p>Each player can have one current team in this season.</p></div><button class="secondary-action" disabled="@(Disabled || selected.Archived)" @onclick="NewTeam">Add team</button></header>
+            @if (_teamInput is not null) { <div class="sport-edit"><h3>@(_teamInput.Revision == 0 ? "New team" : "Edit team")</h3><TeamEditor @key="_teamInput" Input="_teamInput" Save="SaveTeamAsync" Cancel="CloseForms" Busy="Busy" /></div> }
+            @if (!_overview.Teams.Any(team => team.SeasonId == SeasonId)) { <p class="muted">No teams yet. Add a team and its earliest graduation year before making placements.</p> }
+            <ul class="record-list">@foreach (var team in _overview.Teams.Where(team => team.SeasonId == SeasonId))
+            {
+                <li class="record-row" @key="team.Id"><div><h3><a href="@($"/clubs/{ClubId}/teams/{team.Id}")">@team.Name</a></h3><p class="muted">Graduation @team.GraduationYear or later@(team.Archived ? " · Archived" : "")</p></div><button class="text-action" disabled="@(Disabled || selected.Archived)" @onclick="() => EditTeam(team)" aria-label="@($"Edit {team.Name}")">Edit</button></li>
+            }</ul>
+        </section>
+    }
+</SportFrame>

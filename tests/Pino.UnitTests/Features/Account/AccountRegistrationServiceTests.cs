@@ -130,14 +130,14 @@ public sealed class AccountRegistrationServiceTests
         error.Description.ShouldBe("Provider is already linked");
         await identity.Users.DidNotReceiveWithAnyArgs().DeleteAsync(default!);
         await identity.Users.DidNotReceiveWithAnyArgs().GenerateEmailConfirmationTokenAsync(default!);
-        await identity.SignIn.DidNotReceiveWithAnyArgs().SignInAsync(default!, default(bool), default!);
+        await identity.SignIn.DidNotReceiveWithAnyArgs().SignInAsync(default!, default(bool), default);
     }
 
     [Fact]
     public async Task UnsupportedEmailStoreIsAnUnexpectedConfigurationErrorAsync()
     {
         using var identity = IdentityTestContext.Create();
-        identity.Users.SupportsUserEmail.Returns(false);
+        identity.Users.SupportsUserEmail.Returns(returnThis: false);
         var service = new AccountRegistrationService(identity.Users, identity.Store);
 
         await Should.ThrowAsync<NotSupportedException>(() => service.PasswordAsync("member@example.test", "secret"));
@@ -148,7 +148,7 @@ public sealed class AccountRegistrationServiceTests
     private static List<string> ConfigureUserInitialization(IdentityTestContext identity)
     {
         var steps = new List<string>();
-        identity.Users.SupportsUserEmail.Returns(true);
+        identity.Users.SupportsUserEmail.Returns(returnThis: true);
         identity.Store.SetUserNameAsync(Arg.Any<ApplicationUser>(), "member@example.test", CancellationToken.None).Returns(call =>
         {
             steps.Add("username");

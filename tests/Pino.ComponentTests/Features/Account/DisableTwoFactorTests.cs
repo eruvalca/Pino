@@ -26,7 +26,7 @@ public sealed class DisableTwoFactorTests
         var user = account.Authenticate();
         var logger = context.CaptureLogs<Disable2fa>();
         account.Users.GetTwoFactorEnabledAsync(user).Returns(enabled);
-        account.Users.SetTwoFactorEnabledAsync(user, false).Returns(succeeds ? IdentityResult.Success : IdentityResult.Failed());
+        account.Users.SetTwoFactorEnabledAsync(user, enabled: false).Returns(succeeds ? IdentityResult.Success : IdentityResult.Failed());
         var component = account.Render<Disable2fa>(context);
 
         await component.Find("form").SubmitAsync();

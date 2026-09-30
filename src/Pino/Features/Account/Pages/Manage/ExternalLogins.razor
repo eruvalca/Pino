@@ -30,7 +30,7 @@
                                     <div>
                                         <input type="hidden" name="@nameof(LoginProvider)" value="@login.LoginProvider" />
                                         <input type="hidden" name="@nameof(ProviderKey)" value="@login.ProviderKey" />
-                                        <button type="submit" title="Remove this @login.ProviderDisplayName login from your account">Remove</button>
+                                        <button class="secondary-action" type="submit" title="Remove this @login.ProviderDisplayName login from your account">Remove</button>
                                     </div>
                                 </form>
                             }
@@ -55,7 +55,7 @@
             <div class="actions">
                 @foreach (var provider in _otherLogins)
                 {
-                    <button type="submit" name="Provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                    <button class="secondary-action" type="submit" name="Provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
                         @provider.DisplayName
                     </button>
                 }

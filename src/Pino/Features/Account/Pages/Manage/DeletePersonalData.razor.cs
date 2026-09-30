@@ -49,7 +49,7 @@ public sealed partial class DeletePersonalData
         {
             if (result.Errors.Any(error => string.Equals(error.Code, "ClubMembership", StringComparison.Ordinal)))
             {
-                _message = "Error: " + string.Join(" ", result.Errors.Select(error => error.Description));
+                _message = "Error: " + string.Join(' ', result.Errors.Select(error => error.Description));
                 return;
             }
             throw new InvalidOperationException("Unexpected error occurred deleting user.");

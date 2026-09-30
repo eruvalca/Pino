@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Pino.Features.Clubs.Data;
+using Pino.Features.Sporting.Data;
 
 namespace Pino.Data;
 
@@ -11,10 +12,18 @@ internal sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext
     internal DbSet<ClubMembership> ClubMemberships => Set<ClubMembership>();
     internal DbSet<ClubJoinRequest> ClubJoinRequests => Set<ClubJoinRequest>();
     internal DbSet<PhotoDeletion> PhotoDeletions => Set<PhotoDeletion>();
+    internal DbSet<Player> Players => Set<Player>();
+    internal DbSet<Season> Seasons => Set<Season>();
+    internal DbSet<SportTeam> SportTeams => Set<SportTeam>();
+    internal DbSet<TryoutEvent> TryoutEvents => Set<TryoutEvent>();
+    internal DbSet<Participation> Participations => Set<Participation>();
+    internal DbSet<SeasonPlacement> SeasonPlacements => Set<SeasonPlacement>();
+    internal DbSet<PlayerNote> PlayerNotes => Set<PlayerNote>();
+    internal DbSet<DecisionEvent> DecisionEvents => Set<DecisionEvent>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
-        ClubModel.Configure(builder);
+        builder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
     }
 }

@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Cropper.Blazor.Extensions;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Pino.Client.Features.Clubs;
 using Pino.SharedKernel.Clubs;
 
@@ -11,5 +11,6 @@ builder.Services.AddAuthenticationStateDeserialization();
 builder.Services.AddCropper();
 builder.Services.AddScoped(_ => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddScoped<IClubGateway, HttpClubGateway>();
+builder.Services.AddScoped<Pino.SharedKernel.Sporting.ISportGateway, Pino.Client.Features.Sporting.HttpSportGateway>();
 
 await builder.Build().RunAsync();

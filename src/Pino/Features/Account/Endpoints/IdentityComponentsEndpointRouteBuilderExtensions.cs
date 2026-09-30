@@ -7,9 +7,9 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
+using Pino.Data;
 using Pino.Features.Account.Pages;
 using Pino.Features.Account.Pages.Manage;
-using Pino.Data;
 
 namespace Pino.Features.Account.Endpoints;
 
@@ -44,7 +44,7 @@ internal static partial class IdentityComponentsEndpointRouteBuilderExtensions
             });
 
             accountGroup.MapPost("/Logout", async (
-                ClaimsPrincipal user,
+                ClaimsPrincipal _,
                 [FromServices] SignInManager<ApplicationUser> signInManager,
                 [FromForm] string returnUrl) =>
             {
@@ -72,7 +72,7 @@ internal static partial class IdentityComponentsEndpointRouteBuilderExtensions
                 {
                     Id = userId,
                     Name = userName,
-                    DisplayName = userName
+                    DisplayName = userName,
                 });
                 return TypedResults.Content(optionsJson, contentType: "application/json");
             });
@@ -116,7 +116,7 @@ internal static partial class IdentityComponentsEndpointRouteBuilderExtensions
             manageGroup.MapPost("/DownloadPersonalData", async (
                 HttpContext context,
                 [FromServices] UserManager<ApplicationUser> userManager,
-                [FromServices] AuthenticationStateProvider authenticationStateProvider) =>
+                [FromServices] AuthenticationStateProvider _) =>
             {
                 var user = await userManager.GetUserAsync(context.User);
                 if (user is null)

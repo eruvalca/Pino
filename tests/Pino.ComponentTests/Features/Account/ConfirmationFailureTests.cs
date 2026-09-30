@@ -82,7 +82,7 @@ public sealed class ConfirmationFailureTests
 
         component.Find(".notice[data-kind='error']").TextContent.ShouldBe("Error changing email.");
         await account.Users.Received(1).ChangeEmailAsync(user, "new@example.test", "token");
-        await account.Users.DidNotReceiveWithAnyArgs().SetUserNameAsync(default!, default!);
+        await account.Users.DidNotReceiveWithAnyArgs().SetUserNameAsync(default!, default);
         await account.SignIn.DidNotReceiveWithAnyArgs().RefreshSignInAsync(default!);
     }
 

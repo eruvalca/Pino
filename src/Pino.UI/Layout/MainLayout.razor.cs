@@ -1,5 +1,3 @@
 namespace Pino.UI.Layout;
 
-public sealed partial class MainLayout
-{
-}
+public sealed partial class MainLayout;

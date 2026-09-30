@@ -1,5 +1,3 @@
 namespace Pino.Features.Account.Pages;
 
-public sealed partial class ForgotPasswordConfirmation
-{
-}
+public sealed partial class ForgotPasswordConfirmation;

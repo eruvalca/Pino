@@ -23,7 +23,7 @@ public sealed class RecoveryCodesTests
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
         var logger = context.CaptureLogs<GenerateRecoveryCodes>();
-        account.Users.GetTwoFactorEnabledAsync(user).Returns(true);
+        account.Users.GetTwoFactorEnabledAsync(user).Returns(returnThis: true);
         account.Users.GenerateNewTwoFactorRecoveryCodesAsync(user, 10).Returns(empty ? [] : (IEnumerable<string>?)null);
         var component = account.Render<GenerateRecoveryCodes>(context);
 
@@ -43,7 +43,7 @@ public sealed class RecoveryCodesTests
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
         var logger = context.CaptureLogs<GenerateRecoveryCodes>();
-        account.Users.GetTwoFactorEnabledAsync(user).Returns(true);
+        account.Users.GetTwoFactorEnabledAsync(user).Returns(returnThis: true);
         string[] codes = ["first-code", "second-code"];
         account.Users.GenerateNewTwoFactorRecoveryCodesAsync(user, 10).Returns(codes);
         var component = account.Render<GenerateRecoveryCodes>(context);
@@ -67,7 +67,7 @@ public sealed class RecoveryCodesTests
         var logger = context.CaptureLogs<GenerateRecoveryCodes>();
         account.Users.GetTwoFactorEnabledAsync(user).Returns(initiallyEnabled);
         var component = account.Render<GenerateRecoveryCodes>(context);
-        account.Users.GetTwoFactorEnabledAsync(user).Returns(false);
+        account.Users.GetTwoFactorEnabledAsync(user).Returns(returnThis: false);
 
         await component.Find("form").SubmitAsync();
 

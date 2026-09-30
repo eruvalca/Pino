@@ -88,7 +88,7 @@ public sealed partial class ProfileEditor(IUrlImageInterop images) : IAsyncDispo
             if (_source is not null && _cropper is not null)
             {
                 var receiver = await _cropper.GetCroppedCanvasDataInBackgroundAsync(new() { Width = 512, Height = 512, FillColor = "#ffffff" }, "image/jpeg", 0.85f, maximumReceiveChunkSize: 16000);
-                using var image = await receiver.GetImageChunkStreamAsync();
+                await using var image = await receiver.GetImageChunkStreamAsync();
                 _model.CroppedPhoto = Convert.ToBase64String(image.ToArray());
             }
             if (!Profile.IsComplete && _model.CroppedPhoto is null)
@@ -111,7 +111,7 @@ public sealed partial class ProfileEditor(IUrlImageInterop images) : IAsyncDispo
         {
             await CancelCropAsync();
         }
-        catch (Microsoft.JSInterop.JSDisconnectedException)
+        catch (JSDisconnectedException)
         {
             // Browser resources are released with the disconnected page.
         }

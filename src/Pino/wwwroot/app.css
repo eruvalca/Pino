@@ -23,6 +23,44 @@
     color: var(--navy);
 }
 
+/* Shared club-work patterns: records, forms and feedback across sporting pages. */
+.sport-sheet { max-width: 80rem; margin-inline: auto; padding: 2rem 2.5rem; background: var(--surface); border: 1px solid var(--line); }
+.sport-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 1.5rem; margin-bottom: 2rem; }
+.sport-heading h1 { font-size: clamp(1.75rem, 3vw, 2.5rem); letter-spacing: -0.03em; margin-bottom: 0.5rem; }
+.sport-heading p { margin: 0; max-width: 65ch; color: var(--muted); }
+.sport-section { margin-top: 2.5rem; }
+.sport-section h2 { font-size: 1.25rem; }
+.record-list { padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.record-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 1rem; padding: 1.25rem 0; border-bottom: 1px solid var(--line); }
+.record-row p { margin: 0.3rem 0 0; }
+.record-row h2, .record-row h3 { font-size: 1.125rem; margin-bottom: 0.375rem; }
+.record-row small { color: var(--muted); }
+.sport-toolbar { display: grid; grid-template-columns: minmax(10rem, 1fr) auto auto; gap: 1rem; align-items: end; margin-bottom: 1.5rem; }
+.sport-empty { padding: 2rem 0; max-width: 65ch; }
+.sport-empty h2 { font-size: 1.25rem; }
+.sport-form { display: grid; gap: 1.25rem; max-width: 44rem; }
+.sport-form fieldset, .sport-fields { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 1.25rem; }
+.sport-form legend { font-weight: 700; padding: 0 0 1rem; }
+.field-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.sport-form .form-field input, .sport-form .form-field select, .sport-form .form-field textarea { padding: 0.65rem 0.75rem; }
+.sport-form .form-field p { margin: 0.25rem 0 0; font-size: 0.875rem; }
+.sport-form .checkbox-field { justify-self: start; }
+.sport-edit { padding: 1.5rem; margin-block: 1.5rem; background: var(--subtle); border: 1px solid var(--line); }
+.sport-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, 0.6fr); gap: 3rem; }
+.sport-photo { width: 6rem; height: 6rem; object-fit: cover; border-radius: var(--radius); }
+.record-history { list-style: none; padding: 0; }
+.record-history li { padding: 1rem 0; border-bottom: 1px solid var(--line); }
+.record-history p { margin: 0.25rem 0 0; }
+.record-history .muted { font-size: 0.8125rem; }
+.note-text { white-space: pre-wrap; overflow-wrap: anywhere; max-width: 70ch; }
+.pagination { display: grid; grid-template-columns: auto auto auto; align-items: center; justify-content: start; gap: 1rem; padding-top: 1rem; font-variant-numeric: tabular-nums; }
+.primary-action, .secondary-action { display: inline-block; text-decoration: none; text-align: center; }
+a.primary-action:hover, a.primary-action:focus-visible { color: white; }
+.sport-sheet details { margin-top: 1.25rem; }
+.sport-sheet summary { padding-block: 0.5rem; color: var(--blue); font-weight: 600; }
+@media (max-width: 50rem) { .sport-sheet { padding: 1.5rem; } .sport-heading, .sport-split { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; } }
+@media (max-width: 35rem) { .sport-sheet { padding: 1.25rem; } .field-pair, .sport-toolbar, .record-row { grid-template-columns: minmax(0, 1fr); } .sport-edit { padding: 1rem; } .record-row .actions { justify-content: start; } }
+
 *,
 *::before,
 *::after {
@@ -233,4 +271,34 @@ th, td {
 
 .recovery-code {
     font-size: 1rem;
+}
+
+/* Shared by account and club layouts; Blazor reveals this after a fatal circuit error. */
+#blazor-error-ui {
+    display: none;
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 1000;
+    max-height: 100dvh;
+    overflow: auto;
+    padding: 1rem;
+    border-top: 1px solid #9c2525;
+    background: #fff;
+    color: #222;
+}
+
+.error-content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 1rem;
+    max-width: 72rem;
+    margin-inline: auto;
+}
+
+@media (max-width: 30rem) {
+    .error-content {
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: start;
+    }
 }

@@ -1,0 +1,49 @@
+@page "/clubs/{ClubId:guid}/players/new"
+@page "/clubs/{ClubId:guid}/players/{PlayerId:guid}"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits SportPageBase
+
+<PageTitle>@(_detail?.Player.FullName ?? "Add player") · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    <p><a href="@($"/clubs/{ClubId}/players")">All players</a></p>
+    <header class="sport-heading"><div><h1>@(_detail?.Player.FullName ?? "Add player")</h1><p>@(_detail is null ? "Start a player record. Names, player reference and graduation year are required." : $"Class of {_detail.Player.GraduationYear} · Reference {_detail.Player.PlayerReference}")</p></div>
+        @if (_detail is not null && !_editing) { <button class="secondary-action" @onclick="Edit" disabled="@Disabled">Edit player</button> }
+    </header>
+    @if (_detail?.Player.Archived == true) { <p class="notice" data-kind="information">Archived player. Their notes and placements remain available. Restore them to enroll in new tryouts.</p> }
+    @if (_editing || PlayerId == Guid.Empty)
+    {
+        <EditForm Model="_model" OnValidSubmit="SavePlayerAsync" FormName="player" class="sport-form">
+            <DataAnnotationsValidator /><ValidationSummary />
+            <fieldset disabled="@Disabled">
+                <div class="field-pair">
+                    <div class="form-field"><label for="player-first">First name</label><InputText id="player-first" maxlength="80" @bind-Value="_model.FirstName" /><ValidationMessage For="() => _model.FirstName" /></div>
+                    <div class="form-field"><label for="player-last">Last name</label><InputText id="player-last" maxlength="80" @bind-Value="_model.LastName" /><ValidationMessage For="() => _model.LastName" /></div>
+                </div>
+                <div class="field-pair">
+                    <div class="form-field"><label for="player-reference">Player reference</label><InputText id="player-reference" maxlength="40" @bind-Value="_model.PlayerReference" aria-describedby="reference-help" /><p id="reference-help" class="muted">A unique club ID, using letters, numbers, dashes or underscores.</p><ValidationMessage For="() => _model.PlayerReference" /></div>
+                    <div class="form-field"><label for="player-year">High-school graduation year</label><InputNumber id="player-year" min="2000" max="2100" @bind-Value="_model.GraduationYear" /><ValidationMessage For="() => _model.GraduationYear" /></div>
+                </div>
+                <div class="field-pair">
+                    <div class="form-field"><label for="player-position">Position (optional)</label><InputText id="player-position" maxlength="80" @bind-Value="_model.Position" /></div>
+                    <div class="form-field"><label for="player-email">Contact email (optional)</label><InputText id="player-email" type="email" maxlength="254" @bind-Value="_model.ContactEmail" /><ValidationMessage For="() => _model.ContactEmail" /></div>
+                </div>
+                <div class="form-field"><label for="player-photo">Player photo (optional)</label><InputFile id="player-photo" OnChange="ChoosePhotoAsync" accept="image/jpeg,image/png" /><p class="muted">JPEG or PNG, up to 5 MB and 4096 pixels per side. A centered square is saved. Club staff only.</p>@if (_photoName is not null) { <p>@_photoName selected. Save the player to upload it.</p> }</div>
+                @if (_detail?.Player.PhotoUrl is not null) { <label class="checkbox-field"><InputCheckbox @bind-Value="_model.RemovePhoto" /> Remove saved photo</label> }
+                @if (_detail is not null) { <label class="checkbox-field"><InputCheckbox @bind-Value="_model.Archived" /> Archive this player (keep their history)</label> }
+                <div class="actions"><button class="primary-action" type="submit">@(Busy ? "Saving…" : "Save player")</button>@if (_detail is not null) { <button type="button" class="text-action" @onclick="CancelEdit">Cancel</button> }<button class="text-action" type="button" @onclick="ReloadAsync">Reload saved record</button></div>
+            </fieldset>
+        </EditForm>
+    }
+    else if (_detail is { } detail)
+    {
+        <div class="sport-split"><section>
+            @if (detail.Player.PhotoUrl is not null) { <img class="sport-photo" src="@detail.Player.PhotoUrl" alt="@detail.Player.FullName" width="96" height="96" /> }
+            <h2>Season placements</h2>
+            @if (detail.Placements.Count == 0) { <p class="muted">This player has not joined a tryout yet. Open a season's tryout to add them.</p> }
+            <ul class="record-list">@foreach (var placement in detail.Placements) { <li class="record-row" @key="placement.SeasonId"><div><h3>@placement.Season</h3><p>@(placement.Team ?? "No current team")</p>@if (placement.Tryout is not null) { <small>Placed through @placement.Tryout</small> }</div><a href="@($"/clubs/{ClubId}/seasons/{placement.SeasonId}")">View season</a></li> }</ul>
+            <section class="sport-section"><h2>Decision history</h2><p class="muted">Each decision is kept as recorded, including later corrections.</p><DecisionHistory History="detail.History" /></section>
+        </section><aside><h2>Player details</h2><dl><dt>Position</dt><dd>@(detail.Player.Position.Length == 0 ? "Not provided" : detail.Player.Position)</dd><dt>Contact email</dt><dd>@(detail.Player.ContactEmail.Length == 0 ? "Not provided" : detail.Player.ContactEmail)</dd><dt>Catalog status</dt><dd>@(detail.Player.Archived ? "Archived" : "Active")</dd></dl></aside></div>
+    }
+</SportFrame>

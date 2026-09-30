@@ -52,7 +52,7 @@ public sealed class ExternalLoginManagementTests
         store.GetPasswordHashAsync(user, account.Http.RequestAborted).Returns(hasPassword ? "password-hash" : null);
         context.Services.AddSingleton<IUserStore<ApplicationUser>>(store);
         var logins = Enumerable.Range(1, loginCount)
-            .Select(index => new UserLoginInfo($"Provider{index}", $"key{index}", $"Provider {index}")).ToList();
+            .Select(index => new UserLoginInfo(string.Create(System.Globalization.CultureInfo.InvariantCulture, $"Provider{index}"), string.Create(System.Globalization.CultureInfo.InvariantCulture, $"key{index}"), string.Create(System.Globalization.CultureInfo.CurrentCulture, $"Provider {index}"))).ToList();
         account.Users.GetLoginsAsync(user).Returns(logins);
 
         var component = account.Render<ExternalLogins>(context);
@@ -158,11 +158,11 @@ public sealed class ExternalLoginManagementTests
         context.Services.GetRequiredService<NavigationManager>().Uri.ShouldBe("http://localhost/Account/Manage/ExternalLogins");
         if (succeeds)
         {
-            await authentication.Received(1).SignOutAsync(account.Http, IdentityConstants.ExternalScheme, null);
+            await authentication.Received(1).SignOutAsync(account.Http, IdentityConstants.ExternalScheme, properties: null);
             Received.InOrder(() =>
             {
                 _ = account.Users.AddLoginAsync(user!, info);
-                _ = authentication.SignOutAsync(account.Http, IdentityConstants.ExternalScheme, null);
+                _ = authentication.SignOutAsync(account.Http, IdentityConstants.ExternalScheme, properties: null);
             });
         }
         else

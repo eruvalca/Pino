@@ -6,10 +6,10 @@ namespace Pino.Features.Clubs.Services;
 internal sealed class ServerClubGateway(ClubService service, AuthenticationStateProvider authentication) : IClubGateway
 {
     public async Task<AccessSnapshot> GetAccessAsync(CancellationToken cancellationToken = default) =>
-        (await service.GetAccessAsync((await authentication.GetAuthenticationStateAsync()).User, cancellationToken));
+        await service.GetAccessAsync((await authentication.GetAuthenticationStateAsync()).User, cancellationToken);
 
     public async Task<ClubSearchPage> SearchAsync(string query, int page, CancellationToken cancellationToken = default) =>
-        (await service.SearchAsync((await authentication.GetAuthenticationStateAsync()).User, query, page, cancellationToken));
+        await service.SearchAsync((await authentication.GetAuthenticationStateAsync()).User, query, page, cancellationToken);
 
     public async Task<ClubReply> SaveProfileAsync(ProfileInput input, CancellationToken cancellationToken = default) =>
         (await service.SaveProfileAsync((await authentication.GetAuthenticationStateAsync()).User, input, cancellationToken)).ToReply();
@@ -27,7 +27,7 @@ internal sealed class ServerClubGateway(ClubService service, AuthenticationState
         (await service.LeaveAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, cancellationToken)).ToReply();
 
     public async Task<PeoplePage> GetPeopleAsync(Guid clubId, bool requests, int page, CancellationToken cancellationToken = default) =>
-        (await service.GetPeopleAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, requests, page, cancellationToken));
+        await service.GetPeopleAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, requests, page, cancellationToken);
 
     public async Task<ClubReply> DecideAsync(Guid clubId, RequestDecisionInput input, CancellationToken cancellationToken = default) =>
         (await service.DecideAsync((await authentication.GetAuthenticationStateAsync()).User, clubId, input, cancellationToken)).ToReply();

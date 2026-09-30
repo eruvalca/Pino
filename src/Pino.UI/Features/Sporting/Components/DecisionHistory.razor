@@ -1,0 +1,18 @@
+@if (History.Count == 0)
+{
+    <p class="muted">No decisions have been recorded yet.</p>
+}
+else
+{
+    <ol class="record-history">
+        @foreach (var entry in History)
+        {
+            <li @key="entry.Id">
+                <strong>@SportLabels.Decision(entry.Kind)@(entry.Team is null ? "" : $" · {entry.Team}")</strong>
+                <p>@entry.Season · @entry.Tryout</p>
+                <p class="muted">@entry.Author · <time datetime="@entry.CreatedAt.ToString("O")">@entry.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</time></p>
+                @if (entry.Reason.Length > 0) { <p class="note-text">@entry.Reason</p> }
+            </li>
+        }
+    </ol>
+}

@@ -36,7 +36,7 @@
         <div class="form-field">
             <label for="email">Email</label>
             <input type="text" value="@_email" id="email" placeholder="Enter your email" disabled />
-            <button type="submit" form="send-verification-form">Send verification email</button>
+            <button class="primary-action" type="submit" form="send-verification-form">Send verification email</button>
         </div>
     }
     <div class="form-field">
@@ -44,5 +44,5 @@
         <InputText @bind-Value="Input.NewEmail" id="Input.NewEmail" autocomplete="email" aria-required="true" placeholder="Enter a new email" />
         <ValidationMessage For="() => Input.NewEmail" class="error-text" />
     </div>
-    <button type="submit">Change email</button>
+    <button class="primary-action" type="submit">Change email</button>
 </EditForm>

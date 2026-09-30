@@ -19,13 +19,13 @@ public sealed class AccountSignInServiceTests
     public async Task PasswordPreservesRememberMeWithoutCountingFailuresAsync(bool rememberMe)
     {
         using var identity = IdentityTestContext.Create();
-        identity.SignIn.PasswordSignInAsync("member@example.test", "secret", rememberMe, false).Returns(SignInResult.Success);
+        identity.SignIn.PasswordSignInAsync("member@example.test", "secret", rememberMe, lockoutOnFailure: false).Returns(SignInResult.Success);
         var service = new AccountSignInService(identity.SignIn);
 
         var result = await service.PasswordAsync("member@example.test", "secret", rememberMe);
 
         result.Value.ShouldBeOfType<SignInOutcome.Succeeded>();
-        await identity.SignIn.Received(1).PasswordSignInAsync("member@example.test", "secret", rememberMe, false);
+        await identity.SignIn.Received(1).PasswordSignInAsync("member@example.test", "secret", rememberMe, lockoutOnFailure: false);
     }
 
     [Fact]
@@ -76,13 +76,13 @@ public sealed class AccountSignInServiceTests
     public async Task ExternalUsesTemporarySignInAndBypassesTwoFactorAsync()
     {
         using var identity = IdentityTestContext.Create();
-        identity.SignIn.ExternalLoginSignInAsync("Provider", "key", false, true).Returns(SignInResult.NotAllowed);
+        identity.SignIn.ExternalLoginSignInAsync("Provider", "key", isPersistent: false, bypassTwoFactor: true).Returns(SignInResult.NotAllowed);
         var service = new AccountSignInService(identity.SignIn);
 
         var result = await service.ExternalAsync("Provider", "key");
 
         result.Value.ShouldBeOfType<SignInOutcome.NotAllowed>();
-        await identity.SignIn.Received(1).ExternalLoginSignInAsync("Provider", "key", false, true);
+        await identity.SignIn.Received(1).ExternalLoginSignInAsync("Provider", "key", isPersistent: false, bypassTwoFactor: true);
     }
 
     [Fact]

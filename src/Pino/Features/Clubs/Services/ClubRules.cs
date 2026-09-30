@@ -6,10 +6,10 @@ namespace Pino.Features.Clubs.Services;
 internal static class ClubRules
 {
     internal static bool ValidProfile(ProfileInput input) =>
-        Validator.TryValidateObject(input, new ValidationContext(input), null, validateAllProperties: true);
+        Validator.TryValidateObject(input, new ValidationContext(input), validationResults: null, validateAllProperties: true);
 
     internal static bool ValidClub(CreateClubInput input) => input.OperationId != Guid.Empty &&
-        Validator.TryValidateObject(input, new ValidationContext(input), null, validateAllProperties: true) &&
+        Validator.TryValidateObject(input, new ValidationContext(input), validationResults: null, validateAllProperties: true) &&
         UsStates.All.ContainsKey(input.State);
 
     internal static string? MemberChangeError(ClubRole current, ClubRole expected, ClubRole? next, int administrators)

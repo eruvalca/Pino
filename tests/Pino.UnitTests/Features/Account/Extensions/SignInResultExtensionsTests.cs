@@ -38,7 +38,7 @@ public sealed class SignInResultExtensionsTests
     private sealed class CombinedSignInResult : SignInResult
     {
         public static CombinedSignInResult Create(bool succeeded, bool requiresTwoFactor, bool isLockedOut, bool isNotAllowed) =>
-            new CombinedSignInResult
+            new()
             {
                 Succeeded = succeeded,
                 RequiresTwoFactor = requiresTwoFactor,

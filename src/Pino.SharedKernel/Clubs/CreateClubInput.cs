@@ -1,5 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Pino.SharedKernel.Clubs;
 

@@ -22,10 +22,10 @@ public sealed partial class Register
 
     protected override void OnInitialized() => Input ??= new();
 
-    public async Task RegisterUserAsync(EditContext editContext)
+    public async Task RegisterUserAsync(EditContext _)
     {
         var result = await AccountRegistration.PasswordAsync(Input.Email, Input.Password);
-        await result.Match<Task>(
+        await result.Match(
             created => CompleteRegistrationAsync(created.User),
             rejected =>
             {

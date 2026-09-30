@@ -78,7 +78,7 @@ public sealed class ExternalLoginCallbackTests
         var logger = context.CaptureLogs<ExternalLogin>();
         account.Http.Request.Method = HttpMethods.Get;
         account.SignIn.GetExternalLoginInfoAsync().Returns(CreateLogin());
-        account.SignIn.ExternalLoginSignInAsync("Provider", "external-key", false, true).Returns(outcome switch
+        account.SignIn.ExternalLoginSignInAsync("Provider", "external-key", isPersistent: false, bypassTwoFactor: true).Returns(outcome switch
         {
             "Success" => SignInResult.Success,
             "TwoFactor" => SignInResult.TwoFactorRequired,
@@ -90,7 +90,7 @@ public sealed class ExternalLoginCallbackTests
         account.Render<ExternalLogin>(context);
 
         navigation.Uri.ShouldBe(destination);
-        await account.SignIn.Received(1).ExternalLoginSignInAsync("Provider", "external-key", false, true);
+        await account.SignIn.Received(1).ExternalLoginSignInAsync("Provider", "external-key", isPersistent: false, bypassTwoFactor: true);
         await account.Users.DidNotReceiveWithAnyArgs().CreateAsync(default!);
         logger.GetLoggedEventIds().Contains(1009).ShouldBe(string.Equals(outcome, "Success", StringComparison.Ordinal));
     }
@@ -102,7 +102,7 @@ public sealed class ExternalLoginCallbackTests
         var account = context.ConfigureAccount();
         account.Http.Request.Method = HttpMethods.Get;
         account.SignIn.GetExternalLoginInfoAsync().Returns(CreateLogin());
-        account.SignIn.ExternalLoginSignInAsync("Provider", "external-key", false, true).Returns(SignInResult.Failed);
+        account.SignIn.ExternalLoginSignInAsync("Provider", "external-key", isPersistent: false, bypassTwoFactor: true).Returns(SignInResult.Failed);
         context.Services.GetRequiredService<NavigationManager>().NavigateTo("Account/ExternalLogin?Action=LoginCallback");
         var component = account.Render<ExternalLogin>(context);
 

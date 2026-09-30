@@ -157,9 +157,6 @@ public sealed class IdentityRedirectManagerTests
             return navigation;
         }
 
-        protected override void NavigateToCore(string uri, NavigationOptions options)
-        {
-            Destinations.Add(uri);
-        }
+        protected override void NavigateToCore(string uri, NavigationOptions options) => Destinations.Add(uri);
     }
 }

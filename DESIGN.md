@@ -1,6 +1,6 @@
 ---
 name: Pino
-description: Sideline notebook visual system for club access and tryout work.
+description: Sideline notebook visual system for club, sporting and account work.
 colors:
   navy: "#202c42"
   blue: "#244d9e"
@@ -126,15 +126,18 @@ density supports repeated reading and input on a field-side phone or a review
 desktop. Readable system sans-serif type and restrained controls keep names,
 notes and decisions easy to scan.
 
-This records the implemented club access, membership and tryout surfaces.
-Legacy sample and account layouts remain outside this visual-system extension.
+This records the implemented club access, membership, persisted sporting and
+account surfaces, alongside the public tryout sample. Account forms and their
+layout now share the notebook's palette, flat sheets, fields and action hierarchy.
 Shared tokens and controls live in [app.css](src/Pino/wwwroot/app.css);
 [TryoutLayout](src/Pino.UI/Layout/TryoutLayout.razor),
 [ClubPageShell](src/Pino.UI/Features/Clubs/Components/ClubPageShell.razor) and
-adjacent feature styles express this visual world. Product facts and open
+[MainLayout](src/Pino.UI/Layout/MainLayout.razor), with adjacent feature styles,
+express this visual world. Product facts and open
 decisions remain in [PRODUCT.md](PRODUCT.md); surface composition and behavior
 are defined in the [tryout brief](docs/features/tryout-evaluation.md) and
-[club access brief](docs/features/club-onboarding-access.md).
+[club access brief](docs/features/club-onboarding-access.md), and the
+[sporting workspace](docs/features/club-sporting-workspace.md).
 
 **Key Characteristics:**
 
@@ -175,37 +178,42 @@ state or feedback message; it never carries the meaning alone.
 
 Segoe UI with system-ui and sans-serif fallbacks carries headings, reading text
 and controls. The operational interface has no separate decorative display face.
-The frontmatter captures the tryout hierarchy and shared body and action text;
-ordinary headings use browser bold weight, while row names, authors and status
-labels use semibold (650).
+The frontmatter preserves the public sample's hierarchy and the shared body and
+action text; ordinary headings use browser bold weight, while compact navigation
+and status labels use semibold (650).
 
 - **Display:** the selected player, the strongest reading anchor.
-- **Headline:** tryout context, slightly smaller than the player name.
+- **Headline:** public sample tryout context, slightly smaller than the player name.
 - **Title:** roster, composer and observation section headings.
 - **Body:** the shared base; **observation** is the more open reading treatment
   for notes, with a maximum measure of 70ch and preserved line breaks.
 - **Label:** action text. Field labels and supporting metadata use smaller
   sizes (0.75–0.8125rem); times and compact roster status use 0.6875rem.
 
-At the phone breakpoint, player names reduce to 1.75rem and the tryout heading
-to 1.5rem. Bib numbers, counts and timestamps use tabular numerals. Keep full
-names and note text able to wrap.
+At the phone breakpoint, player names reduce to 1.75rem. The persisted tryout
+keeps its context heading compact (1.5rem) at all widths; its selected player
+remains the strongest reading anchor (2rem, then 1.75rem). The public sample's
+tryout heading reduces to 1.5rem on phones. Bib numbers and counts use tabular
+numerals. Keep full names and note text able to wrap.
 
 Club page headings are larger reading anchors (2.5–2.75rem), reducing to 2rem
 on narrow screens. Person names sit beside their photos; muted supporting text
 keeps role, location and request time subordinate without hiding them.
+Sporting catalog and configuration headings scale from 1.75rem to 2.5rem;
+record titles use 1.125rem and section headings use 1.25rem. Account settings
+keep one page heading and a muted introductory paragraph above navigation.
 
 ## Layout
 
-CSS Grid aligns structured areas. The current tryout surface has a centered
+CSS Grid aligns structured areas. The public tryout sample has a centered
 88rem maximum width with 2rem side padding, a roster-to-notebook grid of
 `minmax(17rem, 0.9fr) minmax(0, 1.8fr)`, and a notebook capped at 58rem. The
 roster scrolls within a 42rem maximum height on larger screens; notes retain
 normal document flow. These are current workspace measurements, not required
 composition for every future feature.
 
-At 60rem and below, notebook padding contracts and decision choices stack. At
-45rem and below, page side padding becomes 1rem and the workspace shows either
+In the public sample, at 60rem and below, notebook padding contracts and decision
+choices stack. At 45rem and below, page side padding becomes 1rem and the workspace shows either
 the roster or notebook. The visible Roster action returns to search; opening a
 player focuses the notebook heading. Save note fills the available width, note
 timestamps wrap beneath authors, and team rows become stacked readable records.
@@ -216,14 +224,34 @@ to 76rem for readable identity and action columns. Narrow layouts reduce sheet
 padding and stack search, result and person actions beneath their associated
 content. These sheets retain normal page scrolling and visible page gutters.
 
+Persisted sporting pages use white sheets capped at 80rem, with 2rem vertical
+and 2.5rem horizontal padding. Catalogs put labelled search and filters directly
+above ruled records; forms cap their reading and input area at 44rem. At 50rem,
+headings and split content stack; at 35rem, paired fields, toolbars and record
+actions become single-column groups. Import previews remain semantic tables in
+a keyboard-focusable horizontally scrolling region.
+
+The persisted tryout grid uses `minmax(16rem, 0.85fr) minmax(0, 1.8fr)` for roster
+and notebook. Notebook padding contracts at 65rem. At 48rem and below, staff see
+either the roster or the selected notebook, with a visible Back to roster action
+and focus moved to the destination heading. The 42rem roster height cap is
+removed on phones. Composer and shared observations remain adjacent; decision
+history has its own disclosure after the observations.
+
+Account pages use a centered white sheet capped at 72rem with visible canvas
+gutters, shrinking those gutters at 40rem. Forms remain single-column and cap at
+36rem. Settings navigation uses an adaptive grid, then two columns at 35rem and
+below so the settings form remains close to the page heading. These dimensions
+describe the implemented surfaces, not a single mandatory page template.
+
 The spacing entries are extracted repeated values, not new CSS variables. Use
 compact gaps within a record and larger gaps between reading and action groups.
 Long content must shrink and wrap without changing reading or focus order.
 
 ## Elevation & Depth
 
-Club and tryout working surfaces use no shadows. White and subtly tinted surfaces,
-single-pixel rules and pale-blue selection establish structure. Focus is an
+Club, sporting and account working surfaces use no elevation shadows. White and
+subtly tinted surfaces, single-pixel rules and pale-blue selection establish structure. Focus is an
 outline (2px, offset 3px), with an inset offset on roster rows; masthead focus
 uses a lighter blue so it remains visible against navy.
 
@@ -233,11 +261,13 @@ fine rules and spacing; keep writing surfaces flat.
 ## Shapes
 
 Controls use the shared gently rounded `radius`; badges use `radius-small`.
-Workspace frames and roster rows stay square. Tryout author initials are circular
-marks. Club profile photos use circular display crops beside names; their
+Workspace frames and roster rows stay square. Public sample author initials are
+circular marks. Club profile photos use circular display crops beside names; their
 editing preview retains the square crop that is saved. Icons are small authored
 outline SVGs (14–18px), paired with text or hidden from assistive technology when decorative.
-No raster imagery ships in the tryout workspace.
+Optional player photos use a gently rounded square at 6rem beside the player's
+identity. There are no shipped decorative raster assets; profile and player
+photos are private user content, and browser fixture images are test data.
 
 ## Components
 
@@ -247,14 +277,16 @@ Actions are compact and explicit. Primary, outlined secondary and text variants
 share a minimum height of 2.75rem. Primary hover deepens blue; secondary hover
 adds pale blue; text hover adds an underline. Disabled controls reduce opacity
 to 0.55 and keep their labels. Save note leads the notebook; decision editing
-remains a separate inline action.
+remains a separate inline disclosure in the persisted workspace. Account submits
+reuse filled primary actions; external-provider and record-row actions reuse
+outlined secondary actions. Masthead logout remains a quiet navigation action.
 
 ### Inputs / Fields
 
 Native fields use white fill, a strong neutral border, visible labels and a
-2.75rem minimum height. The note textarea is vertically resizable with a 6.5rem
-minimum height and more generous internal padding. Field-specific help and
-feedback remain associated with their controls. Notices retain meaningful text
+2.75rem minimum height. The public sample's note textarea is vertically resizable
+with a 6.5rem minimum height; persisted notes use a four-row native textarea.
+Field-specific help and feedback remain associated with their controls. Notices retain meaningful text
 and semantic success, error, warning or information kinds.
 
 ### Navigation
@@ -263,6 +295,12 @@ The navy masthead frames each dedicated workspace. The shared club shell shows
 Pino, Your club and Account, with the active club name linking to its home when
 membership is available. Phone navigation retains this identity and lets long
 club names wrap. A keyboard-visible skip link leads to the content.
+
+Signed-in club work adds a white, ruled navigation strip for Overview, Players,
+Seasons & teams and authorized People access. The current destination uses blue
+text and a thin lower rule. This strip scrolls horizontally when needed. Account
+pages use the same navy masthead with Club workspace and account/session links;
+the current settings link uses pale blue and bold text within the compact grid.
 
 Tryout view buttons use muted text and a thin bottom rule; the selected view uses
 blue text and rule. Its phone navigation preserves the sample label and explicit
@@ -281,22 +319,34 @@ buttons available alongside dragging.
 ### Status labels and roster rows
 
 Compact badges name the decision state. Roster selection uses a pale-blue fill
-and `aria-current`, with no thick edge stripe. Full-width rows combine bib,
-name, graduation year, position and decision; a small SVG chevron indicates
-opening the player. Hover and keyboard focus remain visible.
+with no thick edge stripe; the persisted roster exposes `aria-pressed` and the
+public sample uses `aria-current`. Full-width rows combine bib, name, graduation
+year, position and decision. The public sample also uses a small SVG chevron.
+Hover and keyboard focus remain visible. Catalogs, season records and placement
+history reuse ruled rows with muted context and explicit record links.
 
 ### Notebook and observations
 
 The notebook is one continuous white writing surface, not a stack of elevated
-cards. Observations have an author mark, name, timestamp and open line spacing.
-A saved observation receives a pale-blue-to-transparent highlight over 650ms
-with `cubic-bezier(0.16, 1, 0.3, 1)`. Reduced-motion preference removes this
-animation while preserving the new content and textual feedback.
+cards. Persisted observations follow the composer directly and carry an author,
+timestamp, preserved line breaks and labelled correction history. Each player's
+unsaved note and decision drafts remain available while switching within the
+tryout. The public sample additionally has circular author marks and open line
+spacing; a saved sample observation receives a pale-blue-to-transparent highlight
+over 650ms with `cubic-bezier(0.16, 1, 0.3, 1)`. Reduced-motion preference removes this
+animation while preserving the new content and textual feedback. Persisted roster
+hover uses a 150ms ease-out background transition only when reduced motion is
+not requested.
 
 ### Decision choices
 
-Native radio inputs sit in outlined labels. A selected choice uses pale blue
-and a blue border. The editor expands inline and receives heading focus;
+Persisted decision editing uses a native details disclosure, initially collapsed,
+labelled Record or revise decision before the note composer. Outcome and eligible
+team use labelled native selects; context has a separate textarea. Save decision
+is secondary to Save note. The later Decision history disclosure is independent.
+
+In the public sample, native radio inputs sit in outlined labels. A selected
+choice uses pale blue and a blue border. The editor expands inline and receives heading focus;
 closing it returns focus to its trigger. Choices stack before they become
 cramped. Keep validation visible, associated with the affected fields, and
 separate from success feedback.
@@ -316,5 +366,5 @@ separate from success feedback.
 - **Don't** use color alone to distinguish outcomes or validation states.
 - **Don't** replace the notebook's reading surface with elevated cards or add
   a thick stripe to selected roster rows.
-- **Don't** treat the fictional club, sample roster sizes or account scaffold
-  layout as approved product-wide identity or layout requirements.
+- **Don't** treat the fictional club or sample roster sizes as approved
+  product-wide identity or layout requirements.

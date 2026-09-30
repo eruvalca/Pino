@@ -10,7 +10,7 @@ public sealed class PasskeySubmissionTests
 {
     [Fact]
     public void MissingTransportInputMeansMissingSubmission() =>
-        PasskeySubmission.From(null).Value.ShouldBeOfType<PasskeySubmission.Missing>();
+        PasskeySubmission.From(input: null).Value.ShouldBeOfType<PasskeySubmission.Missing>();
 
     [Theory]
     [InlineData(null, null)]
@@ -47,10 +47,10 @@ public sealed class PasskeySubmissionTests
     [Fact]
     public void ValidCredentialIdPreservesDecodedBytes() =>
         CredentialIdOutcome.Decode("AQID_w").Value.ShouldBeOfType<CredentialIdOutcome.DecodedCredentialId>()
-            .Bytes.ShouldBe(new byte[] { 1, 2, 3, 255 });
+            .Bytes.ShouldBe([1, 2, 3, 255]);
 
     [Fact]
     public void SingleByteCredentialIdIsAccepted() =>
         CredentialIdOutcome.Decode("AQ").Value.ShouldBeOfType<CredentialIdOutcome.DecodedCredentialId>()
-            .Bytes.ShouldBe(new byte[] { 1 });
+            .Bytes.ShouldBe([1]);
 }

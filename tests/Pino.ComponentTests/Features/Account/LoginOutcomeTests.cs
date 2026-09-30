@@ -29,7 +29,7 @@ public sealed class LoginOutcomeTests
 
         account.Render<Login>(context);
 
-        await authentication.Received(expectedSignOuts).SignOutAsync(account.Http, IdentityConstants.ExternalScheme, null);
+        await authentication.Received(expectedSignOuts).SignOutAsync(account.Http, IdentityConstants.ExternalScheme, properties: null);
         await authentication.ReceivedWithAnyArgs(expectedSignOuts).SignOutAsync(default!, default, default);
         await account.SignIn.DidNotReceive().SignOutAsync();
     }
@@ -42,7 +42,7 @@ public sealed class LoginOutcomeTests
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
         var logger = context.CaptureLogs<Login>();
-        account.SignIn.PasswordSignInAsync("member@example.test", "password", true, false)
+        account.SignIn.PasswordSignInAsync("member@example.test", "password", isPersistent: true, lockoutOnFailure: false)
             .Returns(lockedOut ? SignInResult.LockedOut : SignInResult.Success);
         var navigation = context.Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo("Account/Login?returnUrl=%2Fevents");
@@ -54,7 +54,7 @@ public sealed class LoginOutcomeTests
         await component.Find("form").SubmitAsync();
 
         navigation.Uri.ShouldBe(lockedOut ? "http://localhost/Account/Lockout" : "http://localhost/events");
-        await account.SignIn.Received(1).PasswordSignInAsync("member@example.test", "password", true, false);
+        await account.SignIn.Received(1).PasswordSignInAsync("member@example.test", "password", isPersistent: true, lockoutOnFailure: false);
         logger.GetLoggedEventIds().ShouldBe([lockedOut ? 1002 : 1001]);
     }
 
@@ -65,7 +65,7 @@ public sealed class LoginOutcomeTests
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
         account.SignIn.GetTwoFactorAuthenticationUserAsync().Returns(user);
-        account.SignIn.TwoFactorAuthenticatorSignInAsync("123456", false, false).Returns(SignInResult.LockedOut);
+        account.SignIn.TwoFactorAuthenticatorSignInAsync("123456", isPersistent: false, rememberClient: false).Returns(SignInResult.LockedOut);
         var logger = context.CaptureLogs<LoginWith2fa>();
         var component = account.Render<LoginWith2fa>(context);
         await component.Find("input[name='Input.TwoFactorCode']").ChangeAsync(new ChangeEventArgs { Value = "123456" });
@@ -73,7 +73,7 @@ public sealed class LoginOutcomeTests
         await component.Find("form").SubmitAsync();
 
         context.Services.GetRequiredService<NavigationManager>().Uri.ShouldBe("http://localhost/Account/Lockout");
-        await account.SignIn.Received(1).TwoFactorAuthenticatorSignInAsync("123456", false, false);
+        await account.SignIn.Received(1).TwoFactorAuthenticatorSignInAsync("123456", isPersistent: false, rememberClient: false);
         logger.GetLoggedEventIds().ShouldBe([1004]);
     }
 

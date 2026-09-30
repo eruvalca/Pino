@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-29T14:45:09.9532202Z",
+  "generatedAt": "2026-09-29T22:33:41.9149168Z",
   "title": "Design System: Pino",
   "extensions": {
     "colorMeta": {
@@ -217,7 +217,7 @@
       },
       "headline": {
         "displayName": "Tryout context",
-        "purpose": "Page heading; contracts to 1.5rem on phones."
+        "purpose": "Public sample page heading; contracts to 1.5rem on phones. Persisted tryout context stays at 1.5rem."
       },
       "title": {
         "displayName": "Section heading",
@@ -229,7 +229,7 @@
       },
       "observation": {
         "displayName": "Observation text",
-        "purpose": "Open line spacing, preserved line breaks and a 70ch maximum measure."
+        "purpose": "Public sample notes use open line spacing; both notebooks preserve line breaks and a 70ch maximum measure."
       },
       "label": {
         "displayName": "Action label",
@@ -241,17 +241,46 @@
       {
         "name": "note-arrives",
         "value": "650ms cubic-bezier(0.16, 1, 0.3, 1)",
-        "purpose": "Fade the saved observation background from pale blue to transparent; remove the animation under prefers-reduced-motion: reduce."
+        "purpose": "Fade the public sample's saved observation background from pale blue to transparent; remove the animation under prefers-reduced-motion: reduce."
+      },
+      {
+        "purpose": "Persisted roster background-color transition, enabled only under prefers-reduced-motion: no-preference.",
+        "name": "roster-hover",
+        "value": "150ms ease-out"
       }
     ],
     "breakpoints": [
       {
-        "name": "compact-workspace",
+        "name": "sample-compact-workspace",
         "value": "60rem"
       },
       {
-        "name": "phone-workspace",
+        "name": "sample-phone-workspace",
         "value": "45rem"
+      },
+      {
+        "name": "sporting-compact-notebook",
+        "value": "65rem"
+      },
+      {
+        "name": "sporting-stacked-sheets",
+        "value": "50rem"
+      },
+      {
+        "name": "sporting-roster-or-notebook",
+        "value": "48rem"
+      },
+      {
+        "name": "club-and-account-gutters",
+        "value": "40rem"
+      },
+      {
+        "name": "stacked-records-and-account-grid",
+        "value": "35rem"
+      },
+      {
+        "name": "stacked-account-masthead",
+        "value": "32rem"
       }
     ]
   },
@@ -260,7 +289,7 @@
       "name": "Primary action",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Filled cobalt action for saving the current operation.",
+      "description": "Filled cobalt action for saving notes, submitting account forms and leading catalog operations.",
       "html": "<button type=\"button\" class=\"ds-primary\">Save note</button>",
       "css": ".ds-primary { font-family: \"Segoe UI\", system-ui, sans-serif; min-height: 2.75rem; padding: 0.65rem 1rem; border: 1px solid var(--blue, #244d9e); border-radius: var(--radius, 0.375rem); font-size: 0.875rem; font-weight: 600; line-height: 1.4; cursor: pointer; } .ds-primary:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; } .ds-primary:disabled { opacity: 0.55; cursor: default; } .ds-primary { background: var(--blue, #244d9e); color: var(--surface, #ffffff); } .ds-primary:hover:not(:disabled) { background: var(--blue-hover, #1b3c7e); }"
     },
@@ -268,8 +297,8 @@
       "name": "Secondary action",
       "kind": "button",
       "refersTo": "button-secondary",
-      "description": "Outlined action for entering the separate decision workflow.",
-      "html": "<button type=\"button\" class=\"ds-secondary\">Record decision</button>",
+      "description": "Outlined action for supporting operations, external providers and row actions.",
+      "html": "<button type=\"button\" class=\"ds-secondary\">Save decision</button>",
       "css": ".ds-secondary { font-family: \"Segoe UI\", system-ui, sans-serif; min-height: 2.75rem; padding: 0.65rem 1rem; border: 1px solid var(--blue, #244d9e); border-radius: var(--radius, 0.375rem); font-size: 0.875rem; font-weight: 600; line-height: 1.4; cursor: pointer; } .ds-secondary:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; } .ds-secondary:disabled { opacity: 0.55; cursor: default; } .ds-secondary { background: var(--surface, #ffffff); color: var(--blue, #244d9e); } .ds-secondary:hover:not(:disabled) { background: var(--blue-soft, #e7edf6); }"
     },
     {
@@ -289,11 +318,11 @@
       "css": ".ds-search { display: grid; gap: 0.45rem; color: var(--navy, #202c42); font-family: \"Segoe UI\", system-ui, sans-serif; } .ds-search label { font-size: 0.75rem; font-weight: 600; } .ds-search input { font-family: \"Segoe UI\", system-ui, sans-serif; min-width: 0; min-height: 2.75rem; padding: 0.65rem 0.75rem; border: 1px solid var(--line-strong, #a5b1c3); border-radius: var(--radius, 0.375rem); background: var(--surface, #ffffff); color: var(--navy, #202c42); font-size: 0.8125rem; caret-color: var(--blue, #244d9e); } .ds-search input::placeholder { color: var(--muted, #59677d); opacity: 1; } .ds-search input:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; }"
     },
     {
-      "name": "Workspace navigation",
+      "html": "<nav class=\"ds-account-nav\" aria-label=\"Account settings\"><ul><li><a href=\"#profile\" aria-current=\"page\">Profile</a></li><li><a href=\"#email\">Email</a></li><li><a href=\"#password\">Password</a></li><li><a href=\"#two-factor\">Two-factor authentication</a></li><li><a href=\"#passkeys\">Passkeys</a></li><li><a href=\"#data\">Personal data</a></li></ul></nav>",
+      "description": "Settings links use a pale active state and a compact two-column grid on phones.",
+      "name": "Account settings navigation",
       "kind": "nav",
-      "description": "Flat view buttons with a thin blue rule for the active view.",
-      "html": "<div class=\"ds-views\" aria-label=\"Tryout views\"><button class=\"ds-view\" type=\"button\" aria-pressed=\"true\">Evaluation</button><button class=\"ds-view\" type=\"button\" aria-pressed=\"false\">Team placements</button></div>",
-      "css": ".ds-views { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 1.5rem; border-bottom: 1px solid var(--line, #dce2ec); } .ds-view { font-family: \"Segoe UI\", system-ui, sans-serif; min-height: 3.25rem; padding: 0.5rem 0.15rem; background: transparent; color: var(--muted, #59677d); border: 0; border-bottom: 2px solid transparent; border-radius: 0; font-size: 0.875rem; font-weight: 650; cursor: pointer; } .ds-view[aria-pressed=\"true\"] { border-color: var(--blue, #244d9e); color: var(--blue, #244d9e); } .ds-view:hover { color: var(--blue, #244d9e); background: var(--blue-soft, #e7edf6); } .ds-view:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; } @media (max-width: 45rem) { .ds-views { grid-template-columns: auto auto; gap: 0 1rem; justify-content: start; } }"
+      "css": ".ds-account-nav { font-family: \"Segoe UI\", system-ui, sans-serif; margin-block: 1rem 2rem; } .ds-account-nav ul { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0.5rem; margin: 0; padding: 0; list-style: none; } .ds-account-nav a { display: grid; align-content: center; min-height: 2.75rem; padding: 0.5rem 0.75rem; font-size: 0.875rem; color: #174c91; text-underline-offset: 0.15em; overflow-wrap: anywhere; } .ds-account-nav a:hover { color: #123766; background: var(--blue-soft, #e7edf6); } .ds-account-nav a[aria-current=\"page\"] { background: var(--blue-soft, #e7edf6); font-weight: 700; } .ds-account-nav a:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; } @media (max-width: 35rem) { .ds-account-nav { margin-block: 1rem 1.5rem; } .ds-account-nav ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }"
     },
     {
       "name": "Decision badges",
@@ -307,36 +336,35 @@
       "name": "Notebook surface",
       "kind": "card",
       "refersTo": "writing-surface",
-      "description": "The flat workspace frame and continuous writing area, composed from the existing container and notebook styles.",
+      "description": "The persisted notebook keeps the selected player larger than the compact tryout heading on one flat writing surface.",
       "html": "<div class=\"ds-frame\"><article class=\"ds-notebook\"><h2>Avery Morgan</h2><p>Graduation year <strong>2031</strong> · Midfielder</p></article></div>",
-      "css": ".ds-frame { background: var(--surface, #ffffff); border: 1px solid var(--line, #dce2ec); color: var(--navy, #202c42); font-family: \"Segoe UI\", system-ui, sans-serif; } .ds-notebook { padding: 1.5rem 2.5rem 1rem; max-width: 58rem; margin-inline: auto; } .ds-notebook h2 { font-size: 2rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.035em; margin: 0 0 0.5rem; } .ds-notebook p { color: var(--muted, #59677d); font-size: 0.875rem; line-height: 1.5; margin: 0 0 0.875rem; } .ds-notebook strong { color: var(--navy, #202c42); font-weight: 600; } @media (max-width: 60rem) { .ds-notebook { padding: 1.25rem 1.5rem; } } @media (max-width: 45rem) { .ds-notebook { padding: 1rem; } .ds-notebook h2 { font-size: 1.75rem; } }"
+      "css": ".ds-frame { background: var(--surface, #ffffff); border: 1px solid var(--line, #dce2ec); color: var(--navy, #202c42); font-family: \"Segoe UI\", system-ui, sans-serif; } .ds-notebook { min-width: 0; padding: 2rem 2.5rem; } .ds-notebook h2 { font-size: 2rem; font-weight: 700; line-height: 1.25; letter-spacing: -0.03em; margin: 0 0 0.5rem; overflow-wrap: anywhere; } .ds-notebook p { color: var(--muted, #59677d); font-size: 0.875rem; line-height: 1.5; margin: 0 0 0.4rem; } @media (max-width: 65rem) { .ds-notebook { padding: 1.5rem; } } @media (max-width: 48rem) { .ds-notebook { padding: 1.25rem; } .ds-notebook h2 { font-size: 1.75rem; } }"
     },
     {
       "name": "Selected roster row",
       "kind": "custom",
-      "refersTo": "roster-selected",
       "description": "An entire player record is actionable; selection is a pale fill without an edge stripe.",
-      "html": "<button type=\"button\" class=\"ds-player\" aria-current=\"true\"><span class=\"ds-bib\">14</span><span class=\"ds-player-summary\"><strong>Avery Morgan</strong><span>2031 · Midfielder</span><span class=\"ds-roster-decision\">Awaiting decision</span></span><svg aria-hidden=\"true\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\"><path d=\"m9 5 7 7-7 7\" /></svg></button>",
-      "css": ".ds-player { font-family: \"Segoe UI\", system-ui, sans-serif; display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; width: 100%; gap: 0.75rem; align-items: center; border: 0; border-bottom: 1px solid var(--line, #dce2ec); border-radius: 0; background: transparent; padding: 1rem 1.25rem; text-align: left; color: var(--navy, #202c42); cursor: pointer; } .ds-player:hover, .ds-player[aria-current=\"true\"] { background: var(--blue-soft, #e7edf6); } .ds-player:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: -4px; } .ds-bib { font-variant-numeric: tabular-nums; color: var(--muted, #59677d); font-size: 0.875rem; } .ds-player-summary { display: grid; gap: 0.2rem; overflow-wrap: anywhere; line-height: 1.5; } .ds-player-summary strong { font-size: 0.875rem; font-weight: 650; } .ds-player-summary > span { color: var(--muted, #59677d); font-size: 0.75rem; } .ds-player-summary .ds-roster-decision { color: var(--blue, #244d9e); font-size: 0.6875rem; }"
+      "html": "<button type=\"button\" class=\"ds-player\" aria-pressed=\"true\"><span class=\"ds-bib\">14</span><span class=\"ds-player-summary\"><strong>Avery Morgan</strong><small>2031 · Midfielder</small><small>Awaiting decision</small></span></button>",
+      "css": ".ds-player { font-family: \"Segoe UI\", system-ui, sans-serif; display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); width: 100%; gap: 0.75rem; border: 0; border-top: 1px solid var(--line, #dce2ec); border-radius: 0; background: transparent; padding: 1.1rem 1.25rem; text-align: left; color: var(--navy, #202c42); cursor: pointer; } .ds-player:hover, .ds-player[aria-pressed=\"true\"] { background: var(--blue-soft, #e7edf6); } .ds-player:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: -3px; } .ds-player:disabled { opacity: 0.55; cursor: default; } .ds-bib { align-self: center; font-variant-numeric: tabular-nums; color: var(--muted, #59677d); font-size: 0.8125rem; } .ds-player-summary { overflow-wrap: anywhere; line-height: 1.5; } .ds-player-summary strong { font-size: 0.9375rem; } .ds-player-summary small { display: block; margin-top: 0.25rem; color: var(--muted, #59677d); font-size: 0.75rem; } @media (prefers-reduced-motion: no-preference) { .ds-player { transition: background-color 150ms ease-out; } }"
     },
     {
-      "name": "Shared observation",
+      "name": "Public sample observation",
       "kind": "custom",
-      "description": "Ruled note with an author, timestamp and a restrained arrival highlight.",
+      "description": "The public sample variant adds an author mark and restrained arrival highlight to the shared ruled-note pattern.",
       "html": "<article class=\"ds-observation\" data-new=\"true\"><div class=\"ds-observation-heading\"><span class=\"ds-author-mark\" aria-hidden=\"true\">CS</span><strong>Coach Sam</strong><time datetime=\"2027-04-17T10:42:00\">Apr 17 · 10:42 AM</time></div><p>Checks shoulder before receiving; confident turning into space.</p></article>",
       "css": ".ds-observation { font-family: \"Segoe UI\", system-ui, sans-serif; color: var(--navy, #202c42); padding: 1.25rem 0; border-bottom: 1px solid var(--line, #dce2ec); } .ds-observation-heading { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.65rem; margin-bottom: 0.6rem; } .ds-author-mark { display: grid; place-items: center; width: 1.875rem; height: 1.875rem; border-radius: 50%; background: var(--blue-soft, #e7edf6); color: var(--blue, #244d9e); font-size: 0.625rem; font-weight: 700; } .ds-observation strong { font-size: 0.8125rem; font-weight: 650; } .ds-observation time { font-size: 0.6875rem; color: var(--muted, #59677d); font-variant-numeric: tabular-nums; } .ds-observation p { font-size: 0.9375rem; line-height: 1.65; margin: 0; max-width: 70ch; white-space: pre-wrap; overflow-wrap: anywhere; } .ds-observation[data-new=\"true\"] { animation: ds-note-arrives 650ms cubic-bezier(0.16, 1, 0.3, 1); } @keyframes ds-note-arrives { from { background: var(--blue-soft, #e7edf6); } to { background: transparent; } } @media (prefers-reduced-motion: reduce) { .ds-observation[data-new=\"true\"] { animation: none; } } @media (max-width: 45rem) { .ds-observation-heading { grid-template-columns: auto 1fr; gap: 0.2rem 0.65rem; } .ds-author-mark { grid-row: 1 / 3; } .ds-observation time { grid-column: 2; } }"
     },
     {
-      "name": "Decision choices",
+      "html": "<details class=\"ds-decision\"><summary>Record or revise decision</summary><form class=\"ds-decision-form\"><div class=\"ds-field\"><label for=\"ds-outcome\">Outcome</label><select id=\"ds-outcome\"><option>Awaiting decision</option><option>Placed</option><option>Withdrawn</option><option>Not selected</option></select></div><div class=\"ds-field\"><label for=\"ds-context\">Reason or revision context (optional)</label><textarea id=\"ds-context\" rows=\"2\"></textarea></div><button class=\"ds-save-decision\" type=\"button\">Save decision</button></form></details>",
+      "description": "Native, initially collapsed decision editor before the persisted note composer; history remains a separate disclosure.",
+      "name": "Decision disclosure",
       "kind": "custom",
-      "description": "Native radio choices with a tonal selected state, stacking when space contracts.",
-      "html": "<fieldset class=\"ds-decisions\"><legend>Decision for Avery Morgan</legend><div class=\"ds-options\"><label class=\"ds-choice\"><input name=\"ds-decision\" type=\"radio\" checked /><span>Place on a team</span></label><label class=\"ds-choice\"><input name=\"ds-decision\" type=\"radio\" /><span>Withdrawn</span></label><label class=\"ds-choice\"><input name=\"ds-decision\" type=\"radio\" /><span>Not selected</span></label></div></fieldset>",
-      "css": ".ds-decisions { font-family: \"Segoe UI\", system-ui, sans-serif; color: var(--navy, #202c42); min-width: 0; padding: 0; border: 0; margin: 0; } .ds-decisions legend { font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.75rem; } .ds-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; } .ds-choice { display: grid; grid-template-columns: auto 1fr; gap: 0.5rem; align-items: center; padding: 0.75rem; border: 1px solid var(--line-strong, #a5b1c3); border-radius: var(--radius, 0.375rem); font-size: 0.8125rem; cursor: pointer; } .ds-choice:has(:checked) { background: var(--blue-soft, #e7edf6); border-color: var(--blue, #244d9e); color: var(--blue, #244d9e); } .ds-choice input { margin: 0; accent-color: var(--blue, #244d9e); } .ds-choice input:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; } @media (max-width: 60rem) { .ds-options { grid-template-columns: 1fr; } }"
+      "css": ".ds-decision { margin-top: 1.25rem; color: var(--navy, #202c42); font-family: \"Segoe UI\", system-ui, sans-serif; } .ds-decision summary { padding-block: 0.5rem; color: var(--blue, #244d9e); font-weight: 600; cursor: pointer; } .ds-decision summary:focus-visible, .ds-decision select:focus-visible, .ds-decision textarea:focus-visible, .ds-save-decision:focus-visible { outline: 2px solid var(--blue, #244d9e); outline-offset: 3px; } .ds-decision-form { display: grid; gap: 1.25rem; max-width: 44rem; margin-top: 1rem; } .ds-field { display: grid; gap: 0.25rem; min-width: 0; } .ds-field select, .ds-field textarea { font: inherit; min-width: 0; min-height: 2.75rem; padding: 0.65rem 0.75rem; color: var(--navy, #202c42); background: var(--surface, #ffffff); border: 1px solid var(--line-strong, #a5b1c3); border-radius: var(--radius, 0.375rem); } .ds-save-decision { min-height: 2.75rem; padding: 0.65rem 1rem; border: 1px solid var(--blue, #244d9e); border-radius: var(--radius, 0.375rem); background: var(--surface, #ffffff); color: var(--blue, #244d9e); font: 600 0.875rem/1.4 \"Segoe UI\", system-ui, sans-serif; cursor: pointer; } .ds-save-decision:hover:not(:disabled) { background: var(--blue-soft, #e7edf6); } .ds-save-decision:disabled { opacity: 0.55; cursor: default; }"
     }
   ],
   "narrative": {
     "northStar": "Sideline notebook",
-    "overview": "A calm working notebook for coaches: white writing space, compact navy navigation, clear blue actions and observations separated by fine rules. Its density supports repeated reading and input on a field-side phone or a review desktop. Readable system sans-serif type and restrained controls keep names, notes and decisions easy to scan.\n\nThis records the implemented tryout workspace, not a global redesign of the legacy sample and account layouts. Shared tokens and controls live in [app.css](src/Pino/wwwroot/app.css); the dedicated [TryoutLayout](src/Pino.UI/Layout/TryoutLayout.razor) and adjacent feature styles establish this visual world. Product facts and open decisions remain in [PRODUCT.md](PRODUCT.md); page composition, fictional content and session-only behavior are defined in the [feature brief](docs/features/tryout-evaluation.md).",
+    "overview": "A calm working notebook for coaches: white writing space, compact navy navigation, clear blue actions and observations separated by fine rules. Its density supports repeated reading and input on a field-side phone or a review desktop. Readable system sans-serif type and restrained controls keep names, notes and decisions easy to scan.\n\nThis records the implemented club access, membership, persisted sporting and account surfaces, alongside the public tryout sample. Account forms and their layout now share the notebook's palette, flat sheets, fields and action hierarchy. Shared tokens and controls live in [app.css](src/Pino/wwwroot/app.css); [TryoutLayout](src/Pino.UI/Layout/TryoutLayout.razor), [ClubPageShell](src/Pino.UI/Features/Clubs/Components/ClubPageShell.razor) and [MainLayout](src/Pino.UI/Layout/MainLayout.razor), with adjacent feature styles, express this visual world. Product facts and open decisions remain in [PRODUCT.md](PRODUCT.md); surface composition and behavior are defined in the [tryout brief](docs/features/tryout-evaluation.md) and [club access brief](docs/features/club-onboarding-access.md), and the [sporting workspace](docs/features/club-sporting-workspace.md).",
     "keyCharacteristics": [
       "White writing surfaces on a cool, quiet canvas.",
       "Cobalt actions and pale-blue selection against navy text.",
@@ -351,7 +379,7 @@
       },
       {
         "name": "The Ruled Paper Rule",
-        "body": "Separate repeated observations and player records with fine rules and spacing; keep writing surfaces flat.",
+        "body": "Separate repeated observations and records with fine rules and spacing; keep writing surfaces flat.",
         "section": "elevation"
       }
     ],
@@ -364,7 +392,7 @@
     "donts": [
       "Don't use color alone to distinguish outcomes or validation states.",
       "Don't replace the notebook's reading surface with elevated cards or add a thick stripe to selected roster rows.",
-      "Don't treat the fictional club, sample roster sizes or account scaffold layout as approved product-wide identity or layout requirements."
+      "Don't treat the fictional club or sample roster sizes as approved product-wide identity or layout requirements."
     ]
   }
 }

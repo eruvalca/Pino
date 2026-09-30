@@ -10,6 +10,7 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Pino.UnitTests" />
     <InternalsVisibleTo Include="Pino.ComponentTests" />
+    <InternalsVisibleTo Include="Pino.BrowserTests" />
     <!-- NSubstitute proxies Identity dependencies whose generic user type is internal. -->
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
@@ -23,6 +24,8 @@
     <PackageReference Include="Aspire.Azure.Storage.Blobs" />
     <PackageReference Include="Azure.Storage.Blobs" />
     <PackageReference Include="SkiaSharp" />
+    <PackageReference Include="CsvHelper" />
+    <PackageReference Include="MailKit" />
     <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" />
     <PackageReference Include="OneOf" />
     <PackageReference Include="OneOf.SourceGenerator" PrivateAssets="all" />

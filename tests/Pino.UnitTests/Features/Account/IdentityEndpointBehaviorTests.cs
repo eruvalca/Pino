@@ -31,7 +31,7 @@ public sealed class IdentityEndpointBehaviorTests
         const string ReturnUrl = "/events?search=café &page=2";
         var properties = new AuthenticationProperties();
         string? callback = null;
-        context.Identity.SignIn.ConfigureExternalAuthenticationProperties("Example", Arg.Any<string>(), null)
+        context.Identity.SignIn.ConfigureExternalAuthenticationProperties("Example", Arg.Any<string>(), userId: null)
             .Returns(call => { callback = call.ArgAt<string>(1); return properties; });
         context.Http.Request.PathBase = "/app";
         context.SetForm(("provider", "Example"), ("returnUrl", ReturnUrl));
@@ -61,7 +61,7 @@ public sealed class IdentityEndpointBehaviorTests
 
         Received.InOrder(() =>
         {
-            _ = context.Authentication.SignOutAsync(context.Http, IdentityConstants.ExternalScheme, null);
+            _ = context.Authentication.SignOutAsync(context.Http, IdentityConstants.ExternalScheme, properties: null);
             context.Identity.SignIn.ConfigureExternalAuthenticationProperties(
                 "Example", "/app/Account/Manage/ExternalLogins?Action=LinkLoginCallback", "current-user");
             _ = context.Authentication.ChallengeAsync(context.Http, "Example", properties);

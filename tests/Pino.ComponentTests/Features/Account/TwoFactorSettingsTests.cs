@@ -24,7 +24,7 @@ public sealed class TwoFactorSettingsTests
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
-        account.Users.GetTwoFactorEnabledAsync(user).Returns(true);
+        account.Users.GetTwoFactorEnabledAsync(user).Returns(returnThis: true);
         account.Users.CountRecoveryCodesAsync(user).Returns(remaining);
 
         var component = account.Render<TwoFactorAuthentication>(context);
@@ -41,7 +41,7 @@ public sealed class TwoFactorSettingsTests
         await using var context = new BunitContext();
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
-        account.Users.GetTwoFactorEnabledAsync(user).Returns(true);
+        account.Users.GetTwoFactorEnabledAsync(user).Returns(returnThis: true);
         account.Users.CountRecoveryCodesAsync(user).Returns(4);
 
         var component = account.Render<TwoFactorAuthentication>(context);
@@ -60,7 +60,7 @@ public sealed class TwoFactorSettingsTests
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
         account.Users.GetAuthenticatorKeyAsync(user).Returns(hasKey ? "existing-key" : null);
-        account.SignIn.IsTwoFactorClientRememberedAsync(user).Returns(true);
+        account.SignIn.IsTwoFactorClientRememberedAsync(user).Returns(returnThis: true);
 
         var component = account.Render<TwoFactorAuthentication>(context);
 
@@ -76,11 +76,11 @@ public sealed class TwoFactorSettingsTests
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
         var consent = Substitute.For<ITrackingConsentFeature>();
-        consent.CanTrack.Returns(false);
+        consent.CanTrack.Returns(returnThis: false);
         account.Http.Features.Set(consent);
-        account.Users.GetTwoFactorEnabledAsync(user).Returns(true);
+        account.Users.GetTwoFactorEnabledAsync(user).Returns(returnThis: true);
         account.Users.GetAuthenticatorKeyAsync(user).Returns("existing-key");
-        account.SignIn.IsTwoFactorClientRememberedAsync(user).Returns(true);
+        account.SignIn.IsTwoFactorClientRememberedAsync(user).Returns(returnThis: true);
 
         var component = account.Render<TwoFactorAuthentication>(context);
 
@@ -96,10 +96,10 @@ public sealed class TwoFactorSettingsTests
         var account = context.ConfigureAccount();
         var user = account.Authenticate();
         var consent = Substitute.For<ITrackingConsentFeature>();
-        consent.CanTrack.Returns(true);
+        consent.CanTrack.Returns(returnThis: true);
         account.Http.Features.Set(consent);
-        account.Users.GetTwoFactorEnabledAsync(user).Returns(true);
-        account.SignIn.IsTwoFactorClientRememberedAsync(user).Returns(true);
+        account.Users.GetTwoFactorEnabledAsync(user).Returns(returnThis: true);
+        account.SignIn.IsTwoFactorClientRememberedAsync(user).Returns(returnThis: true);
         var navigation = context.Services.GetRequiredService<NavigationManager>();
         navigation.NavigateTo("Account/Manage/TwoFactorAuthentication");
         var component = account.Render<TwoFactorAuthentication>(context);

@@ -57,7 +57,7 @@ public sealed class AccountEmailChangeServiceTests
         var error = result.Value.ShouldBeOfType<EmailChangeOutcome.EmailChangeRejected>().Errors.ShouldHaveSingleItem();
         error.Code.ShouldBe("BadToken");
         error.Description.ShouldBe("Invalid confirmation token");
-        await identity.Users.DidNotReceiveWithAnyArgs().SetUserNameAsync(default!, default!);
+        await identity.Users.DidNotReceiveWithAnyArgs().SetUserNameAsync(default!, default);
         await identity.SignIn.DidNotReceiveWithAnyArgs().RefreshSignInAsync(default!);
     }
 

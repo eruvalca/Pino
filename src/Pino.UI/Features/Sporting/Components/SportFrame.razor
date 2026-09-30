@@ -1,0 +1,21 @@
+<ClubPageShell Club="Membership?.Club" CanManagePeople="@(Membership?.Role == ClubRole.Administrator)">
+    <article class="sport-sheet" aria-busy="@Busy">
+        @if (Message is not null)
+        {
+            <p class="notice" data-kind="@MessageKind" role="status">@Message</p>
+        }
+        @if (Failed)
+        {
+            <h1>Workspace unavailable</h1>
+            <div class="actions"><button class="secondary-action" @onclick="Reload" disabled="@Busy">Reload</button><a href="/club/access">Your club</a></div>
+        }
+        else if (Membership is null)
+        {
+            <h1>Opening your workspace…</h1><p>Checking club access and loading records.</p>
+        }
+        else
+        {
+            @ChildContent
+        }
+    </article>
+</ClubPageShell>

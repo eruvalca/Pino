@@ -15,6 +15,13 @@ var web = builder.AddProject<Projects.Pino>("pino")
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health");
 
+if (builder.ExecutionContext.IsRunMode)
+{
+    // Configure application references before the EF integration snapshots its environment.
+    var mail = builder.AddMailPit("mailpit").WithImageTag("v1.31.3");
+    web.WithReference(mail).WaitFor(mail);
+}
+
 // Pin the managed EF tool to the application's EF Core version rather than the global tool.
 #pragma warning disable ASPIREDOTNETTOOL // The agreed Aspire EF migration integration uses the experimental tool resource API.
 var migrations = web.AddEFMigrations("pino-migrations", "Pino.Data.ApplicationDbContext",

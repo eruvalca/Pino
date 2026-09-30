@@ -12,15 +12,23 @@
 }
 
 .account-navigation ::deep a {
-    display: block;
-    padding: 0.5rem;
+    display: grid;
+    align-content: center;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
 }
 
 .account-navigation ::deep a:hover {
-    background: #f4f4f4;
+    background: var(--blue-soft);
 }
 
 .account-navigation ::deep a.active {
-    background: #eee;
+    background: var(--blue-soft);
     font-weight: 700;
+}
+
+@media (max-width: 35rem) {
+    .account-navigation { margin-block: 1rem 1.5rem; }
+    .account-navigation ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
