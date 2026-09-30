@@ -86,7 +86,7 @@ public sealed class TwoFactorSettingsTests
 
         var component = account.Render<TwoFactorAuthentication>(context);
 
-        component.Find(".notice[data-kind='error'] strong").TextContent.ShouldBe("Privacy and cookie policy have not been accepted.");
+        component.Find(".notice[data-kind='error'] strong").TextContent.ShouldBe("These sign-in settings are not available right now.");
         component.FindAll("a, form").ShouldBeEmpty();
         await account.SignIn.DidNotReceive().ForgetTwoFactorClientAsync();
     }

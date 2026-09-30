@@ -1,0 +1,51 @@
+@page "/clubs/{ClubId:guid}/tryouts/{TryoutId:guid}/bulk-enrollment"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits SportPageBase
+
+<PageTitle>Include new players · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    @if (_tryout is { } data)
+    {
+        <p><a href="@($"/clubs/{ClubId}/tryouts/{TryoutId}")">@data.Tryout.Name</a></p>
+        <header class="sport-heading"><div><h1>Include new players</h1><p>Add club players who joined after this tryout was created. They will need a final decision. You can also give them a bib.</p></div><a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/enrollments")">Manage tryout players</a></header>
+        <ol class="task-steps" aria-label="Enrollment progress"><li aria-current="@(_input is null ? "step" : null)">Select players</li><li aria-current="@(_input is not null && _report?.Kind != SportReplyKind.Saved ? "step" : null)">Review selection</li><li aria-current="@(_report?.Kind == SportReplyKind.Saved ? "step" : null)">Check results</li></ol>
+        @if (!CanEdit) { <p class="notice" data-kind="information">Reopen the season and tryout before enrolling players.</p> }
+        @if (_report is { Kind: SportReplyKind.Saved } report)
+        {
+            <SportingBatchResults Report="report" Names="_names" /><button class="secondary-action" disabled="@Disabled" @onclick="ReloadAsync">Refresh for another batch</button>
+        }
+        else if (_input is not null)
+        {
+            <section class="sport-section"><h2 tabindex="-1" @ref="_listHeading">Review @_input.Players.Count players</h2><p>These selected players will be added to @data.Tryout.Name. Changed, archived, removed or already enrolled records will be skipped with an explanation.</p>
+                <RosterPager Count="_input.Players.Count" Page="_page" PageChanged="ChangePageAsync" Label="Enrollment review pages" Disabled="Disabled" />
+                <ul class="record-list">@foreach (var selection in _input.Players.Skip(_page * 50).Take(50))
+                {
+                    var player = _candidates.Single(value => value.Player.Id == selection.PlayerId).Player;
+                    <li class="record-row"><div><strong>@player.FullName</strong><p class="muted">Class of @player.GraduationYear · @player.Position</p></div></li>
+                }</ul>
+                <RosterPager Count="_input.Players.Count" Page="_page" PageChanged="ChangePageAsync" Label="Enrollment review pages after players" Disabled="Disabled" />
+                @if (_report is not null) { <p class="notice" data-kind="error">@_report.Message</p> }
+                <div class="actions"><button class="primary-action" disabled="@(Disabled || !CanEdit)" @onclick="EnrollAsync">Add reviewed players</button><button class="text-action" disabled="@Disabled" @onclick="BackToSelection">Back to selection</button></div>
+            </section>
+        }
+        else
+        {
+            <div class="sport-form"><div class="field-pair"><div class="form-field"><label for="bulk-query">Find club players</label><input id="bulk-query" type="search" @bind="_query" @bind:event="oninput" @bind:after="ResetPage" /></div><div class="form-field"><label for="bulk-year">Graduation year</label><select id="bulk-year" @bind="_year" @bind:after="ResetPage"><option value="">All years</option>@foreach (var year in _candidates.Select(value => value.Player.GraduationYear).Distinct().Order()) { <option value="@year">@year</option> }</select></div></div></div>
+            <h2 tabindex="-1" @ref="_listHeading">Select club players</h2><p role="status">@_selected.Count selected · @Filtered.Count() matching · @_candidates.Count active club players</p>
+            <label class="checkbox-field"><input type="checkbox" @bind="_showEnrolled" @bind:after="ResetPage" /> Show players already enrolled or excluded</label>
+            <div class="workflow-actions"><button class="secondary-action" disabled="@(Disabled || !CanEdit)" @onclick="SelectMatching">Select all available matches</button><button class="text-action" disabled="@Disabled" @onclick="() => _selected.Clear()">Clear selection</button><button class="primary-action" disabled="@(Disabled || !CanEdit || _selected.Count == 0)" @onclick="Review">Review selected players</button></div>
+            <RosterPager Count="Filtered.Count()" Page="_page" PageChanged="ChangePageAsync" Label="Catalog selection pages" Disabled="Disabled" />
+            <ul class="record-list">@foreach (var candidate in Filtered.Skip(_page * 50).Take(50))
+            {
+                <li class="record-row" @key="candidate.Player.Id"><div><label class="checkbox-field"><input type="checkbox" disabled="@(Disabled || !CanEdit || candidate.Enrolled)" checked="@_selected.Contains(candidate.Player.Id)" @onchange="args => Select(candidate.Player.Id, args)" /> @candidate.Player.FullName</label><p class="muted">Class of @candidate.Player.GraduationYear · @candidate.Player.Position</p>
+                    @if (candidate.Removed) { <p>Excluded from tryout. <a href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/enrollments")">Review roster changes</a>.</p> }
+                    else if (candidate.Enrolled) { <p>Already included.</p> }
+                </div></li>
+            }</ul>
+            @if (!Filtered.Any()) { <p class="notice" data-kind="information">No new players match. Active club players are included automatically when a tryout is created. Use Manage tryout players to review exclusions.</p> }
+            <RosterPager Count="Filtered.Count()" Page="_page" PageChanged="ChangePageAsync" Label="Catalog selection pages after players" Disabled="Disabled" />
+        }
+    }
+</SportFrame>

@@ -296,6 +296,32 @@ tbody tr:hover { background: var(--subtle); }
     font-size: 1rem;
 }
 
+/* Operational action groups distinguish next steps from explanatory prose. */
+.workflow-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), max-content));
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    margin-block: 1.25rem;
+    background: var(--subtle);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+}
+
+.record-actions {
+    display: grid;
+    justify-items: start;
+    gap: 0.5rem;
+}
+
+.record-count {
+    display: inline-block;
+    margin-inline-start: 0.75rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+}
+
 /* Shared by account and club layouts; Blazor reveals this after a fatal circuit error. */
 #blazor-error-ui {
     display: none;
@@ -325,3 +351,19 @@ tbody tr:hover { background: var(--subtle); }
         justify-items: start;
     }
 }
+.task-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; padding: 0; margin-block: 1.5rem; list-style-position: inside; color: var(--muted); }
+.task-steps li { padding: .75rem; border-bottom: 1px solid var(--line-strong); }
+.task-steps [aria-current="step"] { color: var(--blue); background: var(--blue-soft); font-weight: 700; border-color: var(--blue); }
+.selection-review { max-height: 18rem; overflow-y: auto; padding-block: .5rem; }
+.selection-review li { padding-block: .25rem; }
+@media (max-width: 35rem) { .task-steps { grid-template-columns: minmax(0, 1fr); gap: .25rem; } }
+.status-definitions { display: grid; gap: 1rem; max-width: 65ch; }
+.status-definitions > div { display: grid; grid-template-columns: 7rem minmax(0, 1fr); gap: .75rem; }
+.status-definitions dt { font-weight: 700; }
+.status-definitions dd { margin: 0; }
+.account-data-section { padding-block: 1.25rem; border-top: 1px solid var(--line); }
+.account-help { display: grid; gap: .5rem; padding: 1rem; background: var(--subtle); border: 1px solid var(--line); }
+.account-help p { margin: 0; }
+
+/* Staff photos stay beside their names in notes and activity records. */
+.staff-attribution { display: inline-grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .5rem; max-width: 100%; vertical-align: middle; }

@@ -20,6 +20,14 @@ internal sealed partial class BrowserSession
               UNION SELECT "PhotoKey", NOW() FROM "Players" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs) AND "PhotoKey" IS NOT NULL
               ON CONFLICT ("PhotoKey") DO UPDATE SET "NotBefore" = NOW();
             DELETE FROM "PlayerNotes" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
+            DELETE FROM "TryoutAttendances" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
+            DELETE FROM "EnrollmentChanges" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
+            DELETE FROM "PlayerErasures" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
+            DELETE FROM "PlayerImportReceipts" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
+            DELETE FROM "SportingBatchReceipts" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
+            DELETE FROM "TryoutTeamAvailabilities" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
+            DELETE FROM "SeasonTeamAvailabilities" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
+            DELETE FROM "TeamPositionTargets" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "DecisionEvents" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "TryoutCloseouts" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "Participations" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
@@ -29,6 +37,8 @@ internal sealed partial class BrowserSession
             DELETE FROM "TryoutEvents" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "Seasons" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "ClubJoinRequests" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs) OR "UserId" IN (SELECT "Id" FROM owned_users);
+            DELETE FROM "StaffEmails" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs) OR "RecipientEmail" = ANY(@emails);
+            DELETE FROM "ClubInvitations" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs) OR "Email" = ANY(@emails);
             DELETE FROM "ClubMemberships" WHERE "ClubId" IN (SELECT "Id" FROM owned_clubs) OR "UserId" IN (SELECT "Id" FROM owned_users);
             DELETE FROM "Clubs" WHERE "Id" IN (SELECT "Id" FROM owned_clubs);
             DELETE FROM "AspNetUsers" WHERE "Id" IN (SELECT "Id" FROM owned_users);

@@ -1,0 +1,8 @@
+.email-identity {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.email-identity h2 {
+    font-size: var(--font-size-lg, 1.125rem);
+}

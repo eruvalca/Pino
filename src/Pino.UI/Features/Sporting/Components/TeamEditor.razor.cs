@@ -15,7 +15,7 @@ public sealed partial class TeamEditor
     {
         if (_loaded == Input.Id) { return; }
         _loaded = Input.Id;
-        _model = new() { Id = Input.Id, SeasonId = Input.SeasonId, Revision = Input.Revision, Name = Input.Name, GraduationYear = Input.GraduationYear, Archived = Input.Archived };
+        _model = new() { Id = Input.Id, Revision = Input.Revision, Name = Input.Name, GraduationYear = Input.GraduationYear, Archived = Input.Archived };
     }
     private Task SaveAsync() => Save.InvokeAsync(_model);
 }

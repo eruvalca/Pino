@@ -93,7 +93,7 @@ public sealed class TryoutTests
         await page.WaitForAssertionAsync(() => page.FindAll(".observation").Count.ShouldBe(3));
         page.Find(".observation p").TextContent.ShouldBe("Keeps the passing lane open.");
         page.Find("#shared-note").GetAttribute("value").ShouldBe("");
-        page.Find("#note-feedback").TextContent.ShouldContain("Note saved in this sample session");
+        page.Find("#note-feedback").TextContent.ShouldContain("Note saved in this sample.");
     }
 
     [Fact]
@@ -200,7 +200,7 @@ public sealed class TryoutTests
         await page.Find("#shared-note").InputAsync("Spots the open passing lane.");
         await page.Find(".note-composer form").SubmitAsync();
 
-        page.Find("#note-feedback").TextContent.ShouldContain("Note saved in this sample session");
+        page.Find("#note-feedback").TextContent.ShouldContain("Note saved in this sample.");
         page.FindAll(".observation").Count.ShouldBe(3);
         page.Find(".observation p").TextContent.ShouldBe("Spots the open passing lane.");
         page.Find("#shared-note").GetAttribute("value").ShouldBe("");

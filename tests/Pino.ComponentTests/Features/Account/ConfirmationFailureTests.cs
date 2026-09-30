@@ -112,7 +112,7 @@ public sealed class ConfirmationFailureTests
     [Theory]
     [InlineData("not-an-email", "password", "password", "Email")]
     [InlineData("member@example.test", "password", "different", "do not match")]
-    [InlineData("member@example.test", "short", "short", "at least 6")]
+    [InlineData("member@example.test", "short", "short", "6 to 100")]
     public async Task InvalidResetFieldsPreventUserLookupAndPasswordMutationAsync(string email, string password, string confirmation, string expectedError)
     {
         await using var context = new BunitContext();

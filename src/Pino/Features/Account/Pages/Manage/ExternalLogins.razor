@@ -9,12 +9,12 @@
 @inject IUserStore<ApplicationUser> UserStore
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Manage your external logins</PageTitle>
+<PageTitle>Connected sign-in accounts</PageTitle>
 
 <StatusMessage />
 @if (_currentLogins?.Count > 0)
 {
-    <h2>Registered Logins</h2>
+    <h2>Connected accounts</h2>
     <div class="table-container">
         <table>
             <tbody>

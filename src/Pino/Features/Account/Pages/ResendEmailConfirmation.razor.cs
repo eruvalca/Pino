@@ -10,6 +10,7 @@ namespace Pino.Features.Account.Pages;
 public sealed partial class ResendEmailConfirmation
 {
     private string? _message;
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
 
     [SupplyParameterFromForm]
     private InputModel Input { get; set; } = default!;
@@ -21,7 +22,7 @@ public sealed partial class ResendEmailConfirmation
         var user = await UserManager.FindByEmailAsync(Input.Email);
         if (user is null)
         {
-            _message = "Verification email sent. Please check your email.";
+            _message = "If this email belongs to an account, check your inbox and spam folder. Use the latest confirmation message, or wait at least a minute before requesting another. Requests are limited to six per hour.";
             return;
         }
 
@@ -30,10 +31,10 @@ public sealed partial class ResendEmailConfirmation
         code = code.EncodeIdentityToken();
         var callbackUrl = NavigationManager.GetUriWithQueryParameters(
             NavigationManager.ToAbsoluteUri("Account/ConfirmEmail").AbsoluteUri,
-            new Dictionary<string, object?>(StringComparer.Ordinal) { ["userId"] = userId, ["code"] = code });
+            new Dictionary<string, object?>(StringComparer.Ordinal) { ["userId"] = userId, ["code"] = code, ["returnUrl"] = ReturnUrl });
         await EmailSender.SendConfirmationLinkAsync(user, Input.Email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        _message = "Verification email sent. Please check your email.";
+        _message = "If this email belongs to an account, check your inbox and spam folder. Use the latest confirmation message, or wait at least a minute before requesting another. Requests are limited to six per hour.";
     }
 
     private sealed class InputModel

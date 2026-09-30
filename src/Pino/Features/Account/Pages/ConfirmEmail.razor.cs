@@ -2,12 +2,16 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Pino.Data;
 using Pino.Features.Account.Models;
+using Pino.Features.Account.Services;
 
 namespace Pino.Features.Account.Pages;
 
 public sealed partial class ConfirmEmail
 {
     private string? _statusMessage;
+    private bool _confirmed;
+    [SupplyParameterFromQuery] private string? ReturnUrl { get; set; }
+    private string ContinueUrl => AccountReturnPath.Link("/Account/Login", ReturnUrl);
 
     [CascadingParameter]
     private HttpContext HttpContext { get; set; } = default!;
@@ -38,6 +42,7 @@ public sealed partial class ConfirmEmail
                 async token =>
                 {
                     var result = await UserManager.ConfirmEmailAsync(user, token.Value);
+                    _confirmed = result.Succeeded;
                     _statusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
                 },
                 _ =>

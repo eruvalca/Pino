@@ -26,9 +26,12 @@ public sealed partial class SportingWorkflowTests
         var tryout = overview.Tryouts.ShouldHaveSingleItem();
         await EvaluateAsync(session, clubId, tryout.Id);
         var detail = await session.GetAsync<TryoutDetail>($"{path}/tryouts/{tryout.Id}");
-        detail.Notes.ShouldHaveSingleItem().Text.ShouldBe("Scans before receiving. Finds the far-side runner.");
-        detail.Roster.ShouldHaveSingleItem().CurrentTeamId.ShouldBe(overview.Teams.Single().Id);
-        detail.Tryout.Complete.ShouldBeTrue();
+        detail.Roster.Count.ShouldBe(3);
+        var evaluated = detail.Roster.Single(value => string.Equals(value.Player.FirstName, "Jordan", StringComparison.Ordinal));
+        (await session.GetAsync<PlayerNotebook>($"{path}/tryouts/{tryout.Id}/players/{evaluated.Player.Id}/notebook")).Notes.ShouldHaveSingleItem().Text.ShouldBe("Scans before receiving. Finds the far-side runner.");
+        evaluated.CurrentTeamId.ShouldBe(overview.Teams.Single().Id);
+        detail.Tryout.Complete.ShouldBeFalse();
+        detail.Tryout.Decided.ShouldBe(1);
         await VerifyConflictAndHistoryAsync(session, path, detail, overview);
         await VerifyArchivesAndImportsAsync(session, path, overview);
         await VerifySeasonIndependenceAsync(session, path, overview);
@@ -63,7 +66,8 @@ public sealed partial class SportingWorkflowTests
         await page.GetByLabel("Last name", new() { Exact = true }).FillAsync("Rivera");
         (await page.Locator("#player-reference").CountAsync()).ShouldBe(0);
         await page.GetByLabel("High-school graduation year").FillAsync("2030");
-        await page.GetByLabel("Position (optional)", new() { Exact = true }).FillAsync("Midfielder");
+        await page.GetByLabel("Primary position (optional)", new() { Exact = true }).FillAsync("Midfielder");
+        await page.GetByLabel("Secondary position (optional)", new() { Exact = true }).FillAsync("Defender");
         await page.GetByLabel("Player photo (optional)", new() { Exact = true }).SetInputFilesAsync(new FilePayload { Name = "player.png", MimeType = "image/png", Buffer = BrowserSession.Photo() });
         await session.ConfirmPhotoAsync("Save player", "player-photo");
         await session.CaptureAsync("player-create-desktop");
@@ -75,6 +79,7 @@ public sealed partial class SportingWorkflowTests
         await page.GetByRole(AriaRole.Heading, new() { Name = "Season placements" }).WaitForAsync();
         var saved = (await session.GetAsync<PlayerPage>($"/api/clubs/{clubId}/sport/players?query=Jordan&archived=false&page=0")).Players.ShouldHaveSingleItem();
         saved.PlayerReference.ShouldNotBeNullOrWhiteSpace();
+        saved.SecondaryPosition.ShouldBe("Defender");
         (await page.Locator("main").InnerTextAsync()).ShouldNotContain(saved.PlayerReference);
         saved.PhotoUrl.ShouldNotBeNull();
         var photoResponse = await session.Context.APIRequest.GetAsync(saved.PhotoUrl.ToString());
@@ -92,13 +97,26 @@ public sealed partial class SportingWorkflowTests
     {
         await session.Page.GotoAsync($"/clubs/{clubId}/players/import");
         await session.Page.Locator("#import-file:enabled").WaitForAsync();
-        const string Csv = "PlayerReference,FirstName,LastName,GraduationYear,Position,ContactEmail\nNS-002,Casey,Chen,2031,Goalkeeper,\nNS-003,Morgan,Brooks,2029,Defender,";
+        const string Csv = "Unrelated,player_id,player_first_name,player_last_name,MiddleName,School leaving year,Primary Position,Secondary Position,account_email,,\nignored,NS-002,Casey,Chen,Jo,2031,Goalkeeper,Midfield,,,\n,,,,,,,,,,\nignored,NS-003,Morgan,Brooks,,2029,Defender,,,,\n";
         await session.Page.GetByLabel("Player CSV", new() { Exact = true }).SetInputFilesAsync(new FilePayload { Name = "players.csv", MimeType = "text/csv", Buffer = System.Text.Encoding.UTF8.GetBytes(Csv) });
-        await session.Page.GetByRole(AriaRole.Button, new() { Name = "Import 2 players", Exact = true }).ClickAsync();
-        await session.Page.GetByRole(AriaRole.Link, new() { Name = "Open player catalog" }).WaitForAsync();
+        await session.Page.GetByLabel("Graduation year", new() { Exact = true }).SelectOptionAsync("5");
+        await session.Page.GetByRole(AriaRole.Button, new() { Name = "Preview mapped file", Exact = true }).ClickAsync();
+        await session.Page.GetByRole(AriaRole.Button, new() { Name = "Import reviewed players", Exact = true }).WaitForAsync();
+        await session.CaptureAsync("import-mapping-desktop");
+        await session.Page.SetViewportSizeAsync(390, 844);
+        await session.CaptureAsync("import-mapping-mobile");
+        await session.Page.SetViewportSizeAsync(1440, 1000);
+        await session.Page.GetByRole(AriaRole.Button, new() { Name = "Import reviewed players", Exact = true }).ClickAsync();
+        await session.Page.GetByRole(AriaRole.Link, new() { Name = "Open players" }).WaitForAsync();
         var players = await session.GetAsync<PlayerPage>($"/api/clubs/{clubId}/sport/players?query=&archived=false&page=0");
         players.Players.Select(player => player.FirstName).Order(StringComparer.Ordinal).ShouldBe(["Casey", "Jordan", "Morgan"]);
         players.Players.Single(player => string.Equals(player.FirstName, "Casey", StringComparison.Ordinal)).PlayerReference.ShouldBe("NS-002");
+        var casey = players.Players.Single(player => string.Equals(player.FirstName, "Casey", StringComparison.Ordinal));
+        casey.MiddleName.ShouldBe("Jo");
+        casey.FullName.ShouldBe("Casey Jo Chen");
+        casey.SecondaryPosition.ShouldBe("Midfield");
+        var middleSearch = await session.GetAsync<PlayerPage>($"/api/clubs/{clubId}/sport/players?query=Casey%20Jo%20Chen&archived=false&page=0");
+        middleSearch.Players.ShouldHaveSingleItem().Id.ShouldBe(casey.Id);
         players.Players.Single(player => string.Equals(player.FirstName, "Morgan", StringComparison.Ordinal)).PlayerReference.ShouldBe("NS-003");
         await session.CaptureAsync("import-desktop");
     }
@@ -123,7 +141,7 @@ public sealed partial class SportingWorkflowTests
         await page.GetByLabel("Tryout date", new() { Exact = true }).FillAsync("2027-02-20");
         await page.GetByLabel("Location (optional)", new() { Exact = true }).FillAsync("Lincoln Park · Field 3");
         await page.GetByRole(AriaRole.Button, new() { Name = "Save tryout", Exact = true }).ClickAsync();
-        await page.GetByRole(AriaRole.Link, new() { Name = "Spring field evaluations", Exact = true }).WaitForAsync();
+        await page.GetByRole(AriaRole.Heading, new() { Name = "Spring field evaluations", Exact = true }).WaitForAsync();
         await session.CaptureAsync("season-desktop");
         return await session.GetAsync<SportOverview>($"/api/clubs/{clubId}/sport/overview");
     }
@@ -132,14 +150,14 @@ public sealed partial class SportingWorkflowTests
     {
         var page = session.Page;
         await page.GotoAsync($"/clubs/{clubId}/tryouts/{tryoutId}");
-        await page.GetByRole(AriaRole.Button, new() { Name = "Add players", Exact = true }).ClickAsync();
-        await page.GetByLabel("Bib number (next player)").FillAsync("17");
-        await page.GetByRole(AriaRole.Button, new() { Name = "Add Jordan Rivera to tryout", Exact = true }).ClickAsync();
-        await page.GetByRole(AriaRole.Button, new() { Name = "Close enrollment", Exact = true }).ClickAsync();
+        await page.Locator(".roster-record").Filter(new() { HasText = "Jordan Rivera" }).ClickAsync();
+        await page.Locator(".bib-details > summary").ClickAsync();
         await page.GetByLabel("Bib number (this tryout)").FillAsync("41");
         await page.GetByRole(AriaRole.Button, new() { Name = "Save bib number", Exact = true }).ClickAsync();
         await page.GetByText("Bib 41", new() { Exact = true }).WaitForAsync();
         await page.ReloadAsync();
+        await page.Locator(".roster-record").Filter(new() { HasText = "Jordan Rivera" }).ClickAsync();
+        await page.Locator(".bib-details > summary").ClickAsync();
         await page.Locator("#player-bib:enabled").WaitForAsync();
         (await page.GetByLabel("Bib number (this tryout)").InputValueAsync()).ShouldBe("41");
         await page.GetByLabel("Bib number (this tryout)").FillAsync("17");
@@ -151,16 +169,18 @@ public sealed partial class SportingWorkflowTests
         await page.Locator(".decision-editor summary").FocusAsync();
         await page.Keyboard.PressAsync("Enter");
         (await page.Locator(".decision-editor").GetAttributeAsync("open")).ShouldNotBeNull();
-        await page.GetByLabel("Outcome", new() { Exact = true }).SelectOptionAsync("Placed");
+        await page.GetByLabel("Result", new() { Exact = true }).SelectOptionAsync("Placed");
         await page.GetByLabel("Eligible team", new() { Exact = true }).SelectOptionAsync(new SelectOptionValue { Label = "Northside Blue · 2030+" });
-        await page.GetByLabel("Reason or revision context (optional)").FillAsync("Strong passing and field awareness.");
+        await page.GetByLabel("Reason for this decision (optional)").FillAsync("Strong passing and field awareness.");
         await page.GetByRole(AriaRole.Button, new() { Name = "Save decision", Exact = true }).ClickAsync();
-        await page.GetByText("All decisions recorded", new() { Exact = true }).WaitForAsync();
+        await page.GetByText("1 of 3 decisions saved", new() { Exact = true }).WaitForAsync();
         await page.ReloadAsync();
+        await page.Locator(".roster-record").Filter(new() { HasText = "Jordan Rivera" }).ClickAsync();
         await page.Locator("#player-note:enabled").WaitForAsync();
         await page.Locator(".note-text").GetByText("Scans before receiving. Finds the far-side runner.", new() { Exact = true }).WaitForAsync();
         await session.CaptureAsync("tryout-desktop");
         await page.SetViewportSizeAsync(390, 844);
+        await page.GetByRole(AriaRole.Button, new() { Name = "Back to roster", Exact = true }).ClickAsync();
         await session.CaptureAsync("tryout-mobile-roster");
         await page.GetByRole(AriaRole.Button, new() { Name = "17 Jordan Rivera" }).ClickAsync();
         await session.CaptureAsync("tryout-mobile-notebook");

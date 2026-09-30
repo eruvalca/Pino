@@ -11,8 +11,15 @@ public sealed partial class TryoutWork
         var canSubmit = false;
         await ExecuteAsync(async () =>
         {
-            await LoadAsync();
-            var saved = _data!.Notes.SingleOrDefault(note => note.Id == input.Id);
+            await LoadNotebookAsync();
+            if (_notebook!.Removed) { Message = "This player was excluded. Open Manage tryout players before continuing."; MessageKind = "warning"; return; }
+            var saved = Notes.SingleOrDefault(note => note.Id == input.Id);
+            if (saved?.RedactedAt is not null || (input.CorrectsId is { } corrected && Notes.Any(note => note.Id == corrected && note.RedactedAt is not null)))
+            {
+                Message = "This note's private text was removed. Your unfinished correction was cleared. Nothing was sent.";
+                MessageKind = "warning";
+                return;
+            }
             if (saved is null) { canSubmit = true; return; }
             draft.LastNoteAttempt = null;
             draft.NoteId = Guid.NewGuid();
@@ -42,7 +49,8 @@ public sealed partial class TryoutWork
         await ExecuteAsync(async () =>
         {
             await LoadAsync();
-            var saved = _data!.History.SingleOrDefault(decision => decision.Id == attempted.OperationId);
+            if (!_data!.Roster.Any(entry => entry.Player.Id == input.PlayerId)) { Message = "This player was excluded. Open Manage tryout players before continuing."; MessageKind = "warning"; return; }
+            var saved = History.SingleOrDefault(decision => decision.Id == attempted.OperationId);
             if (saved is null) { canSubmit = true; return; }
             var current = _data.Roster.Single(entry => entry.Player.Id == input.PlayerId);
             if (saved.Kind == input.Kind && saved.TeamId == input.TeamId && string.Equals(saved.Reason, input.Reason.Trim(), StringComparison.Ordinal))

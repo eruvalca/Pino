@@ -8,6 +8,7 @@ public sealed partial class Seasons : SportPageBase
 {
     [Parameter] public Guid SeasonId { get; set; }
     private SportOverview? _overview;
+    private IReadOnlyList<TeamSummary> _teams = [];
     private SeasonSummary? _selected;
     private SeasonInput? _seasonInput;
     private TeamInput? _teamInput;
@@ -17,11 +18,13 @@ public sealed partial class Seasons : SportPageBase
         _overview = await Gateway.GetOverviewAsync(ClubId, Token);
         _selected = _overview.Seasons.FirstOrDefault(season => season.Id == SeasonId);
         if (SeasonId != Guid.Empty && _selected is null) { throw new KeyNotFoundException(); }
+        _teams = _selected is null ? _overview.Teams : (await Gateway.GetTeamAvailabilityAsync(ClubId, SeasonId, tryoutId: null, Token)).Select(value => value.Team with { Excluded = value.SeasonExcluded }).ToArray();
         CloseForms();
     }
     private void CloseForms() { _seasonInput = null; _teamInput = null; _tryoutInput = null; }
     private void NewSeason() { CloseForms(); _seasonInput = new(); }
-    private void NewTeam() { CloseForms(); _teamInput = new() { SeasonId = SeasonId }; }
+    private void NewTeam() { CloseForms(); _teamInput = new(); }
+    private string TeamUrl(Guid teamId) => $"/clubs/{ClubId}/teams/{teamId}" + (_selected is null ? "" : $"?season={SeasonId}");
     private void NewTryout() { CloseForms(); _tryoutInput = new() { SeasonId = SeasonId, Date = _selected?.StartsOn ?? DateOnly.FromDateTime(DateTime.UtcNow) }; }
     private void EditSeason()
     {
@@ -32,7 +35,7 @@ public sealed partial class Seasons : SportPageBase
     private void EditTeam(TeamSummary team)
     {
         CloseForms();
-        _teamInput = new() { Id = team.Id, SeasonId = team.SeasonId, Revision = team.Revision, Name = team.Name, GraduationYear = team.GraduationYear, Archived = team.Archived };
+        _teamInput = new() { Id = team.Id, Revision = team.Revision, Name = team.Name, GraduationYear = team.GraduationYear, Archived = team.Archived };
     }
     private void EditTryout(TryoutSummary tryout)
     {

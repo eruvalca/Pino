@@ -11,4 +11,5 @@ internal sealed class Participation
     public DecisionKind Decision { get; set; }
     public Guid? TeamId { get; set; }
     public long Revision { get; set; }
+    public bool Removed { get; set; }
 }

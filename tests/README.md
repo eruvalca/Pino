@@ -14,6 +14,29 @@ the CLI and editor find `global.json` and `Pino.slnx`.
 Aspire. Its sporting journey injects a lost database commit acknowledgement to
 verify import recovery against PostgreSQL, using a direct server-service reference.
 
+Staff administration tests cover invitation token checks and protected mail bodies,
+explicit administrator-role confirmation and acceptance, failed refreshes, retry
+identity and stale club detail edits. PostgreSQL/browser journeys verify matching
+verified email, single-use acceptance, expiry, resend/revocation, role assignment,
+administrator/antiforgery boundaries and Mailpit membership notifications. Delivery
+recovery tests exercise retry limits, stale retries, worker leases, cleared message
+bodies and expired invitation cancellation without undoing saved access changes.
+Staff page captures cover invitation acceptance, invitations, delivery and club
+details at desktop and phone widths.
+
+Public completion tests cover adult-staff validation for password and external
+signup, recipient email cooldown/hourly boundaries, SMTP failures, account POST
+limits and Retry-After without trusting forwarded IP headers. A browser journey
+connects the public introduction, fictional sample, staff guide, signup and saved
+setup checklist, then verifies password lockout and recovery after its expiry.
+The staff journey also checks persisted join-request limits without extra mail.
+Concurrent browser fixtures share one local connection address. Registration and
+password helpers inspect the actual POST response and honor a valid Retry-After
+once by waiting and reloading the form; they do not disable application limits.
+Account submissions have a separate 60-second bound for password hashing and
+synchronous mail under concurrent local load; ordinary UI actions retain their
+20-second bound. These journeys verify behavior, not response-time targets.
+
 The unit suite also covers sporting validation, CSV parsing and player image
 normalization. Component tests cover persisted-tryout draft isolation, eligible
 team selection, save failures, revoked access and archived/prerendered controls.
@@ -21,8 +44,68 @@ Bib editing tests cover saved-value conflict checks, independent drafts, clearin
 assignments and recovery without losing notes. The browser journey also verifies
 persisted edits, duplicate/length validation, archived-season restrictions and
 bib reuse across tryouts; access tests cover the new endpoint's protection.
-Manual creation is exercised without a reference field, while CSV imports must
-still supply explicit references and reject missing or repeated keys.
+Manual creation is exercised without a reference field. CSV imports may generate
+references when that column is unmapped; mapped keys must be nonempty and unique.
+Parser tests cover 1,000-player boundaries, wide/reordered exports, optional middle
+names and secondary positions, blank rows/columns, date-shaped identifier warnings,
+and rejection of invalid mappings without inferring graduation years. Component
+tests exercise the column mapper's rendered change events and disabled state.
+Duplicate matching tests distinguish known middle names and graduation years,
+require current archived candidates and explicit replacement confirmation, and
+verify that review never edits an existing record. The privacy browser journey
+reactivates a player without CSV updates, then exercises confirmed replacement
+and standalone erasure, earlier note versions, placement history, closed-result
+copies, durable photo cleanup and replay after erasure. Access tests reject coach
+erasure and requests without antiforgery tokens.
+Redaction tests cover selecting any version of a correction chain, preserving
+unrelated observations, administrator-only controls, explicit reason/confirmation,
+and clearing an affected correction draft. The redaction browser journey verifies
+closed/archived access, durable removal of every version's text, retained audit
+metadata, safe acknowledgement retries and rejection of stale corrections.
+Tryout attendance tests cover filtering and observed revisions without decision
+writes or loss of an unfinished note. The browser journey covers conflicting
+attendance writes, explicit Did not attend decisions, close/reopen guards and
+staff-photo attribution in notes, decisions, attendance and saved results.
+StaffAvatar component tests cover missing and failed photos, replacement URLs,
+compact sizing, accessible decorative images and Unicode initials. Access checks
+preserve coach attendance and note permissions. Erasure removes attendance.
+Enrollment correction tests exercise required reasons, retry identifiers, coach
+permissions, stale and competing writes, active-only counts, current placement
+cleanup, preserved placements from another tryout, reused bibs, restoration and
+closed-edition independence. Erasure removes enrollment correction history too.
+CSV export tests cover UTF-8 names, commas, quotes, newlines, empty results and
+spreadsheet-formula protection. History/print component tests cover lazy loading,
+removed enrollment history, redaction rendering and retry without stale data.
+The export browser journey compares current rosters with recorded editions after
+renaming and placement changes, verifies scoped personal data and photo failures,
+downloads through the UI, and checks printable tryout attendance at desktop and
+phone widths. The 1,000-player journey also verifies full CSV and print output;
+print-media captures and PDFs are saved when an artifact directory is configured.
+
+Selected-notebook tests verify that switching players clears the previous history
+while loading and that saving a note avoids reloading the roster. Synthetic
+200/1,000-player browser journeys verify paging/search and inspect PostgreSQL
+queries to ensure personal history is fetched only for the selected player.
+Observation filtering reads distinct player IDs without note bodies or authors.
+Roster planning tests cover primary versus additional secondary coverage, empty
+and zero targets, stale target edits, administrator boundaries, validation limits,
+target clearing and archive guards. Its PostgreSQL/browser journey places an
+eligible player beyond the advisory target and verifies intersecting position,
+observation and comparison-season filters without losing an unfinished note.
+Focused comparison tests verify selected-player loading, failure isolation,
+temporary previews without saved placements, large-list paging, and mobile
+roster/notebook navigation with keyboard focus and retained filters.
+Preparation component tests exercise selection/review boundaries, observed
+revisions, unchanged graduation thresholds and safe batch retries. PostgreSQL
+browser journeys exercise persistent club teams, scoped availability, automatic
+active-player rosters, previous-team actions, stale catalog and placement reviews,
+partial results, group exclusion/restoration, overflow rejection, closed-tryout guards,
+administrator/antiforgery protection and retry after erasure. The 1,000-player
+preparation journey verifies bounded database reads for enrollment and returning
+placements, one decision per player and unchanged source-season rosters.
+The optional supplied-CSV journey uploads the actual local file through the mapper,
+checks every imported graduation year and automatic roster entry, and cleans its
+isolated club afterward. It does not capture screenshots containing those players.
 
 Tryout review component tests exercise close confirmation and the reviewed token,
 archive/incomplete/prerender restrictions, historical-edition selection, result
@@ -188,6 +271,14 @@ Chromium, install it once with
 and omit `-BrowserChannel`. The helper uses `--no-build` to avoid Windows file
 locks; rebuild before starting Aspire whenever test or application source changes.
 
+To include a private registration export in local validation, pass
+`-PlayerCsvPath 'C:/path/to/players.csv'` to the helper. The file must contain
+`player_first_name`, `player_last_name` and `grad_year` columns. The optional journey
+maps graduation year explicitly, generates Pino references instead of trusting
+spreadsheet-formatted source IDs, and omits account email. It verifies the entire
+import and tryout roster and deletes its test-owned records;
+do not add the source file or captures of personal data to the repository.
+
 Each test creates unique disposable accounts and a club. Cleanup deletes only
 the exact accounts and clubs owned by that test, queues its images for the normal
 cleanup worker, and removes its captured Mailpit messages. It never resets the
@@ -196,6 +287,11 @@ Final diagnostic captures are best-effort. Every cleanup stage runs even when an
 earlier capture or cleanup stage fails; cleanup failures are reported together.
 Do not use this helper against a deployed application. Abruptly killing a test
 process can leave its clearly named test records for manual cleanup.
+
+Concurrent fixtures share a local connection address and the application's real
+account request limit. Use `BrowserSession.SubmitAccountFormAsync` for account
+POST forms: it honors a returned `Retry-After` once, reloads the form, and retries
+with a fresh antiforgery token. It does not disable rate limiting or bypass the UI.
 
 For another local harness, supply `PINO_BROWSER_URL`, `PINO_MAILPIT_URL` and
 `PINO_TEST_DATABASE`; optional variables are `PINO_BROWSER_CHANNEL` and

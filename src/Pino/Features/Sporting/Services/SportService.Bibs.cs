@@ -17,7 +17,7 @@ internal sealed partial class SportService
             }
             var entry = await db.Participations.SingleOrDefaultAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == input.PlayerId, token);
             if (tryout.Closed) { return new SportOutcome.Invalid("Reopen the tryout before changing bib numbers."); }
-            if (entry is null) { return new SportOutcome.Invalid("Choose a player enrolled in this tryout."); }
+            if (entry is null || entry.Removed) { return new SportOutcome.Invalid("Choose a player actively enrolled in this tryout."); }
             var bib = (input.BibNumber ?? "").Trim();
             if (bib.Length > 20) { return new SportOutcome.Invalid("Use a bib number or label of up to 20 characters."); }
             // Comparing the saved bib under the shared write lock protects bib edits without
@@ -27,7 +27,7 @@ internal sealed partial class SportService
             {
                 return new SportOutcome.Conflict("This bib number changed. Reload the saved bib number before editing again.");
             }
-            if (bib.Length > 0 && await db.Participations.AnyAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.Bib == bib, token))
+            if (bib.Length > 0 && await db.Participations.AnyAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && !value.Removed && value.Bib == bib, token))
             {
                 return new SportOutcome.Invalid("That bib number is already assigned in this tryout. Choose another or leave it empty.");
             }

@@ -1,0 +1,45 @@
+@page "/guide"
+@layout Pino.UI.Features.Clubs.Layout.ClubLayout
+@using Pino.UI.Features.Clubs.Components
+
+<PageTitle>Staff guide · Pino</PageTitle>
+<ClubPageShell>
+    <article class="staff-guide">
+        <header><h1>Staff guide</h1><p>Set up your club, run a tryout, and save the results.</p><div class="actions"><a class="primary-action" href="/club/access">Open your club</a><a class="secondary-action" href="/tryouts/spring-2027">Try the sample</a></div></header>
+        <nav aria-label="Guide sections"><a href="/guide#get-started">Get started</a><a href="/guide#prepare">Prepare a season</a><a href="/guide#tryouts">Run a tryout</a><a href="/guide#decisions">Make decisions</a><a href="/guide#records">Keep records</a></nav>
+        <section id="get-started"><h2>Get started</h2>
+            <p>Pino is for adults working as club staff. Create an account, confirm your email, and sign in. Add your name and photo so other staff can recognize you.</p>
+            <p>Accept an invitation, ask to join a club, or create a club you will manage. You can belong to one club at a time. Cancel a waiting request before asking to join another club.</p>
+            <p>Administrators approve requests and invite staff as coaches or administrators. An invitation works once and expires after seven days. If it is sent again, use the newest link. Confirm your email first, then accept the invitation.</p>
+            <p>Check Your club to see whether your request was approved. Pino also sends the result by email.</p>
+        </section>
+        <section id="prepare"><h2>Prepare a season</h2>
+            <p>Add players one at a time, or ask an administrator to upload a CSV file. Each player needs a graduation year. Do not use birth year. Add a middle name when it helps tell players apart.</p>
+            <details><summary>Players who are already in Pino</summary><p>An import does not change an existing player. Open their record to make changes. If Pino finds an archived player, confirm it is the same person to make them active again. If it is a different person with the same name and graduation year, you can review adding the new player and permanently deleting the old record together. Permanent deletion also removes the old player's history.</p></details>
+            <ol class="guide-workflow"><li><strong>Add club teams.</strong> Teams carry over to every season and tryout. Administrators can leave a team out of a season or tryout.</li><li><strong>Create a season and tryout.</strong> Pino adds all active players to a new tryout. Archived players stay out.</li><li><strong>Check the player list.</strong> Use Manage tryout players to exclude or restore players. Give a reason for each change. Administrators can add new players to an existing tryout together.</li></ol>
+            <p>A team can take players who graduate in its listed year or later. For example, a 2030 team can take a 2030 or 2031 player, but not a 2029 player. Team size and position targets help with planning. They warn you without blocking a player who can join.</p>
+            <p>Editing a tryout does not add new players or restore excluded players. After a group change, check which players were saved or skipped.</p>
+        </section>
+        <section id="tryouts"><h2>Run a tryout</h2>
+            <p>Each player has one bib, attendance mark, and final decision for the tryout. Coaches and administrators can work with all players.</p>
+            <p>Mark a player Present, Absent, or Not recorded. Attendance does not choose their team or final result.</p>
+            <p>Find a player by name or bib. You can also filter by graduation year, position, team, attendance, or work left to do. Open their notebook to read and add notes. Save before leaving or reloading; unsaved notes will be lost.</p>
+            <p>To leave someone out of this tryout, exclude them and give a reason. Their earlier work stays in history, but they no longer need a final decision here. You can restore them later. Reopen a closed tryout before changing its players.</p>
+        </section>
+        <section id="decisions"><h2>Make decisions</h2>
+            <p>Compare teams to see their players and notes. A preview helps you plan; it does not save a decision. Open the player in the tryout to save their team.</p>
+            <p>The notebook shows a returning player's last team. Use the same-team button when that team can take them, or choose a different result. Administrators can review and place returning players together.</p>
+            <dl class="status-definitions"><div><dt>Placed</dt><dd>The player has a team for this season.</dd></div><div><dt>Withdrawn</dt><dd>The player has left this tryout.</dd></div><div><dt>Not selected</dt><dd>The club chose not to give the player a team.</dd></div><div><dt>Did not attend</dt><dd>The player did not take part, and staff chose this as their final result.</dd></div></dl>
+            <p>Every included player needs a final result. Choose it yourself, even if attendance is marked absent. An absent player can still get a team.</p>
+            <p>If another staff member changed the record, reload and check their changes before saving. When all decisions are ready, review and close the tryout. Pino keeps a copy of the results. You can reopen it to make changes; earlier saved results stay in history.</p>
+        </section>
+        <section id="records"><h2>Keep records</h2>
+            <p>A team roster shows who is on the team now. Saved tryout results show what was true when the tryout closed. Choose the saved results you want before downloading them.</p>
+            <p>Coaches and administrators can download rosters and results, and print attendance and bib lists. Administrators can also download all of a player's personal data.</p>
+            <p>Archive a record to set it aside and keep its history. You can restore it later. Permanent deletion is different: it removes personal data, photos, and copies in history. It cannot be undone.</p>
+            <p>If a note contains private or inappropriate text, an administrator can remove that text and its earlier versions. A reason is required. Pino keeps who removed it and when.</p>
+            <p>Under People, administrators can manage invitations, club details, and emails that failed to send. “Sent” means the mail service accepted an email. It does not mean someone read it. Club access changes stay saved even if an email fails.</p>
+        </section>
+        <footer><p>Pino · For club administrators and coaches.</p><a href="/">About Pino</a></footer>
+    </article>
+</ClubPageShell>

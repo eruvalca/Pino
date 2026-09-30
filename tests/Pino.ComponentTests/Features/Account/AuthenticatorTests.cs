@@ -45,7 +45,7 @@ public sealed class AuthenticatorTests
     }
 
     [Theory]
-    [InlineData(false, false, "Verification code is invalid")]
+    [InlineData(false, false, "That code did not work")]
     [InlineData(true, false, "could not be enabled")]
     [InlineData(true, true, "recovery codes")]
     public async Task FailedEnablementDisplaysFailureWithoutCodesOrSuccessLogAsync(bool validCode, bool enableSucceeds, string expectedMessage)

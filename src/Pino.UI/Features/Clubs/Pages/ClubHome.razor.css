@@ -3,3 +3,9 @@ h1 { font-size: 2.5rem; letter-spacing: -0.035em; }
 .club-start { margin-block: 2rem; padding-block: 2rem; border-block: 1px solid var(--line); }
 .actions a { text-align: center; text-decoration: none; }
 @media (max-width: 45rem) { .club-home { padding: 1.5rem 1.25rem; } h1 { font-size: 2rem; } }
+.setup-checklist { padding-block: 1rem; margin-block: 1rem 2rem; border-block: 1px solid var(--line); }
+.setup-checklist summary { cursor: pointer; font-weight: 700; padding-block: 0.5rem; }
+.setup-checklist ol { list-style: decimal; padding-left: 1.5rem; }
+.setup-checklist li { padding-block: 0.75rem; border-bottom: 1px solid var(--line); }
+.setup-checklist li:last-child { border-bottom: 0; }
+.setup-checklist p { max-width: 70ch; }

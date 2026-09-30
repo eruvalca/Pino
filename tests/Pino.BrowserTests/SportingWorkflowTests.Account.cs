@@ -9,8 +9,7 @@ public sealed partial class SportingWorkflowTests
     {
         var page = session.Page;
         await page.GotoAsync("/Account/Manage");
-        await page.GetByLabel("Phone number", new() { Exact = true }).FillAsync("3125550170");
-        await page.GetByRole(AriaRole.Button, new() { Name = "Save", Exact = true }).ClickAsync();
+        await session.SubmitAccountFormAsync("/Account/Manage", "Save", () => page.GetByLabel("Phone number", new() { Exact = true }).FillAsync("3125550170"));
         await page.GetByRole(AriaRole.Status).GetByText("Your profile has been updated").WaitForAsync();
         await page.ReloadAsync();
         (await page.GetByLabel("Phone number", new() { Exact = true }).InputValueAsync()).ShouldBe("3125550170");
@@ -42,6 +41,9 @@ public sealed partial class SportingWorkflowTests
         await page.GetByRole(AriaRole.Link, new() { Name = "Back to Two-factor authentication", Exact = true }).ClickAsync();
         await page.GetByText("Two-factor authentication is off.", new() { Exact = true }).WaitForAsync();
         await CaptureReviewAsync(session, "account-security");
+        await page.GotoAsync("/Account/Manage/ResetAuthenticator");
+        await page.GetByText("Resetting turns off two-factor authentication. Set up your authenticator app again to turn it back on.").WaitForAsync();
+        await CaptureReviewAsync(session, "account-reset-authenticator");
         await page.SetViewportSizeAsync(390, 844);
         await page.GetByRole(AriaRole.Link, new() { Name = "Your data", Exact = true }).ClickAsync();
         await page.GetByRole(AriaRole.Heading, new() { Name = "Personal Data", Exact = true }).WaitForAsync();

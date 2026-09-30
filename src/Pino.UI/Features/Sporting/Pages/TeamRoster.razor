@@ -8,14 +8,24 @@
 <SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
     @if (_detail is { } detail)
     {
-        <p><a href="@($"/clubs/{ClubId}/seasons/{detail.Season.Id}")">@detail.Season.Name</a></p>
-        <header class="sport-heading"><div><h1>@detail.Team.Name</h1><p>Graduation @detail.Team.GraduationYear or later · @(detail.Season.Archived ? "Archived season" : "Current season roster")</p></div><button class="secondary-action" disabled="@Disabled" @onclick="ReloadAsync">Refresh roster</button></header>
-        <h2>@detail.Members.Count players</h2>
+        <p><a href="@($"/clubs/{ClubId}/seasons")">Seasons &amp; club teams</a></p>
+        <header class="sport-heading"><div><h1>@detail.Team.Name</h1><p>Club team · Graduation @detail.Team.GraduationYear or later</p></div><button class="secondary-action" disabled="@Disabled" @onclick="ReloadAsync">Refresh roster</button></header>
+        <nav class="workflow-actions" aria-label="Team actions">
+            @if (Membership?.Role == ClubRole.Administrator) { <a class="secondary-action" href="@($"/clubs/{ClubId}/teams/{TeamId}/targets")">Set roster targets</a> }
+            @if (detail.Season is { } selectedSeason) { <a class="secondary-action" href="@($"/api/clubs/{ClubId}/sport/teams/{TeamId}/roster.csv?seasonId={selectedSeason.Id}")" download data-enhance-nav="false">Download current team roster (CSV)</a> }
+        </nav>
+        @if (detail.Seasons is { Count: > 0 })
+        {
+            <div class="form-field"><label for="roster-season">Season roster</label><select id="roster-season" value="@detail.Season?.Id" @onchange="ChangeSeason" disabled="@Disabled">@foreach (var season in detail.Seasons) { <option value="@season.Id">@season.Name@(season.Archived ? " (archived)" : "")</option> }</select></div>
+        }
+        else { <p class="notice" data-kind="information">Create a season and a tryout to place players on this team.</p> }
+        <h2>Roster &amp; position coverage</h2>
+        <TeamCoverage Team="detail.Team" Players="detail.Members" />
         @if (detail.Members.Count == 0) { <p class="muted">No current placements on this team. Place players through a tryout in this season.</p> }
-        <ul class="record-list">@foreach (var player in detail.Members) { <li class="record-row" @key="player.Id"><div><h3><a href="@($"/clubs/{ClubId}/players/{player.Id}")">@player.FullName</a></h3><p class="muted">Class of @player.GraduationYear</p></div><span>@player.Position</span></li> }</ul>
-        <section class="sport-section"><h2>Placement history</h2><p class="muted">Decisions involving this team, including revisions after players moved. Player records show the full history.</p>
+        <ul class="record-list">@foreach (var player in detail.Members) { <li class="record-row" @key="player.Id"><div><h3><a href="@($"/clubs/{ClubId}/players/{player.Id}")">@player.FullName</a></h3><p class="muted">Class of @player.GraduationYear</p></div><span>@player.Position@(player.SecondaryPosition.Length > 0 ? $" · Secondary: {player.SecondaryPosition}" : "")</span></li> }</ul>
+        <section class="sport-section"><h2>Placement history across seasons</h2><p class="muted">Saved decisions involving this club team.</p>
             @if (detail.History.Count == 0) { <p>No placements recorded yet.</p> }
-            <ul class="record-history">@foreach (var entry in detail.History) { <li @key="entry.Decision.Id"><strong><a href="@($"/clubs/{ClubId}/players/{entry.Player.Id}")">@entry.Player.FullName</a> · @SportLabels.Decision(entry.Decision.Kind)@(entry.Decision.Team is null ? "" : $" · {entry.Decision.Team}")</strong><p>@entry.Decision.Tryout</p><p class="muted">@entry.Decision.Author · @entry.Decision.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</p>@if (entry.Decision.Reason.Length > 0) { <p class="note-text">@entry.Decision.Reason</p> }</li> }</ul>
+            <ul class="record-history">@foreach (var entry in detail.History) { <li @key="entry.Decision.Id"><strong><a href="@($"/clubs/{ClubId}/players/{entry.Player.Id}")">@entry.Player.FullName</a> · @SportLabels.Decision(entry.Decision.Kind)@(entry.Decision.Team is null ? "" : $" · {entry.Decision.Team}")</strong><p>@entry.Decision.Season · @entry.Decision.Tryout</p><p class="muted"><span class="staff-attribution"><StaffAvatar Name="@entry.Decision.Author" PhotoUrl="entry.Decision.AuthorPhotoUrl" Compact="true" /><span>@entry.Decision.Author</span></span> · @entry.Decision.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</p>@if (entry.Decision.Reason.Length > 0) { <p class="note-text">@entry.Decision.Reason</p> }</li> }</ul>
         </section>
     }
 </SportFrame>

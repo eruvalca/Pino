@@ -5,23 +5,34 @@
 @inherits SportPageBase
 
 <PageTitle>@(_data?.Tryout.Name ?? "Tryout") · Pino</PageTitle>
-<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@(HasPlayerNotice ? null : Message)" MessageKind="@MessageKind" Reload="ReloadAsync">
     @if (_data is { } data)
     {
-        <p><a href="@($"/clubs/{ClubId}/seasons/{data.Season.Id}")">@data.Season.Name</a></p>
+        <p class="tryout-breadcrumb"><a href="@($"/clubs/{ClubId}/seasons/{data.Season.Id}")">@data.Season.Name</a></p>
         <header class="sport-heading tryout-heading"><div><h1>@data.Tryout.Name</h1><p>@data.Tryout.Date.ToString("MMM d, yyyy")@(data.Tryout.Location.Length > 0 ? $" · {data.Tryout.Location}" : "")</p></div>
-            <div class="actions"><button class="secondary-action" disabled="@Disabled" @onclick="RefreshDecisionsAsync">Refresh saved decisions</button><button class="primary-action" disabled="@(Disabled || !CanEnroll)" @onclick="ToggleEnrollmentAsync">@(_enrolling ? "Close enrollment" : "Add players")</button></div>
         </header>
-        <p><a class="text-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/review")">Review results &amp; closeout</a></p>
-        @if (data.Tryout.Closed) { <p class="notice" data-kind="information">This tryout is closed. Its reviewed results are preserved. Open Review results &amp; closeout to see the recorded edition or reopen it with a reason.</p> }
+        <div class="tryout-progress" role="status"><span><strong>@data.Tryout.Decided</strong> of <strong>@data.Tryout.Players</strong> decisions saved</span><strong>@SportLabels.Progress(data.Tryout)</strong></div>
+        <details class="supporting-tools"><summary>Tryout tools &amp; results</summary>
+        <nav class="workflow-actions" aria-label="Tryout actions">
+            <button class="secondary-action" disabled="@Disabled" @onclick="RefreshDecisionsAsync">Refresh saved decisions</button>
+            <a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/enrollments")">Manage tryout players</a>
+            @if (Membership?.Role == ClubRole.Administrator) { <a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/returning")">Place returning players</a> }
+            <a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/review")">Review results</a>
+            <a href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/print")">Print attendance &amp; bib list</a>
+            @if (Membership?.Role == ClubRole.Administrator) { <a href="@($"/clubs/{ClubId}/seasons/{data.Season.Id}/teams?tryout={TryoutId}")">Team availability</a><a href="@($"/clubs/{ClubId}/tryouts/{TryoutId}/bulk-enrollment")">Include new players</a> }
+            <button class="secondary-action" disabled="@(Disabled || !CanEnroll)" @onclick="ToggleEnrollmentAsync">@(_enrolling ? "Close enrollment" : "Add players")</button>
+            <a href="/guide#tryouts">Tryout help</a>
+        </nav>
+            <div class="attendance-counts" aria-label="Attendance totals"><span><strong>@_attendance.Count(value => value.Kind == AttendanceKind.Present)</strong> present</span><span><strong>@_attendance.Count(value => value.Kind == AttendanceKind.Absent)</strong> absent</span><span><strong>@(data.Roster.Count - _attendance.Count(value => value.Kind != AttendanceKind.NotRecorded))</strong> not recorded</span></div>
+        </details>
+        @if (data.Tryout.Closed) { <p class="notice" data-kind="information">This tryout is closed. Open Review results to see saved results or reopen it with a reason.</p> }
         @if (data.Season.Archived) { <p class="notice" data-kind="information">This season is archived. Reopen it from Seasons &amp; teams before making changes.</p> }
-        <div class="tryout-progress" role="status"><span><strong>@data.Tryout.Decided</strong> of <strong>@data.Tryout.Players</strong> decisions recorded</span><strong>@SportLabels.Progress(data.Tryout)</strong></div>
         @if (_enrolling && CanEnroll)
         {
-            <section class="sport-edit" aria-labelledby="enrollment-heading"><h2 id="enrollment-heading">Add players from your catalog</h2><p class="muted">Only active players are available. Every added player needs a recorded decision before the tryout can close.</p>
+            <section class="sport-edit" aria-labelledby="enrollment-heading"><h2 id="enrollment-heading">Add players from your player list</h2><p class="muted">Only active players are available. Every added player needs a recorded decision before the tryout can close.</p>
                 <form class="enrollment-toolbar" @onsubmit="SearchCandidatesAsync" @onsubmit:preventDefault>
                     <div class="form-field"><label for="enroll-search">Find players to add</label><input id="enroll-search" type="search" maxlength="120" @bind="_candidateQuery" placeholder="Search by name" /></div>
-                    <div class="form-field"><label for="enroll-bib">Bib number (next player)</label><input id="enroll-bib" maxlength="20" @bind="_bib" aria-describedby="enroll-bib-help" /></div><button class="secondary-action" disabled="@Disabled">Search catalog</button>
+                    <div class="form-field"><label for="enroll-bib">Bib number (next player)</label><input id="enroll-bib" maxlength="20" @bind="_bib" aria-describedby="enroll-bib-help" /></div><button class="secondary-action" disabled="@Disabled">Search players</button>
                     <p id="enroll-bib-help" class="muted">Bib numbers are optional. Set one for the next player you add, or assign it in their notebook later.</p>
                 </form>
                 @if (_candidates is not null)
@@ -31,13 +42,13 @@
                         <li class="record-row" @key="player.Id"><div><strong>@player.FullName</strong><p class="muted">Class of @player.GraduationYear@(player.Position.Length > 0 ? $" · {player.Position}" : "")</p></div><button class="secondary-action" disabled="@(Disabled || !CanEnroll)" @onclick="() => EnrollAsync(player.Id)" aria-label="@($"Add {player.FullName} to tryout")">Add to tryout</button></li>
                     }</ul>
                     <nav class="pagination" aria-label="Enrollment pages"><button class="secondary-action" disabled="@(Disabled || _candidatePage == 0)" @onclick="PreviousCandidatesAsync">Previous</button><span>Page @(_candidatePage + 1)</span><button class="secondary-action" disabled="@(Disabled || !_candidates.HasMore)" @onclick="NextCandidatesAsync">Next</button></nav>
-                    @if (_candidates.Players.All(player => data.Roster.Any(entry => entry.Player.Id == player.Id))) { <p class="muted">No additional players on this page. Try another search or page, or <a href="@($"/clubs/{ClubId}/players/new")">add a player to the catalog</a>.</p> }
+                    @if (_candidates.Players.All(player => data.Roster.Any(entry => entry.Player.Id == player.Id))) { <p class="muted">No additional players on this page. Try another search or page, or <a href="@($"/clubs/{ClubId}/players/new")">add a player to the player list</a>.</p> }
                 }
             </section>
         }
         @if (data.Roster.Count == 0)
         {
-            <section class="sport-empty"><h2>Build the roster before the first observation</h2><p>Add players from your club catalog. Each player will need a placement, withdrawal or not-selected decision to complete this tryout.</p></section>
+            <section class="sport-empty"><h2>Add players before writing notes</h2><p>Add players from your club's player list. Each included player needs a final decision: Placed, Withdrawn, Not selected or Did not attend.</p></section>
         }
         else
         {
@@ -45,57 +56,102 @@
                 <aside class="evaluation-roster" aria-label="Tryout roster">
                     <h2 tabindex="-1" @ref="_rosterHeading">Players <span>@Filtered.Count() / @data.Roster.Count</span></h2>
                     <div class="roster-filters">
-                        <div class="form-field"><label for="roster-query">Find a player</label><input id="roster-query" type="search" @bind="_query" @bind:event="oninput" placeholder="Name or bib number" /></div>
-                        <div class="field-pair"><div class="form-field"><label for="roster-decision">Decision</label><select id="roster-decision" @bind="_filter"><option value="">All decisions</option>@foreach (var kind in Enum.GetValues<DecisionKind>()) { <option value="@kind">@SportLabels.Decision(kind)</option> }</select></div><div class="form-field"><label for="roster-year">Graduation</label><select id="roster-year" @bind="_year"><option value="">All years</option>@foreach (var year in data.Roster.Select(entry => entry.Player.GraduationYear).Distinct().Order()) { <option value="@year">@year</option> }</select></div></div>
-                        <div class="form-field"><label for="roster-team">Current team</label><select id="roster-team" @bind="_teamFilter"><option value="">All teams</option><option value="none">No current team</option>@foreach (var team in data.Teams) { <option value="@team.Id">@team.Name</option> }</select></div>
+                        <div class="form-field"><label for="roster-query">Find a player</label><input id="roster-query" type="search" @bind="_query" @bind:after="ResetRosterPage" @bind:event="oninput" placeholder="Name or bib number" /></div>
+                        @if (HasPlayerNotice && _showRoster) { <p class="notice" data-kind="@MessageKind" role="status">@Message</p> }
+                        <div class="field-pair"><div class="form-field"><label for="roster-decision">Decision</label><select id="roster-decision" @bind="_filter" @bind:after="ResetRosterPage"><option value="">All decisions</option>@foreach (var kind in Enum.GetValues<DecisionKind>()) { <option value="@kind">@SportLabels.Decision(kind)</option> }</select></div><div class="form-field"><label for="roster-year">Graduation</label><select id="roster-year" @bind="_year" @bind:after="ResetRosterPage"><option value="">All years</option>@foreach (var year in data.Roster.Select(entry => entry.Player.GraduationYear).Distinct().Order()) { <option value="@year">@year</option> }</select></div></div>
+                        <div class="form-field"><label for="roster-team">Current team</label><select id="roster-team" @bind="_teamFilter" @bind:after="ResetRosterPage"><option value="">All teams</option><option value="none">No current team</option>@foreach (var team in data.Teams) { <option value="@team.Id">@team.Name</option> }</select></div>
+                        <div class="form-field"><label for="roster-attendance">Attendance</label><select id="roster-attendance" @bind="_attendanceFilter" @bind:after="ResetRosterPage"><option value="">All attendance</option><option value="NotRecorded">Not recorded</option><option value="Present">Present</option><option value="Absent">Absent</option></select></div>
+                        <details class="planning-filters"><summary>Position, notes &amp; previous team</summary>
+                            <div class="form-field"><label for="roster-position">Primary or secondary position</label><select id="roster-position" @bind="_positionFilter" @bind:after="ResetRosterPage"><option value="">All positions</option>@foreach (var position in Positions) { <option value="@position">@position</option> }</select></div>
+                            <div class="form-field"><label for="roster-observations">Notes in this tryout</label><select id="roster-observations" @bind="_observationFilter" @bind:after="ResetRosterPage"><option value="">All players</option><option value="missing">No notes</option></select></div>
+                            <p class="muted">Notes with removed text do not count. Notes do not choose a player's result.</p>
+                            <div class="form-field"><label for="roster-previous-season">Compare with season</label><select id="roster-previous-season" value="@_previousSeasonId" @onchange="ChangePreviousSeasonAsync" disabled="@Disabled"><option value="@Guid.Empty">Choose a season</option>@foreach (var season in _otherSeasons) { <option value="@season.Id">@season.Name</option> }</select></div>
+                            @if (_previousTeams.Count > 0)
+                            {
+                                <div class="form-field"><label for="roster-previous-team">Team in comparison season</label><select id="roster-previous-team" @bind="_previousTeamFilter" @bind:after="ResetRosterPage"><option value="">All teams</option><option value="none">No team in that season</option>@foreach (var team in _previousTeams.Select(roster => roster.Team)) { <option value="@team.Id">@team.Name</option> }</select></div>
+                            }
+                        </details>
+                        <button class="text-action" type="button" @onclick="ClearRosterFilters">Clear player filters</button>
                     </div>
-                    <div class="roster-records">
-                    @foreach (var entry in Filtered)
+                    @if (Filtered.Count() > 50)
                     {
-                        <button class="roster-record" @key="entry.Player.Id" aria-pressed="@(entry.Player.Id == _selectedId)" disabled="@Disabled" @onclick="() => SelectPlayer(entry.Player.Id)"><BibBadge Number="@entry.Bib" Compact="true" /><span><strong>@entry.Player.FullName</strong><small>@entry.Player.GraduationYear · @entry.Player.Position</small><small>@SportLabels.Decision(entry.Decision)</small></span></button>
+                        <nav class="pagination roster-pages" aria-label="Tryout roster pages"><button class="secondary-action" aria-label="Previous players" disabled="@(Disabled || _rosterPage == 0)" @onclick="() => _rosterPage--">Previous</button><span>Page @(_rosterPage + 1)</span><button class="secondary-action" aria-label="Next players" disabled="@(Disabled || Filtered.Count() <= (_rosterPage + 1) * 50)" @onclick="() => _rosterPage++">Next</button></nav>
+                    }
+                    <div class="roster-records">
+                    @foreach (var entry in Filtered.Skip(_rosterPage * 50).Take(50))
+                    {
+                        <button class="roster-record" @key="entry.Player.Id" aria-pressed="@(entry.Player.Id == _selectedId)" disabled="@Disabled" @onclick="() => SelectPlayerAsync(entry.Player.Id)"><BibBadge Number="@entry.Bib" Compact="true" /><span><strong>@entry.Player.FullName</strong><small>@entry.Player.GraduationYear · @entry.Player.Position</small><small>@SportLabels.Decision(entry.Decision)</small></span></button>
                     }
                     @if (!Filtered.Any()) { <p class="roster-no-results">No matches. Change your filters to see more players.</p> }
                     </div>
+                    @if (Filtered.Count() > 50)
+                    {
+                        <nav class="pagination roster-pages roster-pages-bottom" aria-label="Tryout roster pages after players"><button class="secondary-action" aria-label="Previous players at bottom" disabled="@(Disabled || _rosterPage == 0)" @onclick="() => ChangeRosterPage(-1)">Previous</button><span>Page @(_rosterPage + 1)</span><button class="secondary-action" aria-label="Next players at bottom" disabled="@(Disabled || Filtered.Count() <= (_rosterPage + 1) * 50)" @onclick="() => ChangeRosterPage(1)">Next</button></nav>
+                    }
                 </aside>
                 <section class="player-notebook" @key="_selectedId">
                     @if (Selected is { } selected && Draft is { } draft)
                     {
                         <button class="text-action mobile-roster" @onclick="ShowRoster">Back to roster</button>
                         <header class="notebook-heading"><div class="player-identity"><BibBadge Number="@selected.Bib" /><div><h2 tabindex="-1" @ref="_playerHeading">@selected.Player.FullName</h2><p class="muted">Class of @selected.Player.GraduationYear · @selected.Player.Position</p><a href="@($"/clubs/{ClubId}/players/{selected.Player.Id}")">Player record &amp; history</a></div></div>@if (selected.Player.PhotoUrl is not null) { <img class="sport-photo" src="@selected.Player.PhotoUrl" alt="" width="96" height="96" /> }</header>
+                        @if (HasPlayerNotice && !_showRoster) { <p class="notice" data-kind="@MessageKind" role="status">@Message</p> }
                         <p><span class="decision-badge" data-kind="@SportLabels.Kind(selected.Decision)">@SportLabels.Decision(selected.Decision)</span> <span class="muted">@(selected.Bib.Length > 0 ? $"Bib {selected.Bib}" : "No bib assigned")</span></p>
-                        <form class="sport-form bib-editor" @onsubmit="SaveBibNumberAsync" @onsubmit:preventDefault>
-                            <fieldset class="sport-fields" disabled="@(Disabled || data.Season.Archived || data.Tryout.Closed)">
-                                <div class="form-field"><label for="player-bib">Bib number (this tryout)</label><input id="player-bib" maxlength="20" @bind="draft.BibNumber" @bind:event="oninput" aria-describedby="player-bib-help" /><p id="player-bib-help" class="muted">Optional. Unique within this tryout; other tryouts can reuse it. Clear the field to remove the assignment.</p></div>
+                        <AttendanceEditor PlayerId="selected.Player.Id" Attendance="_attendanceByPlayer.GetValueOrDefault(selected.Player.Id)" Disabled="@(Disabled || data.Season.Archived || data.Tryout.Closed || _notebook?.Removed == true)" Save="SaveAttendanceAsync" />
+                        <details class="bib-details"><summary>Bib number · @(selected.Bib.Length > 0 ? selected.Bib : "Not assigned")</summary><form class="sport-form bib-editor" @onsubmit="SaveBibNumberAsync" @onsubmit:preventDefault>
+                            <fieldset class="sport-fields" disabled="@(Disabled || data.Season.Archived || data.Tryout.Closed || _notebook?.Removed == true)">
+                                <div class="form-field"><label for="player-bib">Bib number (this tryout)</label><input id="player-bib" maxlength="20" @bind="draft.BibNumber" @bind:event="oninput" aria-describedby="player-bib-help" /><p id="player-bib-help" class="muted">Optional. Each player needs a different bib in this tryout. Clear this field to remove the bib.</p></div>
                                 <div class="actions"><button type="submit" class="secondary-action" disabled="@(string.Equals(draft.BibNumber, draft.SavedBibNumber, StringComparison.Ordinal))">Save bib number</button><button type="button" class="text-action" @onclick="ReloadBibNumberAsync">Reload saved bib</button></div>
                             </fieldset>
-                        </form>
+                        </form></details>
                         <p class="current-placement"><strong>Current season team:</strong> @(data.Teams.FirstOrDefault(team => team.Id == selected.CurrentTeamId)?.Name ?? "No team")
                             @if (selected.CurrentTryoutId is not null && selected.CurrentTryoutId != TryoutId) { <span> · From another tryout. Only a new placement here will replace it.</span> }
                         </p>
-                        <details class="decision-editor" @key="selected.Player.Id"><summary>Record or revise decision</summary><form class="sport-form" @onsubmit="SaveDecisionAsync" @onsubmit:preventDefault>
-                            <fieldset class="sport-fields" disabled="@(Disabled || data.Season.Archived || data.Tryout.Closed)">
-                                <div class="field-pair"><div class="form-field"><label for="decision-kind">Outcome</label><select id="decision-kind" @bind="draft.Kind">@foreach (var kind in Enum.GetValues<DecisionKind>()) { <option value="@kind">@SportLabels.Decision(kind)</option> }</select></div>
-                                @if (draft.Kind == DecisionKind.Placed) { <div class="form-field"><label for="decision-team">Eligible team</label><select id="decision-team" @bind="draft.TeamId" required><option value="">Choose a team</option>@foreach (var team in data.Teams.Where(team => !team.Archived && selected.Player.GraduationYear >= team.GraduationYear)) { <option value="@team.Id">@team.Name · @team.GraduationYear+</option> }</select></div> }</div>
-                                @if (draft.Kind == DecisionKind.Placed && !data.Teams.Any(team => !team.Archived && selected.Player.GraduationYear >= team.GraduationYear)) { <p class="notice" data-kind="warning">No eligible teams. Add a compatible team in this season before placing this player.</p> }
-                                <div class="form-field"><label for="decision-reason">Reason or revision context (optional)</label><textarea id="decision-reason" maxlength="1000" rows="2" @bind="draft.Reason"></textarea></div>
-                                <p class="muted">A placement replaces this player's current team in the season. Previous decisions remain in history. Awaiting reopens this player's decision.</p>
-                                <button type="submit" class="secondary-action">Save decision</button>
+                        <PreviousPlacementAction Entry="selected" Team="data.Teams.FirstOrDefault(team => team.Id == selected.PreviousPlacement?.TeamId)" Disabled="@(Disabled || !CanEnroll || _notebook?.Removed == true)" Place="PlacePreviousTeamAsync" />
+                        <details class="decision-editor" @key="selected.Player.Id"><summary>Save or change a decision</summary><form class="sport-form" @onsubmit="SaveDecisionAsync" @onsubmit:preventDefault>
+                            <fieldset class="sport-fields" disabled="@(Disabled || data.Season.Archived || data.Tryout.Closed || _notebook?.Removed == true)">
+                                <div class="field-pair"><div class="form-field"><label for="decision-kind">Result</label><select id="decision-kind" @bind="draft.Kind">@foreach (var kind in Enum.GetValues<DecisionKind>()) { <option value="@kind">@SportLabels.Decision(kind)</option> }</select></div>
+                                @if (draft.Kind == DecisionKind.Placed) { <div class="form-field"><label for="decision-team">Eligible team</label><select id="decision-team" @bind="draft.TeamId" required><option value="">Choose a team</option>@foreach (var team in data.Teams.Where(team => !team.Archived && !team.Excluded && selected.Player.GraduationYear >= team.GraduationYear)) { <option value="@team.Id">@team.Name · @team.GraduationYear+</option> }</select></div> }</div>
+                                @if (draft.Kind == DecisionKind.Placed && !data.Teams.Any(team => !team.Archived && !team.Excluded && selected.Player.GraduationYear >= team.GraduationYear)) { <p class="notice" data-kind="warning">No eligible teams are available. Ask an administrator to check club teams and availability.</p> }
+                                <div class="form-field"><label for="decision-reason">Reason for this decision (optional)</label><textarea id="decision-reason" maxlength="1000" rows="2" @bind="draft.Reason"></textarea></div>
+                                <p class="muted">Placing this player changes their team for this season. Earlier decisions stay in history. Choose Awaiting to clear their final decision.</p>
+                                <button type="submit" class="primary-action">Save decision</button>
                             </fieldset>
                         </form></details>
+                        @if (_notebook?.Removed == true) { <p class="notice" data-kind="warning">This player was excluded. Refresh the list, or open Manage tryout players to see their history.</p> }
                         <form class="sport-form note-composer" @onsubmit="SaveNoteAsync" @onsubmit:preventDefault>
-                            <fieldset class="sport-fields" disabled="@(Disabled || data.Season.Archived || data.Tryout.Closed)">
+                            <fieldset class="sport-fields" disabled="@(Disabled || data.Season.Archived || data.Tryout.Closed || _notebook?.Removed == true)">
                                 <div class="form-field"><label for="player-note">@(draft.CorrectsId is null ? "Add shared note" : "Correct your note")</label><textarea id="player-note" rows="4" maxlength="4000" required @bind="draft.Note" @bind:event="oninput" placeholder="What stood out about this player?" aria-describedby="note-help"></textarea><p id="note-help" class="muted">Visible to this club's staff. Drafts stay here while you switch players; save before leaving this page.</p></div>
                                 <div class="actions"><button type="submit" class="primary-action">@(Busy ? "Saving…" : "Save note")</button>@if (draft.CorrectsId is not null) { <button type="button" class="text-action" @onclick="CancelCorrection">Cancel correction</button> }</div>
                             </fieldset>
                         </form>
-                        <section class="sport-section"><h3>Shared observations</h3>
-                            @if (!data.Notes.Any(note => note.PlayerId == selected.Player.Id)) { <p class="muted">No observations yet. Start with what you saw.</p> }
-                            <ol class="record-history">@foreach (var note in data.Notes.Where(note => note.PlayerId == selected.Player.Id))
+                        <section class="sport-section"><h3>Shared notes</h3>
+                            @if (_notebook is null)
                             {
-                                <li @key="note.Id" class="@(note.Id == _savedNoteId ? "saved-observation" : null)"><strong>@note.Author</strong><p class="muted"><time datetime="@note.CreatedAt.ToString("O")">@note.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</time>@(note.CorrectsId is not null ? " · Correction" : "")@(data.Notes.Any(value => value.CorrectsId == note.Id) ? " · Earlier version" : "")</p><p class="note-text">@note.Text</p>@if (note.CanCorrect && !data.Season.Archived && !data.Tryout.Closed) { <button class="text-action" disabled="@Disabled" @onclick="() => CorrectNote(note)">Correct note</button> }</li>
+                                <p class="muted">@(Busy ? "Loading this player's notebook…" : "This player's notebook could not be loaded.")</p>
+                                @if (!Busy) { <button class="secondary-action" disabled="@Disabled" @onclick="() => ExecuteAsync(LoadNotebookAsync)">Retry notebook</button> }
+                            }
+                            else if (Notes.Count == 0) { <p class="muted">No notes yet. Write what you saw.</p> }
+                            <ol class="record-history">@foreach (var note in Notes.Where(note => note.PlayerId == selected.Player.Id))
+                            {
+                                <li @key="note.Id" class="@(note.Id == _savedNoteId ? "saved-observation" : null)">
+                                    <strong><span class="staff-attribution"><StaffAvatar Name="@note.Author" PhotoUrl="note.AuthorPhotoUrl" /><span>@note.Author</span></span></strong><p class="muted"><time datetime="@note.CreatedAt.ToString("O")">@note.CreatedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</time>@(note.CorrectsId is not null ? " · Correction" : "")@(Notes.Any(value => value.CorrectsId == note.Id) ? " · Earlier version" : "")</p>
+                                    @if (note.RedactedAt is { } redactedAt)
+                                    {
+                                        <p>Private note text removed.</p><p class="muted">By <span class="staff-attribution"><StaffAvatar Name="@note.RedactedBy" PhotoUrl="note.RedactedByPhotoUrl" Compact="true" /><span>@note.RedactedBy</span></span> · <time datetime="@redactedAt.ToString("O")">@redactedAt.ToLocalTime().ToString("MMM d, yyyy · h:mm tt")</time></p><p class="note-text">Reason: @note.RedactionReason</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="note-text">@note.Text</p>
+                                        <div class="actions">
+                                            @if (note.CanCorrect && !data.Season.Archived && !data.Tryout.Closed) { <button class="text-action" disabled="@Disabled" @onclick="() => CorrectNote(note)">Correct note</button> }
+                                            @if (Membership?.Role == ClubRole.Administrator) { <button class="text-action" disabled="@Disabled" @onclick="() => _redactingId = note.Id">Review text removal</button> }
+                                        </div>
+                                        @if (_redactingId == note.Id && Membership?.Role == ClubRole.Administrator) { <NoteRedactionReview NoteId="note.Id" Disabled="Disabled" Submitted="RedactNoteAsync" Cancelled="() => _redactingId = null" /> }
+                                    }
+                                </li>
                             }</ol>
                         </section>
-                        <details><summary>Decision history</summary><DecisionHistory History="data.History.Where(entry => entry.PlayerId == selected.Player.Id).ToArray()" /></details>
+                        <details><summary>Decision history</summary><DecisionHistory History="History.Where(entry => entry.PlayerId == selected.Player.Id).ToArray()" /></details>
                     }
                 </section>
             </div>

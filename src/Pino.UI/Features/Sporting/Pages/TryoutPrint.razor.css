@@ -1,0 +1,37 @@
+.print-controls { margin-block-end: 2rem; }
+.attendance-sheet { color: var(--navy); }
+.attendance-sheet header { border-block-end: 2px solid var(--navy); padding-block-end: 1rem; }
+.attendance-sheet h2 { margin-block: .4rem; }
+.attendance-sheet header p { margin-block: .4rem; }
+.sheet-club { font-weight: 650; }
+.attendance-table { width: 100%; min-width: 0; border-collapse: collapse; table-layout: fixed; }
+.attendance-table caption { text-align: start; padding-block: 1rem; font-weight: 650; }
+.attendance-table th, .attendance-table td { text-align: start; padding: .75rem .4rem; border-block-end: 1px solid var(--line); overflow-wrap: anywhere; vertical-align: top; }
+.attendance-table thead th { font-size: .8rem; }
+.attendance-table th:first-child { width: 3.4rem; }
+.attendance-table th:nth-child(3) { width: 4.4rem; }
+.attendance-table th:nth-child(4) { width: 6.2rem; }
+.attendance-table th:nth-child(5) { width: 4rem; }
+.attendance-table tbody th { background: transparent; color: inherit; font-size: inherit; font-weight: 550; }
+.sheet-footer { font-size: .85rem; margin-block-start: 1.5rem; }
+@media (max-width: 40rem) {
+    .attendance-table { font-size: .8rem; }
+    .attendance-table th, .attendance-table td { padding-inline: .2rem; }
+    .attendance-table th:first-child { width: 2.2rem; }
+    .attendance-table th:nth-child(3) { width: 2.8rem; }
+    .attendance-table th:nth-child(4) { width: 5rem; }
+    .attendance-table th:nth-child(5) { width: 2.8rem; }
+}
+@media print {
+    .print-controls { display: none; }
+    .print-workspace ::deep .app-masthead, .print-workspace ::deep .club-context, .print-workspace ::deep .skip-link { display: none; }
+    .print-workspace ::deep .app-width { width: 100%; max-width: none; margin: 0; }
+    .print-workspace ::deep .app-content, .print-workspace ::deep .sport-sheet { padding: 0; margin: 0; border: 0; box-shadow: none; background: white; }
+    .attendance-sheet { color: black; font-size: 10pt; }
+    .attendance-sheet header { break-after: avoid; border-color: black; }
+    .attendance-table { font-size: 10pt; }
+    .attendance-table thead { display: table-header-group; }
+    .attendance-table tr { break-inside: avoid; }
+    .attendance-table th, .attendance-table td { padding: 6pt; border-color: #777; }
+    .attendance-table caption, .sheet-footer { break-inside: avoid; }
+}

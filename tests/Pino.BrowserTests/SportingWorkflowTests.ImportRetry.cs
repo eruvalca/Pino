@@ -31,14 +31,15 @@ public sealed partial class SportingWorkflowTests
         report.Saved.ShouldBeTrue();
         report.Rows.Count.ShouldBe(2);
         report.Rows.ShouldAllBe(row => row.Error == null);
-        report.Message.ShouldBe("Imported 2 players.");
+        report.Counts.ShouldBe(new ImportCounts(2, 0, 0, 0, 0));
         var records = await session.GetAsync<PlayerPage>($"/api/clubs/{clubId}/sport/players?query=RETRY-&archived=false&page=0");
         records.Players.Select(player => player.PlayerReference).Order(StringComparer.Ordinal).ShouldBe(["RETRY-1", "RETRY-2"]);
         records.Players.Single(player => string.Equals(player.PlayerReference, "RETRY-1", StringComparison.Ordinal)).ContactEmail.ShouldBe("ada@example.test");
         // A new user submission is still a duplicate, not a replay of this invocation.
         var duplicate = await service.ImportAsync(actor, clubId, new(Csv, Commit: true), TestContext.Current.CancellationToken);
-        duplicate.Saved.ShouldBeFalse();
-        duplicate.Rows.ShouldAllBe(row => row.Error != null);
+        duplicate.Saved.ShouldBeTrue();
+        duplicate.Counts.ShouldBe(new ImportCounts(0, 2, 0, 0, 0));
+        duplicate.Rows.ShouldAllBe(row => row.Disposition == ImportDisposition.Skip && row.Error == null);
     }
 
     private sealed class ImportContextFactory(DbContextOptions<ApplicationDbContext> options) : IDbContextFactory<ApplicationDbContext>

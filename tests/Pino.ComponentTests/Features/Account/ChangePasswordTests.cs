@@ -73,8 +73,8 @@ public sealed class ChangePasswordTests
     [Theory]
     [InlineData("", 8, false, "Current password field is required")]
     [InlineData("current-password", 0, false, "New password field is required")]
-    [InlineData("current-password", 5, false, "at least 6 and at max 100")]
-    [InlineData("current-password", 101, false, "at least 6 and at max 100")]
+    [InlineData("current-password", 5, false, "6 to 100")]
+    [InlineData("current-password", 101, false, "6 to 100")]
     [InlineData("current-password", 8, true, "do not match")]
     public async Task InvalidPasswordFormDoesNotAttemptChangeAsync(string current, int length, bool mismatch, string expectedError)
     {

@@ -5,7 +5,7 @@ using Pino.Features.Clubs.Models;
 
 namespace Pino.Features.Clubs.Services;
 
-internal sealed partial class ClubService(IDbContextFactory<ApplicationDbContext> factory, IProfilePhotoStore photos, TimeProvider time)
+internal sealed partial class ClubService(IDbContextFactory<ApplicationDbContext> factory, IProfilePhotoStore photos, TimeProvider time, ClubMail mail)
 {
     private static string ActorId(ClaimsPrincipal actor) =>
         actor.Identity?.IsAuthenticated == true && actor.FindFirstValue(ClaimTypes.NameIdentifier) is { } id

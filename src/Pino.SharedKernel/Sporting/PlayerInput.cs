@@ -11,9 +11,11 @@ public sealed class PlayerInput
     // Manual creation supplies an automatic import key; CSV parsing supplies the file's explicit key.
     [Required, StringLength(40)] public string PlayerReference { get; set; } = Guid.NewGuid().ToString("N").ToUpperInvariant();
     [Required, StringLength(80)] public string FirstName { get; set; } = "";
+    [StringLength(80)] public string MiddleName { get; set; } = "";
     [Required, StringLength(80)] public string LastName { get; set; } = "";
     [Range(2000, 2100)] public int GraduationYear { get; set; } = DateTime.UtcNow.Year + 5;
     [StringLength(80)] public string Position { get; set; } = "";
+    [StringLength(80)] public string SecondaryPosition { get; set; } = "";
     [StringLength(254), EmailAddress]
     public string? ContactEmail
     {

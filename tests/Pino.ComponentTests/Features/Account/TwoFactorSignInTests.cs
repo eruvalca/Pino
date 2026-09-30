@@ -28,7 +28,7 @@ public sealed class TwoFactorSignInTests
 
         await component.Find("form").SubmitAsync();
 
-        await component.WaitForAssertionAsync(() => component.Find(".notice[data-kind='error']").TextContent.ShouldBe("Error: Invalid authenticator code."));
+        await component.WaitForAssertionAsync(() => component.Find(".notice[data-kind='error']").TextContent.ShouldBe("Error: That code did not work. Enter the latest code from your authenticator app."));
     }
 
     [Theory]
@@ -45,7 +45,7 @@ public sealed class TwoFactorSignInTests
 
         await component.Find("form").SubmitAsync();
 
-        await component.WaitForAssertionAsync(() => component.Find(".notice[data-kind='error']").TextContent.ShouldBe("Error: Invalid recovery code entered."));
+        await component.WaitForAssertionAsync(() => component.Find(".notice[data-kind='error']").TextContent.ShouldBe("Error: That recovery code did not work. Check the code or use another unused code."));
     }
 
     [Fact]

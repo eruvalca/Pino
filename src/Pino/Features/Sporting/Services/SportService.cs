@@ -4,12 +4,21 @@ using Microsoft.EntityFrameworkCore;
 using Pino.Data;
 using Pino.Features.Clubs.Services;
 using Pino.Features.Sporting.Data;
+using Pino.SharedKernel.Clubs;
 
 namespace Pino.Features.Sporting.Services;
 
 internal sealed partial class SportService(IDbContextFactory<ApplicationDbContext> factory, IProfilePhotoStore photos, TimeProvider time)
 {
     private const string StaleMessage = "This record changed since you opened it. Reload to review the latest version before saving.";
+
+    private static async Task RequireAdministratorAsync(ApplicationDbContext db, string actorId, Guid clubId, CancellationToken ct)
+    {
+        if (!await db.ClubMemberships.AnyAsync(value => value.UserId == actorId && value.ClubId == clubId && value.Role == ClubRole.Administrator, ct))
+        {
+            throw new UnauthorizedAccessException();
+        }
+    }
 
     private static async Task<string> RequireMemberAsync(ApplicationDbContext db, ClaimsPrincipal actor, Guid clubId, CancellationToken ct)
     {

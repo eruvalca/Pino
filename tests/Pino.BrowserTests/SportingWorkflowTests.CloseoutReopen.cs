@@ -17,7 +17,8 @@ public sealed partial class SportingWorkflowTests
         await session.Page.GetByText("Reopen for a correction", new() { Exact = true }).ClickAsync();
         await session.Page.GetByLabel("Reason for reopening", new() { Exact = true }).FillAsync("Record the follow-up outcome.");
         await session.Page.GetByRole(AriaRole.Button, new() { Name = "Reopen tryout", Exact = true }).ClickAsync();
-        await session.Page.GetByText("Open for evaluation", new() { Exact = true }).WaitForAsync();
+        await session.Page.Locator(".sport-heading .decision-badge[data-kind='awaiting']").WaitForAsync();
+        (await session.Page.Locator(".sport-heading .decision-badge").InnerTextAsync()).ShouldBe("Open");
         var reopened = await session.GetAsync<TryoutReview>(tryoutPath + "/review");
         reopened.Tryout.Closed.ShouldBeFalse();
         reopened.Closeouts.ShouldHaveSingleItem().ReopenReason.ShouldBe("Record the follow-up outcome.");
@@ -40,7 +41,7 @@ public sealed partial class SportingWorkflowTests
         (await session.GetAsync<SeasonReview>($"{path}/seasons/{data.Season.Id}/review")).Teams.Single(value => value.Team.Id == data.Silver.Id).Players.ShouldHaveSingleItem().Id.ShouldBe(data.Player.Id);
         await session.Page.ReloadAsync();
         await session.Page.Locator("button.text-action:enabled").WaitForAsync();
-        await session.Page.GetByLabel("Results edition", new() { Exact = true }).SelectOptionAsync(edition.Id.ToString());
+        await session.Page.GetByLabel("Saved results", new() { Exact = true }).SelectOptionAsync(edition.Id.ToString());
         (await session.Page.Locator(".result-ledger").InnerTextAsync()).ShouldContain("Jordan Rivera");
         (await session.Page.Locator(".result-ledger").InnerTextAsync()).ShouldNotContain("Jordan Updated");
     }

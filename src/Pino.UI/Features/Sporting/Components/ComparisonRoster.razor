@@ -1,0 +1,9 @@
+<div class="comparison-roster">
+    <p class="muted">@Players.Count matching @(Players.Count == 1 ? "player" : "players")</p>
+    @if (Players.Count == 0) { <p>No players match these filters.</p> }
+    <ul class="record-list">@foreach (var player in Players.Skip(_page * 50).Take(50))
+    {
+        <li @key="player.Id"><button type="button" class="comparison-player" aria-pressed="@(SelectedId == player.Id ? "true" : "false")" disabled="@Disabled" @onclick="() => Selected.InvokeAsync(player.Id)"><strong>@player.FullName</strong><span>Class of @player.GraduationYear · @(player.Position.Length == 0 ? "Position not recorded" : player.Position)@(player.SecondaryPosition.Length == 0 ? "" : $" / {player.SecondaryPosition}")@(player.Archived ? " · Archived" : "")</span></button></li>
+    }</ul>
+    <RosterPager Count="Players.Count" Page="_page" PageChanged="ChangePage" Label="@($"{Label} players")" Disabled="Disabled" />
+</div>

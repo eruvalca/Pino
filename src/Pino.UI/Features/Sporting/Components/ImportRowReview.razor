@@ -1,0 +1,49 @@
+<article class="import-row">
+    <header><p class="muted">Row @Row.Row · Reference @Row.PlayerReference</p><h3>@Row.Name</h3><p>Class of @Row.GraduationYear</p></header>
+    <div class="import-row-review">
+        <strong>@Label</strong>
+        @if (Row.Error is not null) { <p class="notice" data-kind="error">@Row.Error</p> }
+        @if (Row.Warning is not null) { <p>@Row.Warning</p> }
+        @if (Row.Candidates?.Count > 1)
+        {
+            <p>Possible matches to review:</p><ul>@foreach (var candidate in Row.Candidates) { <li><a href="@($"/clubs/{ClubId}/players/{candidate.Id}")" target="_blank" rel="noopener">@candidate.Name · @candidate.GraduationYear · @(candidate.Archived ? "Archived" : "Active") (new tab)</a></li> }</ul>
+        }
+        @if (Row.PlayerId is { } playerId && Row.Disposition != ImportDisposition.Replace) { <p><a href="@($"/clubs/{ClubId}/players/{playerId}")">Open existing or saved player</a></p> }
+        @if (!Saved)
+        {
+            <label for="@($"import-action-{Row.Row}")">Action for row @Row.Row</label>
+            <select id="@($"import-action-{Row.Row}")" disabled="@Disabled" value="@_choice.Action" @onchange="ActionChangedAsync">
+                <option value="Create">Use suggested action</option><option value="Skip">Skip this row</option>
+                @if (Administrator && Row.Candidates?.Any(value => value.Archived) == true)
+                {
+                    <option value="Reactivate">Same person — restore existing player</option>
+                    <option value="Replace">Different person — add new and delete archived player</option>
+                }
+            </select>
+            @if (_choice.Action is ImportDisposition.Reactivate or ImportDisposition.Replace)
+            {
+                <label for="@($"import-candidate-{Row.Row}")">Archived player to review</label>
+                <select id="@($"import-candidate-{Row.Row}")" disabled="@Disabled" value="@_choice.CandidateId" @onchange="CandidateChangedAsync">
+                    <option value="">Choose a candidate</option>
+                    @foreach (var candidate in Row.Candidates ?? [])
+                    {
+                        @if (candidate.Archived) { <option value="@candidate.Id">@candidate.Name · @candidate.GraduationYear</option> }
+                    }
+                </select>
+                @if (Selected is { } selected)
+                {
+                    <p><a href="@($"/clubs/{ClubId}/players/{selected.Id}")" target="_blank" rel="noopener">Review archived player and history (new tab)</a></p>
+                    @if (_choice.Action == ImportDisposition.Replace)
+                    {
+                        <p>Only choose this if you have confirmed these are different people and the old record should be erased.</p>
+                        <ErasureConfirmation FullName="@selected.Name" InputId="@($"import-erase-{Row.Row}")" Disabled="@Disabled" Confirmation="@_choice.Confirmation" ConfirmationChanged="ConfirmationChangedAsync" AcknowledgeHistory="_choice.AcknowledgeHistory" AcknowledgeHistoryChanged="AcknowledgementChangedAsync" />
+                    }
+                }
+            }
+        }
+        @if (Row.ErasureOperationId is { } operationId && Saved)
+        {
+            <p>@(Row.PhotoPending ? "Photo deletion pending." : "Archived record deleted.") <a href="@($"/clubs/{ClubId}/erasures/{operationId}")">Check deletion status</a></p>
+        }
+    </div>
+</article>

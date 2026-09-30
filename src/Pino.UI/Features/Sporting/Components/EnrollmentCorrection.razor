@@ -1,0 +1,16 @@
+<form class="sport-form sport-edit" @onsubmit="SubmitAsync" @onsubmit:preventDefault>
+    <fieldset class="sport-fields" disabled="@Disabled">
+        <legend>@(Enrollment.Removed ? "Restore player" : "Exclude from this tryout")</legend>
+        @if (Enrollment.Removed)
+        {
+            <p class="notice" data-kind="information">Restore this player to the active roster with a new decision still to make. Earlier notes, attendance and decisions remain in history. This does not restore a previous team placement.</p>
+            <div class="form-field"><label for="restore-bib">Bib number when restored (optional)</label><input id="restore-bib" maxlength="20" @bind="_bib" /><p class="muted">The previous bib may now belong to another player. Choose an available bib or leave it empty.</p></div>
+        }
+        else
+        {
+            <p class="notice" data-kind="warning">Exclude this player from the active roster and completion counts. Earlier notes, attendance and decisions remain in history. Any current team placement made by this tryout is cleared; placements made by another tryout stay in place.</p>
+        }
+        <div class="form-field"><label for="enrollment-reason">Reason for @(Enrollment.Removed ? "restoration" : "exclusion")</label><textarea id="enrollment-reason" rows="3" required maxlength="1000" @bind="_reason" @bind:event="oninput"></textarea><p class="muted">This reason stays in the player's tryout history. Club staff can read it.</p></div>
+        <div class="actions"><button class="primary-action" type="submit" disabled="@(!CanSubmit)">@(Enrollment.Removed ? "Restore player" : "Exclude from this tryout")</button></div>
+    </fieldset>
+</form>

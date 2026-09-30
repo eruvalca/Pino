@@ -1,0 +1,30 @@
+@page "/clubs/{ClubId:guid}/emails"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits Pino.UI.Features.Sporting.Services.SportPageBase
+@using Pino.UI.Features.Sporting.Components
+
+<PageTitle>Staff email delivery · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    <a href="@($"/clubs/{ClubId}/people")">Back to people</a>
+    <header class="sport-heading"><div><h1>Staff email delivery</h1><p>Invitations, new join requests and approval or denial notifications.</p></div><button class="secondary-action" disabled="@Disabled" @onclick="ReloadAsync">Refresh delivery status</button></header>
+    <p class="notice" data-kind="information">Club access changes remain saved even if an email fails. Retry failed messages below.</p>
+    <details><summary>What delivery statuses mean</summary><dl class="status-definitions"><div><dt>Pending</dt><dd>Retries automatically, up to five attempts per round.</dd></div><div><dt>Failed</dt><dd>Retry delivery to start another round.</dd></div><div><dt>Sent</dt><dd>The mail service accepted the message. This does not confirm that it was read.</dd></div></dl></details>
+    @if (_data?.Items.Count == 0) { <p>No staff emails on this page.</p> }
+    <ul class="record-list">
+        @foreach (var email in _data?.Items ?? [])
+        {
+            <li class="record-row" @key="email.Id"><div class="email-identity"><h2>@email.Subject</h2><p>@email.RecipientEmail</p><p><strong>@email.Status</strong> · Queued @email.CreatedAt.ToLocalTime().ToString("g")</p>
+                @if (email.SentAt is { } sent) { <p class="muted">Sent @sent.ToLocalTime().ToString("g")</p> }
+                else { <p class="muted">@email.Attempts delivery attempts this round</p> }
+            </div>
+            @if (email.Status == StaffEmailStatus.Failed) { <button class="secondary-action" disabled="@Disabled" @onclick="() => RetryAsync(email)">Retry delivery</button> }
+            </li>
+        }
+    </ul>
+    @if (_page > 0 || _data?.HasMore == true)
+    {
+        <nav class="actions" aria-label="Email pages"><button class="secondary-action" disabled="@(Disabled || _page == 0)" @onclick="PreviousAsync">Previous</button><span>Page @(_page + 1)</span><button class="secondary-action" disabled="@(Disabled || _data?.HasMore != true)" @onclick="NextAsync">Next</button></nav>
+    }
+</SportFrame>

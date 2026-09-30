@@ -1,0 +1,13 @@
+<form class="sport-form sport-edit" @onsubmit="SubmitAsync" @onsubmit:preventDefault>
+    <fieldset class="sport-fields" disabled="@Disabled">
+        <legend>Remove private note text</legend>
+        <p class="notice" data-kind="warning">Delete this note's text and all earlier versions. The author's name and dates stay. We also keep who removed the text, when and why. This cannot be undone.</p>
+        <div class="form-field">
+            <label for="redaction-reason">Reason for removing text</label>
+            <textarea id="redaction-reason" rows="3" maxlength="1000" required @bind="_reason" @bind:event="oninput" aria-describedby="redaction-reason-help"></textarea>
+            <p id="redaction-reason-help" class="muted">Describe why the content must be removed without repeating it. This reason is visible to club staff.</p>
+        </div>
+        <label class="checkbox-field"><input type="checkbox" @bind="_confirmed" /> I understand that this permanently removes the content from every version.</label>
+        <div class="actions"><button type="submit" class="secondary-action" disabled="@(!CanSubmit)">Permanently remove text</button><button type="button" class="text-action" @onclick="Cancelled">Keep text</button></div>
+    </fieldset>
+</form>

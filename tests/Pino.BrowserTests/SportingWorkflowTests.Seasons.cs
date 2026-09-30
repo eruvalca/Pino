@@ -13,7 +13,7 @@ public sealed partial class SportingWorkflowTests
         await PlaceAsync(session, path, original.Id, player.Id, firstTeam.Id);
         var later = new TryoutInput { SeasonId = original.SeasonId, Name = "Follow-up evaluation", Date = original.Date.AddDays(7) };
         (await session.PostAsync<SportReply>(path + "/tryouts", later)).Kind.ShouldBe(SportReplyKind.Saved);
-        (await session.PostAsync<SportReply>($"{path}/tryouts/{later.Id}/players", new EnrollmentInput(player.Id, "17"))).Kind.ShouldBe(SportReplyKind.Saved);
+        (await session.PostAsync<SportReply>($"{path}/tryouts/{later.Id}/bib", new BibNumberInput(player.Id, "17", ""))).Kind.ShouldBe(SportReplyKind.Saved);
         await PlaceAsync(session, path, later.Id, player.Id, firstTeam.Id);
         var originalState = await session.GetAsync<TryoutDetail>($"{path}/tryouts/{original.Id}");
         var entry = originalState.Roster.Single(value => value.Player.Id == player.Id);
@@ -25,11 +25,11 @@ public sealed partial class SportingWorkflowTests
 
         var nextSeason = new SeasonInput { Name = "Spring 2028", StartsOn = new(2028, 1, 1), EndsOn = new(2028, 6, 30) };
         (await session.PostAsync<SportReply>(path + "/seasons", nextSeason)).Kind.ShouldBe(SportReplyKind.Saved);
-        var nextTeam = new TeamInput { SeasonId = nextSeason.Id, Name = "Northside Silver", GraduationYear = 2030 };
+        var nextTeam = new TeamInput { Name = "Northside Silver", GraduationYear = 2030 };
         (await session.PostAsync<SportReply>(path + "/teams", nextTeam)).Kind.ShouldBe(SportReplyKind.Saved);
         var nextTryout = new TryoutInput { SeasonId = nextSeason.Id, Name = "Spring 2028 evaluation", Date = new(2028, 2, 1) };
         (await session.PostAsync<SportReply>(path + "/tryouts", nextTryout)).Kind.ShouldBe(SportReplyKind.Saved);
-        (await session.PostAsync<SportReply>($"{path}/tryouts/{nextTryout.Id}/players", new EnrollmentInput(player.Id, ""))).Kind.ShouldBe(SportReplyKind.Saved);
+        (await session.GetAsync<TryoutDetail>($"{path}/tryouts/{nextTryout.Id}")).Roster.ShouldContain(value => value.Player.Id == player.Id);
         await PlaceAsync(session, path, nextTryout.Id, player.Id, nextTeam.Id);
         var result = await session.GetAsync<PlayerDetail>($"{path}/players/{player.Id}");
         result.Placements.Count.ShouldBe(2);

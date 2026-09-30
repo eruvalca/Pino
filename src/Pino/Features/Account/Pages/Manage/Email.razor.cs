@@ -60,7 +60,7 @@ public sealed partial class Email
 
         await EmailSender.SendConfirmationLinkAsync(_user, Input.NewEmail, HtmlEncoder.Default.Encode(callbackUrl));
 
-        _message = "Confirmation link to change email sent. Please check your email.";
+        _message = "Email change confirmation requested. Check the new inbox and spam folder. If you requested a message recently, use the latest one or wait at least a minute before trying again. Requests are limited to six per hour.";
     }
 
     private async Task OnSendEmailVerificationAsync()
@@ -85,7 +85,7 @@ public sealed partial class Email
 
         await EmailSender.SendConfirmationLinkAsync(_user, _email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        _message = "Verification email sent. Please check your email.";
+        _message = "Verification email requested. Check your inbox and spam folder. If you requested a message recently, use the latest one or wait at least a minute before trying again. Requests are limited to six per hour.";
     }
 
     private sealed class InputModel

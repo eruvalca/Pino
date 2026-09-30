@@ -21,7 +21,7 @@ public sealed partial class SportingWorkflowTests
         (await session.PostAsync<SportReply>(path + "/tryouts", data.Tryout)).Kind.ShouldBe(SportReplyKind.Invalid);
         (await session.PostAsync<SportReply>(tryoutPath + "/close", new CloseTryoutInput(closeoutId, "retry-of-committed-operation"))).Kind.ShouldBe(SportReplyKind.Saved);
         var saved = await session.GetAsync<TryoutDetail>(tryoutPath);
-        saved.Notes.ShouldHaveSingleItem().Text.ShouldBe(data.Note.Text);
+        (await session.GetAsync<PlayerNotebook>($"{tryoutPath}/players/{data.Player.Id}/notebook")).Notes.ShouldHaveSingleItem().Text.ShouldBe(data.Note.Text);
         saved.Roster.Single(value => value.Player.Id == data.Player.Id).Bib.ShouldBe("41");
         saved.Roster.Single(value => value.Player.Id == data.Player.Id).Decision.ShouldBe(DecisionKind.Placed);
         data.Season.Revision = 1;
@@ -45,7 +45,7 @@ public sealed partial class SportingWorkflowTests
         (await session.PostAsync<SportReply>(path + "/teams", data.Blue)).Kind.ShouldBe(SportReplyKind.Saved);
         var later = new TryoutInput { SeasonId = data.Season.Id, Name = "Follow-up evaluations", Date = new(2027, 3, 1) };
         (await session.PostAsync<SportReply>(path + "/tryouts", later)).Kind.ShouldBe(SportReplyKind.Saved);
-        (await session.PostAsync<SportReply>($"{path}/tryouts/{later.Id}/players", new EnrollmentInput(data.Player.Id, "17"))).Kind.ShouldBe(SportReplyKind.Saved);
+        (await session.PostAsync<SportReply>($"{path}/tryouts/{later.Id}/bib", new BibNumberInput(data.Player.Id, "17", ""))).Kind.ShouldBe(SportReplyKind.Saved);
         await PlaceAsync(session, path, later.Id, data.Player.Id, data.Silver.Id);
         var retained = (await session.GetAsync<TryoutReview>($"{path}/tryouts/{data.Tryout.Id}/review")).Closeouts.ShouldHaveSingleItem();
         retained.Id.ShouldBe(edition.Id);

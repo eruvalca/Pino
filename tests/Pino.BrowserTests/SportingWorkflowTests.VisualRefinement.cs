@@ -19,9 +19,10 @@ public sealed partial class SportingWorkflowTests
     private static async Task CaptureEnrollmentAsync(BrowserSession session, Guid clubId, Guid tryoutId, PlayerPage players)
     {
         await session.Page.GotoAsync($"/clubs/{clubId}/tryouts/{tryoutId}");
-        await session.Page.Locator(".tryout-heading .primary-action:not([disabled])").WaitForAsync();
+        await session.Page.Locator(".roster-record:enabled").First.WaitForAsync();
+        await session.Page.Locator(".supporting-tools > summary").ClickAsync();
         await session.Page.GetByRole(AriaRole.Button, new() { Name = "Add players", Exact = true }).ClickAsync();
-        await session.Page.GetByRole(AriaRole.Heading, new() { Name = "Add players from your catalog", Exact = true }).WaitForAsync();
+        await session.Page.GetByRole(AriaRole.Heading, new() { Name = "Add players from your player list", Exact = true }).WaitForAsync();
         var search = (await session.Page.Locator("#enroll-search").BoundingBoxAsync()).ShouldNotBeNull();
         var bib = (await session.Page.Locator("#enroll-bib").BoundingBoxAsync()).ShouldNotBeNull();
         Math.Abs(search.Y - bib.Y).ShouldBeLessThan(1);
@@ -51,6 +52,9 @@ public sealed partial class SportingWorkflowTests
         {
             await session.Page.GotoAsync(path);
             await session.Page.Locator("main h1").WaitForAsync();
+            if (string.Equals(name, "seasons", StringComparison.Ordinal)) { await session.Page.GetByRole(AriaRole.Button, new() { Name = "Add season", Exact = true }).And(session.Page.Locator(":enabled")).WaitForAsync(); }
+            if (string.Equals(name, "team-roster", StringComparison.Ordinal)) { await session.Page.GetByRole(AriaRole.Button, new() { Name = "Refresh roster", Exact = true }).And(session.Page.Locator(":enabled")).WaitForAsync(); }
+            if (string.Equals(name, "player-import-empty", StringComparison.Ordinal)) { await session.Page.Locator("#import-file:enabled").WaitForAsync(); }
             await CaptureSurfaceSizesAsync(session, name);
         }
         await session.Page.GotoAsync("/tryouts/spring-2027");

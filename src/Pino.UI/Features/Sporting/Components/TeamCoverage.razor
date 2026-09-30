@@ -1,0 +1,15 @@
+<div class="team-coverage">
+    <p class="notice" data-kind="@(Team.RosterTarget is { } target && target != Players.Count ? "warning" : "information")"><strong>@Players.Count @(Players.Count == 1 ? "player" : "players")</strong> · @(Team.RosterTarget is { } total ? $"Target {total}: {Difference(Players.Count, total)}" : "No total target set")</p>
+    @if (_coverage.Count > 0)
+    {
+        <p class="muted">Targets count players' primary positions. Secondary positions show other places they can play.</p>
+        <ul class="coverage-list" aria-label="Position coverage">
+            @foreach (var row in _coverage)
+            {
+                <li><strong>@row.Position</strong><span>@row.Primary primary · @row.Secondary additional secondary</span><span class="coverage-target" data-warning="@(row.Target is { } count && count != row.Primary ? "true" : "false")">@(row.Target is { } desired ? $"Target {desired}: {Difference(row.Primary, desired)}" : "No target")</span></li>
+            }
+        </ul>
+    }
+    @if (_unspecified > 0) { <p class="muted">@_unspecified @(_unspecified == 1 ? "player has" : "players have") no primary position recorded.</p> }
+    @if (Team.RosterTarget is { } planned && (Team.PositionTargets ?? []).Sum(value => value.Players) > planned) { <p class="notice" data-kind="warning">Position targets add up to more than the team total. You can still place players.</p> }
+</div>

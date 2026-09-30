@@ -44,6 +44,21 @@ public sealed class ClubAccessTests
     }
 
     [Fact]
+    public async Task WorkspaceEntryOpensExistingClubWhileAccessKeepsMembershipControlsAsync()
+    {
+        await using var context = new BunitContext();
+        Configure(context, new(_profile, new(_club, ClubRole.Coach), Request: null));
+        var navigation = context.Services.GetRequiredService<NavigationManager>();
+        navigation.NavigateTo("/club");
+        context.Render<ClubAccess>();
+        navigation.Uri.ShouldBe($"http://localhost/clubs/{_club.Id}");
+        navigation.NavigateTo("/club/access");
+        var access = context.Render<ClubAccess>();
+        navigation.Uri.ShouldBe("http://localhost/club/access");
+        access.Find("#task-heading").TextContent.ShouldBe(_club.Name);
+    }
+
+    [Fact]
     public async Task ProfileQueryOpensCompletedProfileAndCancelClosesItAsync()
     {
         await using var context = new BunitContext();

@@ -20,10 +20,8 @@ public sealed partial class TryoutWorkTests
         gateway.AddNoteAsync(_clubId, _tryoutId, Arg.Any<NoteInput>(), Arg.Any<CancellationToken>()).Returns(call =>
         {
             committed = call.Arg<NoteInput>();
-            gateway.GetTryoutAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(data with
-            {
-                Notes = [new(committed.Id, committed.PlayerId, committed.Text, "Avery Coach", DateTimeOffset.UtcNow, committed.CorrectsId, CanCorrect: true)],
-            });
+            gateway.GetNotebookAsync(_clubId, _tryoutId, committed.PlayerId, Arg.Any<CancellationToken>()).Returns(new PlayerNotebook(committed.PlayerId, false,
+                [new(committed.Id, committed.PlayerId, committed.Text, "Avery Coach", DateTimeOffset.UtcNow, committed.CorrectsId, CanCorrect: true)], [], []));
             return Task.FromException<SportReply>(new HttpRequestException("The response was lost after commit."));
         });
         var page = Render(context);
@@ -54,7 +52,7 @@ public sealed partial class TryoutWorkTests
     {
         await using var context = new BunitContext();
         var data = Data();
-        var alternative = new TeamSummary(Guid.NewGuid(), data.Season.Id, "Another eligible team", 2030, Archived: false, 1);
+        var alternative = new TeamSummary(Guid.NewGuid(), "Another eligible team", 2030, Archived: false, 1);
         data = data with { Teams = [.. data.Teams, alternative] };
         var gateway = Configure(context, data);
         DecisionInput? committed = null;
@@ -64,8 +62,9 @@ public sealed partial class TryoutWorkTests
             gateway.GetTryoutAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(data with
             {
                 Roster = [data.Roster[0] with { Decision = committed.Kind, DecisionTeamId = committed.TeamId, CurrentTeamId = committed.TeamId, Revision = 4, PlacementRevision = 9 }, data.Roster[1]],
-                History = [new(committed.OperationId, committed.PlayerId, _tryoutId, "Spring evaluation", "Spring", committed.Kind, Team: null, "Avery Coach", DateTimeOffset.UtcNow, committed.Reason, committed.TeamId)],
             });
+            gateway.GetNotebookAsync(_clubId, _tryoutId, committed.PlayerId, Arg.Any<CancellationToken>()).Returns(new PlayerNotebook(committed.PlayerId, false, [],
+                [new(committed.OperationId, committed.PlayerId, _tryoutId, "Spring evaluation", "Spring", committed.Kind, Team: null, "Avery Coach", DateTimeOffset.UtcNow, committed.Reason, committed.TeamId)], []));
             return Task.FromException<SportReply>(new HttpRequestException("The response was lost after commit."));
         });
         var page = Render(context);
@@ -103,7 +102,7 @@ public sealed partial class TryoutWorkTests
         var page = Render(context);
         await page.Find("#player-note").InputAsync("Original observation.");
         await page.Find(".note-composer").SubmitAsync();
-        gateway.GetTryoutAsync(_clubId, _tryoutId, Arg.Any<CancellationToken>()).Returns(Task.FromException<TryoutDetail>(new HttpRequestException("still offline")));
+        gateway.GetNotebookAsync(_clubId, _tryoutId, Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(Task.FromException<PlayerNotebook>(new HttpRequestException("still offline")));
         await page.Find("#player-note").InputAsync("Keep my edits.");
         await page.Find(".note-composer").SubmitAsync();
         page.Find("#player-note").GetAttribute("value").ShouldBe("Keep my edits.");

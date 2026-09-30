@@ -11,15 +11,11 @@
 <StatusMessage />
 <h2>Personal Data</h2>
 
-<p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
-<p>
-    <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
-</p>
+<p>Download your account information and club profile separately.</p>
+<section class="account-data-section" aria-labelledby="download-data-heading"><h3 id="download-data-heading">Keep a copy</h3>
 <form action="Account/Manage/DownloadPersonalData" method="post">
     <AntiforgeryToken />
     <button class="primary-action" type="submit">Download</button>
 </form>
-<p><a href="/api/clubs/personal-data" download>Download club profile, photo, and request history</a></p>
-<p>
-    <a href="Account/Manage/DeletePersonalData">Delete</a>
-</p>
+<p><a class="secondary-action" href="/api/clubs/personal-data" download>Download club profile, photo, and request history</a></p></section>
+<section class="account-data-section" aria-labelledby="delete-data-heading"><h3 id="delete-data-heading">Delete your account</h3><p><strong>This permanently deletes your account. You cannot undo it.</strong></p><a class="secondary-action" href="Account/Manage/DeletePersonalData">Delete</a></section>

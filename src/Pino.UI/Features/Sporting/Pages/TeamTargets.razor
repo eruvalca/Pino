@@ -1,0 +1,34 @@
+@page "/clubs/{ClubId:guid}/teams/{TeamId:guid}/targets"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits SportPageBase
+
+<PageTitle>Roster targets · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    @if (_detail is { } detail)
+    {
+        <p><a href="@($"/clubs/{ClubId}/teams/{TeamId}")">@detail.Team.Name roster</a></p>
+        <header class="sport-heading"><div><h1>Roster targets</h1><p>@detail.Team.Name · Club defaults</p></div></header>
+        <p class="muted planning-intro">Set how many players you want. Pino shows where you are over or under the target. Targets never stop a valid placement. Leave the total blank and remove position rows if you do not need targets.</p>
+        @if (detail.Team.Archived) { <p class="notice" data-kind="information">Restore this club team before changing targets.</p> }
+        <form class="sport-form" @onsubmit="SaveTargetsAsync" @onsubmit:preventDefault>
+            <fieldset class="sport-fields" disabled="@(Disabled || detail.Team.Archived)">
+                <div class="form-field"><label for="target-total">Total roster target (optional)</label><input id="target-total" type="number" min="0" max="2000" @bind="_total" /></div>
+                <div class="target-position-intro"><h2>Position targets</h2><p class="muted">Use your club's position names. Primary positions count toward these targets; secondary positions show additional coverage separately.</p></div>
+                @if (_positions.Count == 0) { <p>No position targets set.</p> }
+                @foreach (var row in _positions)
+                {
+                    <div class="target-row" @key="row.Id">
+                        <div class="form-field"><label for="@($"position-{row.Id}")">Position</label><input id="@($"position-{row.Id}")" maxlength="80" required @bind="row.Position" /></div>
+                        <div class="form-field"><label for="@($"count-{row.Id}")">Players</label><input id="@($"count-{row.Id}")" type="number" min="0" max="2000" required @bind="row.Players" /></div>
+                        <button type="button" class="text-action" aria-label="@($"Remove {row.Position} target")" @onclick="() => _positions.Remove(row)">Remove</button>
+                    </div>
+                }
+                @if (_total is { } total && _positions.Sum(row => row.Players) > total) { <p class="notice" data-kind="warning">Position targets add up to more than the total roster target. You can still save these targets.</p> }
+                <div class="actions"><button type="button" class="secondary-action" disabled="@(_positions.Count >= 100)" @onclick="AddPosition">Add position target</button><button class="primary-action" type="submit">Save targets</button><button class="text-action" type="button" @onclick="ReloadAsync">Reload saved targets</button></div>
+            </fieldset>
+        </form>
+        <section class="sport-section"><h2>Current saved plan</h2>@if (detail.Season is { } season) { <p>Coverage uses the @season.Name roster. <a href="@($"/clubs/{ClubId}/teams/{TeamId}?season={season.Id}")">Review this roster or choose another season</a>.</p> } else { <p>No season roster yet. These targets will apply when you start placing players.</p> }<TeamCoverage Team="detail.Team" Players="detail.Members" /></section>
+    }
+</SportFrame>

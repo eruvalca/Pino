@@ -1,0 +1,13 @@
+@if (Entry.PreviousPlacement is { } previous)
+{
+    <section class="previous-placement" aria-label="Previous season placement">
+        <div><span class="muted">Previous placement · @previous.Season</span><strong>@previous.Team</strong></div>
+        @if (AlreadyPlaced) { <span class="decision-badge" data-kind="placed">Same team recorded</span> }
+        else if (Available) { <button class="secondary-action" disabled="@Disabled" @onclick="Place">Place on @previous.Team</button> }
+        else { <p class="muted">@UnavailableReason</p> }
+    </section>
+}
+else
+{
+    <p class="muted">No placement recorded in an earlier season.</p>
+}

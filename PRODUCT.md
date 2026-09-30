@@ -8,7 +8,7 @@ web
 
 ## Users
 
-Pino serves youth sports club administrators and coaches. They maintain a club's
+Pino serves adult youth sports club administrators and coaches. They maintain a club's
 player catalog, organize seasonal tryout campaigns, evaluate players, and decide
 which teams are appropriate for them.
 
@@ -25,8 +25,9 @@ playing careers.
 
 A tryout is ready to close once a decision has been made for every participating
 player on a nonempty roster. A completed decision is placement on a team,
-withdrawal from the tryout, or a club/coach decision not to place the player on
-any team. Staff review the results and explicitly close the tryout to preserve
+withdrawal from the tryout, a club/coach decision not to place the player on
+any team, or an explicit Did not attend outcome. Attendance never determines a
+selection decision automatically. Staff review the results and explicitly close the tryout to preserve
 that edition. Closing does not require every player to receive a team placement.
 
 ## Operating Context
@@ -36,8 +37,8 @@ or tryouts within those seasons. Staff working a tryout need to consult player
 information, record pertinent observations for themselves and other staff, and
 place players on eligible teams.
 
-The core workflow is to configure a season and its tryouts and teams, add players
-individually or by CSV import, evaluate the participating players, record their
+The core workflow is to maintain club teams and players, configure a season and
+its tryouts, evaluate the automatically included active players, record their
 decisions, and later consult historical placements. A player's team can change
 between seasons; a current team assignment must not replace earlier history.
 
@@ -45,8 +46,11 @@ The initial focus is soccer, with workflows intended to support other youth
 sports. Staff are expected to use phones or tablets during tryouts and computers
 afterward. Evaluation uses shared notes rather than scores or a formal rubric.
 The first version can require an internet connection; offline note capture and
-synchronization are outside its scope. Existing tools being replaced and
-typical roster sizes have not been established.
+synchronization are outside its scope. A typical catalog has about 200 players;
+the working capacity target is 1,000 players, all of whom may join one tryout.
+Historical records accumulate across seasons. Existing club workflows combine
+registration exports with spreadsheets of observations and projected rosters.
+Returning players frequently stay on the same club team in the next season.
 
 ## Capabilities and Constraints
 
@@ -85,7 +89,10 @@ remains a separate, public sample and never reads or writes club records.
 - Profile photos are private: visible to the person, their current club's staff,
   and administrators reviewing their pending request. Store only the saved
   square crop and delete replaced photos.
-- Request status is available in the app; approval emails are outside v1.
+- Request status is available in the app. Invitations, new join requests, and
+  approval/denial outcomes also have email notifications. Invitations expire,
+  are single-use, and grant the specified role after matching email verification.
+- Administrators can edit basic club details. Club closure and recovery are deferred.
 
 The implemented flow and remaining product boundaries are recorded in the
 [club onboarding and access brief](docs/features/club-onboarding-access.md).
@@ -96,11 +103,23 @@ The implemented flow and remaining product boundaries are recorded in the
 - Staff can create a player individually, with an optional player photo.
 - Staff can import players in bulk from a CSV file using **CsvHelper**.
 - Required user-entered fields are first name, last name and graduation year.
-  Position and contact email are optional. Manually created players receive an
+  Middle name, primary and secondary position, and contact email are optional.
+  Manually created players receive an
   automatic club-local import reference; staff do not need to invent one.
-- CSV contains PlayerReference, FirstName, LastName, GraduationYear, Position and
-  ContactEmail. Preview reports row errors; imports are atomic and create-only.
-  References are normalized to uppercase and compared against archived records too.
+- Guided CSV import maps supported columns, ignores unrelated columns and blank
+  rows, and previews up to 1,000 players. Graduation year must be supplied and
+  confirmed; birth dates do not determine it. Existing players are never updated
+  through CSV. Active duplicates are skipped with a link to edit the existing
+  record. Matching names and graduation years identify candidates, not proof of identity.
+- An administrator can confirm an archived candidate is the same person and
+  reactivate it, preserving history. For a confirmed different person with the
+  same name and graduation year, import review can offer new-player creation
+  together with strongly confirmed erasure of the archived record. This uses
+  the same complete erasure operation as the standalone administrator action.
+- Import reports distinguish created, skipped, reactivated, unresolved, and
+  failed rows. Skipping duplicate creation does not prevent selecting that
+  existing player for enrollment. Workbook layouts are workflow evidence;
+  arbitrary multi-sheet workbook conversion and general record merging are deferred.
 - Players may be archived and restored without losing notes or placements.
 - Bib numbers belong to a player's entry in a particular tryout, not the club
   catalog record. They are optional and unique within that tryout; the same player
@@ -116,10 +135,24 @@ The implemented flow and remaining product boundaries are recorded in the
 ### Seasons, tryouts, and teams
 
 - Staff can create and configure seasons, tryouts, and teams.
+- Teams belong to the club and keep one identity across seasons. Active teams are
+  available in all seasons and tryouts by default, including teams added later.
+  Administrators can exclude teams for one season or one tryout. A season exclusion
+  applies to all its tryouts; exclusions block new placements without changing saved records.
+- New tryouts include every active catalog player, with a blank bib and Awaiting
+  decision. Archived players are omitted. Editing a tryout does not re-enroll
+  excluded players or automatically include later catalog additions.
+- Administrators can include later catalog additions in reviewed batches and
+  review bulk returning-player placements on the same club team. Both roles see
+  the latest earlier-season placement in the notebook and can quickly place a
+  player on that team when eligible and available. Prior seasons and concurrent
+  edits stay protected. Season copying and team mapping are unnecessary.
+- Optional total roster targets and position counts support planning. Targets
+  warn without blocking eligible placements; position targets are optional.
 - A season contains distinct tryouts; campaign is another name for a tryout,
   rather than a separate entity. Tryout dates must fall inside the season.
 - Archived seasons preserve readable records and block sporting changes until
-  staff reopen them. Teams with current players cannot be archived.
+  staff reopen them. Teams with current players in active seasons cannot be archived.
 - Team eligibility has a strict high school graduation year requirement: a
   player must graduate in the team's specified year **or later** to be placed
   on that team. For example, a threshold of 2030 permits 2030 and later years;
@@ -141,11 +174,33 @@ The implemented flow and remaining product boundaries are recorded in the
 - Evaluation uses shared notes only; scores and evaluation rubrics are outside
   the current scope. Authors append corrections to their own notes, retaining
   the earlier text, authorship and timestamp. Other staff cannot rewrite a note.
+- A tryout has one roster, one bib per player, one attendance mark per player,
+  shared notes and one final decision per player. Its date and optional location
+  describe the whole tryout. There are no tryout sessions or staff assignments.
+- Both roles can mark attendance as Not recorded, Present or Absent. Attendance
+  remains separate from the final decision, including Did not attend.
+- Notes and displayed staff activity show a protected current profile photo beside
+  the recorded name. Missing or inaccessible photos use initials. Historical names
+  stay as recorded, and former staff photos do not bypass membership checks.
+- Use short sentences and familiar words on every screen. Prefer notes, player
+  list, results and permanent deletion in user-facing copy. Keep the adult-staff
+  audience, accurate consequences and recovery instructions.
+- Both roles can exclude players from a tryout or restore them, individually or
+  in reviewed groups, with a required reason. Earlier work remains in history;
+  excluded entries leave active and completion counts. Group changes report each
+  changed record and any conflicts.
+  Closed tryouts must first be reopened. Attendance never automatically selects
+  an outcome, and absent players can still receive valid placements.
+- Excluding a player clears a current placement only when this tryout made it.
+  Reasoned restoration requires an active catalog player and an available bib;
+  it preserves earlier work but starts a new outstanding decision and does not
+  automatically restore a team. The enrollment review explains these consequences.
+- Unsubmitted notes are disposable. Persistent draft recovery is outside scope.
 - Those staff can place a player on an appropriate, compatible team during the
   tryout. Graduation year eligibility must be enforced.
 - Every participating player needs a decision before the tryout can be closed.
 - The completing outcomes are placement on a team, withdrawal from the tryout,
-  and a club/coach decision not to place the player on any team.
+  a club/coach decision not to place the player on any team, and Did not attend.
 - Coaches and administrators working a tryout can finalize and revise player
   outcomes directly; a separate administrator approval step is not required.
 - A new placement replaces the current team within that season. A non-placement
@@ -156,7 +211,7 @@ The implemented flow and remaining product boundaries are recorded in the
   readiness. Readiness alone does not close the tryout.
 - Coaches and administrators can close reviewed results and reopen a closed
   tryout with a reason. Closing rejects stale reviews and locks enrollment, bibs,
-  decisions, notes/corrections and tryout metadata. Catalog and team maintenance
+  attendance, decisions, notes/corrections and tryout metadata. Catalog and team maintenance
   remain independent. Neither closing nor reopening changes current placements.
 - Reopening requires an active season. Restoring an archived season does not
   automatically reopen its closed tryouts.
@@ -176,6 +231,32 @@ The implemented flow and remaining product boundaries are recorded in the
   closing again creates a new edition. Later catalog edits and season placements
   do not rewrite closed results. See the
   [closeout brief](docs/features/season-review-closeout.md).
+- Player history brings placements, outcomes, and observations together with
+  season/tryout/author context. Ordinary roster/results exports and printable
+  attendance/bib lists are available to both roles. Closed editions remain
+  distinct from current rosters.
+
+### Administration and personal content
+
+- Existing sporting permissions remain intact. New administrative configuration,
+  bulk enrollment and returning-player placement controls, sensitive import
+  resolutions, personal-data exports, erasure, and redaction are administrator-only.
+  Both roles manage attendance and individual or group enrollment exclusions
+  and restorations.
+- Archival retains all content and is reversible. A separate strongly confirmed
+  erasure removes personal content, photos, earlier versions, and snapshot copies,
+  retaining minimal non-identifying audit information. No automatic age-based
+  deletion applies until a retention policy is established.
+- Exceptional administrator note redaction requires a reason and removes
+  affected sensitive text from earlier versions too, retaining actor and time.
+- Family offers and acceptance, production deployment/operating-model work,
+  and club closure/recovery are outside this implementation scope.
+
+### Public identity
+
+Pino is both the product and company name. Public guidance explains the staff
+workflow and links to the fictional demonstration. Do not invent individual
+identities, support contacts, pricing, privacy policies, or terms text.
 
 ### Implementation requirements
 
@@ -197,8 +278,10 @@ requirements, and placement history.
 
 The tryout workspace follows the approved Sideline notebook direction recorded
 in the merged feature brief and implemented visual system in `DESIGN.md`.
-The persisted workspace extends that visual system. No real player roster,
-sample CSV, club imagery, or external product evidence was supplied. The
+The persisted workspace extends that visual system. The owner supplied a private
+2025–2026 registration CSV and planning workbook as contextual evidence. They
+use legacy birth-year groupings; Pino uses graduation-year eligibility. Their
+personal content must not be copied into fixtures, public samples, or source control. The
 public sample uses clearly identified fictional players and observations;
 its representative roster sizes are demonstration cases, not product limits.
 

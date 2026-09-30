@@ -13,7 +13,7 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<EnableAuthenticator> Logger
 
-<PageTitle>Configure authenticator app</PageTitle>
+<PageTitle>Set up authenticator app</PageTitle>
 
 @if (_recoveryCodes is not null)
 {
@@ -22,9 +22,9 @@
 else if (_sharedKey is not null)
 {
     <StatusMessage Message="@_message" />
-    <h2>Configure authenticator app</h2>
+    <h2>Set up authenticator app</h2>
     <div>
-        <p>To use an authenticator app go through the following steps:</p>
+        <p>Set up your authenticator app:</p>
         <ol>
             <li>
                 <p>
@@ -43,8 +43,7 @@ else if (_sharedKey is not null)
             </li>
             <li>
                 <p>
-                    Once you have scanned the QR code or input the key above, your two factor authentication app will provide you
-                    with a unique code. Enter the code in the confirmation box below.
+                    Your authenticator app will show a code for Pino. Enter that code below.
                 </p>
                 <EditForm class="account-form" Model="Input" FormName="send-code" OnValidSubmit="OnValidSubmitAsync" method="post">
                     <DataAnnotationsValidator />

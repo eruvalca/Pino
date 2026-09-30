@@ -1,0 +1,2 @@
+<button class="primary-action" @onclick="PrintAsync" disabled="@(Disabled || !RendererInfo.IsInteractive || _printing)">Print list</button>
+@if (_failed) { <p class="notice" data-kind="error" role="status">The print dialog could not open. Try again or use your browser's Print command.</p> }

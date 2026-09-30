@@ -66,8 +66,8 @@ public sealed class SetPasswordTests
 
     [Theory]
     [InlineData(0, false, "New password field is required")]
-    [InlineData(5, false, "at least 6 and at max 100")]
-    [InlineData(101, false, "at least 6 and at max 100")]
+    [InlineData(5, false, "6 to 100")]
+    [InlineData(101, false, "6 to 100")]
     [InlineData(8, true, "do not match")]
     public async Task InvalidPasswordFormDoesNotAddPasswordAsync(int length, bool mismatch, string expectedError)
     {

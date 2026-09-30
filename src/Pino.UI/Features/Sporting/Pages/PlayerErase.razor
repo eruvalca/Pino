@@ -1,0 +1,28 @@
+@page "/clubs/{ClubId:guid}/players/{PlayerId:guid}/erase"
+@page "/clubs/{ClubId:guid}/erasures/{OperationId:guid}"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits SportPageBase
+
+<PageTitle>Delete player · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    <p><a href="@($"/clubs/{ClubId}/players")">All players</a></p>
+    <h1>Delete a player permanently</h1>
+    @if (Membership?.Role != ClubRole.Administrator)
+    {
+        <p class="notice" data-kind="information">Only club administrators can permanently delete a player.</p>
+    }
+    else if (_result is { Kind: SportReplyKind.Saved } result)
+    {
+        <p class="notice" data-kind="@(result.PhotoPending ? "warning" : "success")" role="status">@result.Message</p>
+        @if (result.PhotoPending) { <button class="secondary-action" disabled="@Disabled" @onclick="CheckAsync">Check photo deletion</button> }
+    }
+    else if (_player is { } player)
+    {
+        <section class="sport-form"><h2>@player.FullName · @player.GraduationYear</h2>
+            <ErasureConfirmation FullName="@player.FullName" InputId="erase-player" Disabled="@Disabled" @bind-Confirmation="_confirmation" @bind-AcknowledgeHistory="_acknowledge" />
+            <div class="actions"><button class="primary-action" disabled="@(Disabled || !_acknowledge || !string.Equals(_confirmation.Trim(), player.FullName, StringComparison.Ordinal))" @onclick="EraseAsync">Permanently delete player</button><a href="@($"/clubs/{ClubId}/players/{PlayerId}")">Keep player</a></div>
+        </section>
+    }
+</SportFrame>

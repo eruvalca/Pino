@@ -43,7 +43,7 @@ public sealed partial class Disable2fa
                 LogTwoFactorDisabled(Logger, userId);
                 RedirectManager.RedirectToWithStatus(
                     "Account/Manage/TwoFactorAuthentication",
-                    "2fa has been disabled. You can reenable 2fa when you setup an authenticator app", HttpContext);
+                    "Two-factor authentication is off. Set up your authenticator app to turn it back on.", HttpContext);
             },
             _ => ShowStatusAsync("Account/Manage/TwoFactorAuthentication", "Two-factor authentication is already disabled."),
             _ => ShowStatusAsync("Account/Manage/Disable2fa", "Error: Two-factor authentication could not be disabled. Please try again."));

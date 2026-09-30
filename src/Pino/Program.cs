@@ -19,9 +19,13 @@ builder.AddServiceDefaults();
 builder.AddAzureBlobServiceClient("profileblobs");
 builder.Services.AddCropper();
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton<AccountEmailLimits>();
+builder.Services.AddRateLimiter(AccountRequestLimits.Configure);
 builder.Services.AddSingleton<IProfilePhotoStore, ProfilePhotoStore>();
 builder.Services.AddHostedService<PhotoCleanupService>();
 builder.Services.AddScoped<ClubService>();
+builder.Services.AddSingleton<ClubMail>();
+builder.Services.AddHostedService<StaffEmailDelivery>();
 builder.Services.AddScoped<Pino.Features.Sporting.Services.SportService>();
 builder.Services.AddScoped<Pino.SharedKernel.Sporting.ISportGateway, Pino.Features.Sporting.Services.ServerSportGateway>();
 builder.Services.AddScoped<IClubGateway, ServerClubGateway>();
@@ -89,6 +93,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddIdentityCore<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = true;
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+        options.Lockout.AllowedForNewUsers = true;
         options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
@@ -96,6 +103,7 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, SmtpIdentityEmailSender>();
+builder.Services.AddSingleton<Pino.Services.Mail.IMailDelivery, Pino.Services.Mail.SmtpMailDelivery>();
 builder.Services.AddScoped<IUserStore<ApplicationUser>, ClubUserStore>();
 
 var app = builder.Build();
@@ -117,8 +125,14 @@ else
 app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api", StringComparison.OrdinalIgnoreCase),
     branch => branch.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true));
 app.UseHttpsRedirection();
+app.UseRateLimiter();
 app.Use(async (context, next) =>
 {
+    if (context.Request.Path.StartsWithSegments("/club/invitations", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        context.Response.Headers["Referrer-Policy"] = "no-referrer";
+    }
     if (context.Request.Path.StartsWithSegments("/api/clubs", StringComparison.OrdinalIgnoreCase) &&
         context.Features.Get<IHttpMaxRequestBodySizeFeature>() is { IsReadOnly: false } limits)
     {

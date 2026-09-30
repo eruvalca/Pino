@@ -60,7 +60,7 @@ public sealed class AccountRecoveryPrivacyTests
 
         await component.Find("form").SubmitAsync();
 
-        await component.WaitForAssertionAsync(() => component.Find(".notice[data-kind='success']").TextContent.ShouldBe("Verification email sent. Please check your email."));
+        await component.WaitForAssertionAsync(() => component.Find(".notice[data-kind='success']").TextContent.ShouldBe("If this email belongs to an account, check your inbox and spam folder. Use the latest confirmation message, or wait at least a minute before requesting another. Requests are limited to six per hour."));
         if (exists)
         {
             await account.Emails.Received(1).SendConfirmationLinkAsync(user, "member@example.test", Arg.Any<string>());

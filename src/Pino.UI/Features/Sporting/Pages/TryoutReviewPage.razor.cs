@@ -15,8 +15,9 @@ public sealed partial class TryoutReviewPage : SportPageBase
     private string _query = "";
     private string _decision = "";
     private TryoutCloseoutSummary? Edition => _review?.Closeouts.FirstOrDefault(value => value.Id == _editionId);
+    private string ExportUrl => $"/api/clubs/{ClubId}/sport/tryouts/{TryoutId}/results.csv" + (Edition is { } edition ? $"?editionId={edition.Id}" : "");
     private IEnumerable<TryoutResult> Results => (Edition?.Results ?? _review?.Results ?? [])
-        .Where(value => $"{value.FirstName} {value.LastName} {value.Bib} {value.TeamName}".Contains(_query, StringComparison.OrdinalIgnoreCase) &&
+        .Where(value => $"{value.FullName} {value.Bib} {value.TeamName}".Contains(_query, StringComparison.OrdinalIgnoreCase) &&
             (_decision.Length == 0 || string.Equals(value.Decision.ToString(), _decision, StringComparison.Ordinal)));
 
     protected override async Task LoadAsync()

@@ -23,7 +23,7 @@ internal static class ClubEndpoints
             }
             catch (AntiforgeryValidationException)
             {
-                return Results.BadRequest(new ClubReply(ClubReplyKind.Forbidden, "Your session changed. Reload the page before saving."));
+                return Results.BadRequest(new ClubReply(ClubReplyKind.Forbidden, "Your sign-in changed. Reload the page before saving."));
             }
             catch (UnauthorizedAccessException)
             {
@@ -33,6 +33,22 @@ internal static class ClubEndpoints
         group.MapGet("/token", (HttpContext context, IAntiforgery antiforgery) =>
             Results.Ok(antiforgery.GetAndStoreTokens(context).RequestToken));
         group.MapGet("/access", (HttpContext context, ClubService service, CancellationToken ct) => service.GetAccessAsync(context.User, ct));
+        group.MapGet("/{clubId:guid}/invitations", (Guid clubId, int page, HttpContext context, ClubService service, CancellationToken ct) => service.GetInvitationsAsync(context.User, clubId, page, ct));
+        group.MapPost("/{clubId:guid}/invitations", async (Guid clubId, InvitationInput input, HttpContext context, ClubService service, CancellationToken ct) =>
+            (await service.InviteAsync(context.User, clubId, input, Origin(context), ct)).ToReply());
+        group.MapPost("/{clubId:guid}/invitations/resend", async (Guid clubId, InvitationChangeInput input, HttpContext context, ClubService service, CancellationToken ct) =>
+            (await service.ChangeInvitationAsync(context.User, clubId, input, true, Origin(context), ct)).ToReply());
+        group.MapPost("/{clubId:guid}/invitations/revoke", async (Guid clubId, InvitationChangeInput input, HttpContext context, ClubService service, CancellationToken ct) =>
+            (await service.ChangeInvitationAsync(context.User, clubId, input, false, Origin(context), ct)).ToReply());
+        group.MapGet("/invitations/{invitationId:guid}", (Guid invitationId, string token, HttpContext context, ClubService service, CancellationToken ct) =>
+            service.PreviewInvitationAsync(context.User, invitationId, token, ct));
+        group.MapPost("/invitations/{invitationId:guid}/accept", async (Guid invitationId, InvitationAcceptInput input, HttpContext context, ClubService service, CancellationToken ct) =>
+            (await service.AcceptInvitationAsync(context.User, invitationId, input, ct)).ToReply());
+        group.MapGet("/{clubId:guid}/emails", (Guid clubId, int page, HttpContext context, ClubService service, CancellationToken ct) => service.GetEmailsAsync(context.User, clubId, page, ct));
+        group.MapPost("/{clubId:guid}/emails/retry", async (Guid clubId, InvitationChangeInput input, HttpContext context, ClubService service, CancellationToken ct) =>
+            (await service.RetryEmailAsync(context.User, clubId, input, ct)).ToReply());
+        group.MapPost("/{clubId:guid}/details", async (Guid clubId, ClubDetailsInput input, HttpContext context, ClubService service, CancellationToken ct) =>
+            (await service.SaveDetailsAsync(context.User, clubId, input, ct)).ToReply());
         group.MapGet("/search", (string query, int page, HttpContext context, ClubService service, CancellationToken ct) => service.SearchAsync(context.User, query, page, ct));
         group.MapGet("/{clubId:guid}/people", (Guid clubId, bool requests, int page, HttpContext context, ClubService service, CancellationToken ct) => service.GetPeopleAsync(context.User, clubId, requests, page, ct));
         group.MapPost("/profile", async (ProfileInput input, HttpContext context, ClubService service, CancellationToken ct) =>
@@ -53,6 +69,8 @@ internal static class ClubEndpoints
         group.MapGet("/personal-data", async (HttpContext context, ClubService service, CancellationToken ct) =>
             Results.File(await service.ExportAsync(context.User, ct), "application/json", "ClubPersonalData.json"));
     }
+
+    private static Uri Origin(HttpContext context) => new($"{context.Request.Scheme}://{context.Request.Host}{context.Request.PathBase}/");
 
     private static async Task<IResult> GetPhotoAsync(string userId, HttpContext context, ClubService service, IProfilePhotoStore photos, CancellationToken cancellationToken)
     {

@@ -70,11 +70,14 @@ Feature homes are shared browser-compatible components under
 `src/Pino.UI/Features/Clubs`, server services and authorization under
 `src/Pino/Features/Clubs`, and only necessary shared contracts in
 `Pino.SharedKernel`. Keep existing account pages and their static SSR behavior.
-`/` and `/club/access` require authentication. The root takes existing members
-to `/clubs/{clubId}`. Administrators manage `/clubs/{clubId}/people`. The public
+`/` introduces Pino publicly and `/guide` explains the staff workflow.
+The global Club workspace link uses `/club`: a member with a complete profile
+continues directly to their club; other staff see the access and setup choices.
+`/club/access` requires authentication and provides profile and membership status,
+with an action to open `/clubs/{clubId}`. Administrators manage `/clubs/{clubId}/people`. The public
 fictional tryout remains at `/tryouts/spring-2027`, separate from club records.
 
-Multi-club membership, a club switcher, invitations, custom roles, player/season
+Multi-club membership, a club switcher, custom roles, player/season
 setup, billing, club deletion, offline support, and redesigning all account
 settings are outside this brief. The [sporting workspace](club-sporting-workspace.md)
 defines player, season and team permissions: coaches and administrators both
@@ -87,7 +90,8 @@ maintain those records within their club.
 | Profile | First name, last name, and a required uploaded, croppable profile photo. |
 | Club identity | Name, free-text sport and city, and a selected US state; search exposes these details, not members or players. |
 | Photo privacy | Visible to self, current club staff, and administrators reviewing a pending request; only the saved square crop is retained. |
-| Notifications | In-app request status; no approval emails in v1. |
+| Notifications | In-app request status plus invitations, new join requests and approval/denial emails. Administrator delivery receipts and retry preserve saved access decisions. |
+| Invitations | Administrator-created, email-bound, verified, expiring and single-use; acceptance grants the specified role. See the sporting workspace guide for delivery and retry details. |
 | Membership | One club per person. Creating a club makes its creator an administrator. |
 | Join request | One pending request per person; approval grants the coach role. |
 | Cancellation | Applicants may cancel a pending request and choose another club. |

@@ -12,9 +12,9 @@ public sealed partial class SportingWorkflowTests
         var rosterPath = $"{path}/tryouts/{tryoutId}";
         var players = await session.GetAsync<PlayerPage>(path + "/players?query=&archived=false&page=0");
         await CaptureEnrollmentAsync(session, clubId, tryoutId, players);
-        foreach (var player in players.Players.Where(player => !string.Equals(player.FirstName, "Jordan", StringComparison.Ordinal)))
+        foreach (var player in players.Players.Where(player => player.PlayerReference is "NS-002" or "NS-003"))
         {
-            (await session.PostAsync<SportReply>(rosterPath + "/players", new EnrollmentInput(player.Id, string.Equals(player.PlayerReference, "NS-002", StringComparison.Ordinal) ? "22" : "35"))).Kind.ShouldBe(SportReplyKind.Saved);
+            (await session.PostAsync<SportReply>(rosterPath + "/bib", new BibNumberInput(player.Id, string.Equals(player.PlayerReference, "NS-002", StringComparison.Ordinal) ? "22" : "35", ""))).Kind.ShouldBe(SportReplyKind.Saved);
         }
         var detail = await session.GetAsync<TryoutDetail>(rosterPath);
         detail.Tryout.Complete.ShouldBeFalse();

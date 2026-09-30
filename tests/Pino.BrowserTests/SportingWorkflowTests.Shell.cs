@@ -70,7 +70,7 @@ public sealed partial class SportingWorkflowTests
         var logout = page.Locator(".navigation-links form");
         (await logout.GetAttributeAsync("method")).ShouldBe("post");
         (await logout.Locator("input[name='__RequestVerificationToken']").InputValueAsync()).ShouldNotBeNullOrWhiteSpace();
-        await logout.GetByRole(AriaRole.Button, new() { Name = "Logout", Exact = true }).ClickAsync();
+        await session.LogoutAsync();
         await page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).WaitForAsync();
         (await page.Locator(".navigation-links").InnerTextAsync()).ShouldNotContain("Logout");
     }

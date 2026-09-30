@@ -1,0 +1,30 @@
+@page "/clubs/{ClubId:guid}/seasons/{SeasonId:guid}/teams"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits SportPageBase
+
+<PageTitle>Team availability · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    @if (_season is { } season)
+    {
+        <p><a href="@BackUrl">@(_tryout?.Name ?? season.Name)</a></p>
+        <header class="sport-heading"><div><h1>Team availability</h1><p>@(_tryout?.Name ?? season.Name)</p></div><button class="secondary-action" disabled="@Disabled" @onclick="ReloadAsync">Refresh availability</button></header>
+        <div class="notice" data-kind="information">All active club teams start included. Exclude a team to stop new placements here. Saved teams and decisions stay the same.</div>
+        <div class="workflow-actions"><strong>@_teams.Count(IsAvailable) teams available</strong><span>@_teams.Count(value => !IsAvailable(value)) archived or excluded</span></div>
+        @if (!CanEdit) { <p class="notice" data-kind="information">Reopen the season and tryout before changing availability.</p> }
+        @if (_tryout is not null) { <p><a href="@($"/clubs/{ClubId}/seasons/{SeasonId}/teams")">Manage exclusions for the entire season</a></p> }
+        <div class="form-field"><label for="availability-search">Find a club team</label><input id="availability-search" type="search" @bind="_query" @bind:event="oninput" @bind:after="ResetPage" /></div>
+        <ul class="record-list">
+            @foreach (var row in Filtered.Skip(_page * 50).Take(50))
+            {
+                <li class="record-row" @key="row.Team.Id">
+                    <div><h2>@row.Team.Name</h2><p class="muted">Graduation @row.Team.GraduationYear or later</p><span class="decision-badge" data-kind="@(IsAvailable(row) ? "placed" : "withdrawn")">@State(row)</span></div>
+                    <button class="secondary-action" disabled="@(Disabled || !CanEdit || row.Team.Archived || (_tryout is not null && row.SeasonExcluded))" @onclick="() => ToggleAsync(row)" aria-label="@($"{Action(row)} {row.Team.Name}")">@Action(row)</button>
+                </li>
+            }
+        </ul>
+        @if (!Filtered.Any()) { <p>No club teams match. <a href="@($"/clubs/{ClubId}/seasons")">Manage club teams</a></p> }
+        <RosterPager Count="Filtered.Count()" Page="_page" PageChanged="ChangePage" Label="Team availability pages" Disabled="Disabled" />
+    }
+</SportFrame>

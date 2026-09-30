@@ -28,9 +28,10 @@ public sealed partial class ClubAccess(IClubGateway gateway, NavigationManager n
     protected override async Task OnInitializedAsync()
     {
         await RefreshAsync();
-        if (_access?.Membership is { } member && string.Equals(new Uri(navigation.Uri).AbsolutePath, "/", StringComparison.Ordinal))
+        var path = new Uri(navigation.Uri).AbsolutePath.TrimEnd('/');
+        if (string.Equals(path, "/club", StringComparison.OrdinalIgnoreCase) && _access is { Profile.IsComplete: true, Membership: { } member })
         {
-            navigation.NavigateTo($"/clubs/{member.Club.Id}");
+            navigation.NavigateTo($"/clubs/{member.Club.Id}", replace: true);
         }
     }
 
@@ -127,7 +128,7 @@ public sealed partial class ClubAccess(IClubGateway gateway, NavigationManager n
     {
         LogOperationFailed(logger, exception);
         _message = exception is UnauthorizedAccessException
-            ? "Your access or session changed. Sign in again to continue."
+            ? "Your club access or sign-in changed. Sign in again to continue."
             : "We couldn't confirm this operation. Your text is still here. Check your current status before trying again.";
         _kind = "error";
     }

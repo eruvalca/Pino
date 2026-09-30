@@ -25,13 +25,13 @@ internal sealed partial class SportService
             if (bib.Length > 20) { return new SportOutcome.Invalid("Use a bib number or label of up to 20 characters."); }
             if (await db.Participations.AnyAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == input.PlayerId, token))
             {
-                return new SportOutcome.Conflict("This player is already in the tryout. Reload the roster.");
+                return new SportOutcome.Conflict("This player is already on the tryout list. Open Manage tryout players to restore an excluded player.");
             }
-            if (bib.Length > 0 && await db.Participations.AnyAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.Bib == bib, token))
+            if (bib.Length > 0 && await db.Participations.AnyAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && !value.Removed && value.Bib == bib, token))
             {
                 return new SportOutcome.Invalid("That bib is already in this tryout. Choose another label or leave it empty.");
             }
-            if (await db.Participations.CountAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId, token) >= 2000)
+            if (await db.Participations.CountAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && !value.Removed, token) >= 2000)
             {
                 return new SportOutcome.Invalid("This tryout has reached 2,000 players. Create another tryout for additional players.");
             }
@@ -58,20 +58,20 @@ internal sealed partial class SportService
             if (tryout is { Closed: true }) { return new SportOutcome.Invalid("Reopen the tryout before changing decisions."); }
             if (tryout is null || season?.Archived != false) { return new SportOutcome.Invalid("Reopen the season before changing decisions."); }
             var entry = await db.Participations.SingleOrDefaultAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == input.PlayerId, token);
-            if (entry is null) { return new SportOutcome.Invalid("This player is not enrolled in this tryout."); }
+            if (entry is not { Removed: false }) { return new SportOutcome.Invalid("This player is not actively enrolled in this tryout."); }
             var placement = await db.SeasonPlacements.SingleAsync(value => value.ClubId == clubId && value.SeasonId == season.Id && value.PlayerId == input.PlayerId, token);
             if (entry.Revision != input.Revision || placement.Revision != input.PlacementRevision) { return new SportOutcome.Conflict(StaleMessage); }
             var player = await db.Players.SingleAsync(value => value.ClubId == clubId && value.Id == input.PlayerId, token);
             SportTeam? team = null;
             if (input.TeamId is { } teamId)
             {
-                team = await db.SportTeams.SingleOrDefaultAsync(value => value.ClubId == clubId && value.SeasonId == season.Id && value.Id == teamId && !value.Archived, token);
+                team = await AvailableTeams(db, clubId, season.Id, tryout.Id).SingleOrDefaultAsync(value => value.Id == teamId, token);
                 if (team is null || !SportRules.Eligible(player.GraduationYear, team.GraduationYear))
                 {
-                    return new SportOutcome.Invalid("Choose an active team in this season whose graduation year is no later than the player's year.");
+                    return new SportOutcome.Invalid("Choose an eligible club team included in both this season and this tryout.");
                 }
             }
-            return await ApplyDecisionAsync(db, actorId, input, tryout, season, entry, placement, team, token);
+            return ApplyDecision(db, actorId, await AuthorAsync(db, actorId, token), input, tryout, season, entry, placement, team);
         }, ct);
 
     private static SportOutcome ReplayedDecision(DecisionEvent saved, DecisionInput input) =>
@@ -79,8 +79,8 @@ internal sealed partial class SportService
             ? new SportOutcome.Saved("This decision was already saved. The latest record is shown.", input.PlayerId)
             : new SportOutcome.Conflict("The earlier decision was saved with different content. Review the saved decision before submitting your changes.");
 
-    private async Task<SportOutcome> ApplyDecisionAsync(Pino.Data.ApplicationDbContext db, string actorId, DecisionInput input,
-        TryoutEvent tryout, Season season, Participation entry, SeasonPlacement placement, SportTeam? team, CancellationToken token)
+    private SportOutcome ApplyDecision(Pino.Data.ApplicationDbContext db, string authorId, string author, DecisionInput input,
+        TryoutEvent tryout, Season season, Participation entry, SeasonPlacement placement, SportTeam? team)
     {
         var previousTeam = placement.TeamId;
         entry.Decision = input.Kind;
@@ -105,7 +105,8 @@ internal sealed partial class SportService
             TeamName = team?.Name,
             TeamId = team?.Id,
             PreviousTeamId = previousTeam,
-            Author = await AuthorAsync(db, actorId, token),
+            AuthorId = authorId,
+            Author = author,
             CreatedAt = time.GetUtcNow(),
             Reason = input.Reason?.Trim() ?? "",
         });
@@ -114,30 +115,23 @@ internal sealed partial class SportService
     }
 
     internal Task<SportOutcome> AddNoteAsync(ClaimsPrincipal actor, Guid clubId, Guid tryoutId, NoteInput input, CancellationToken ct) =>
-        WriteAsync<SportOutcome>(actor, clubId, async (db, actorId, token) =>
+        WriteAsync(actor, clubId, async (db, actorId, token) =>
         {
-            if (input.Id == Guid.Empty || string.IsNullOrWhiteSpace(input.Text) || input.Text.Length > 4000) { return new SportOutcome.Invalid("Write an observation of 1 to 4,000 characters."); }
+            if (input.Id == Guid.Empty || string.IsNullOrWhiteSpace(input.Text) || input.Text.Length > 4000) { return new SportOutcome.Invalid("Write a note of 1 to 4,000 characters."); }
             var saved = await db.PlayerNotes.SingleOrDefaultAsync(value => value.Id == input.Id && value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == input.PlayerId, token);
-            if (saved is not null)
-            {
-                if (!string.Equals(saved.AuthorId, actorId, StringComparison.Ordinal) || saved.CorrectsId != input.CorrectsId || !string.Equals(saved.Text, input.Text.Trim(), StringComparison.Ordinal))
-                {
-                    return new SportOutcome.Conflict("The earlier note was saved with different content. Your edited draft has not been saved.");
-                }
-                return new SportOutcome.Saved("This note was already saved.", input.Id);
-            }
+            if (saved is not null) { return ReplayedNote(saved, input, actorId); }
             var tryout = await TryoutAsync(db, clubId, tryoutId, token);
             if (tryout is null || await SeasonAsync(db, clubId, tryout.SeasonId, token) is not { Archived: false }) { return new SportOutcome.Invalid("Reopen the season before adding notes."); }
             if (tryout.Closed) { return new SportOutcome.Invalid("Reopen the tryout before adding or correcting notes."); }
-            if (!await db.Participations.AnyAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == input.PlayerId, token))
+            if (!await db.Participations.AnyAsync(value => value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == input.PlayerId && !value.Removed, token))
             {
                 return new SportOutcome.Invalid("This player is not enrolled in this tryout.");
             }
             if (input.CorrectsId is { } correctedId &&
-                (!await db.PlayerNotes.AnyAsync(value => value.Id == correctedId && value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == input.PlayerId && value.AuthorId == actorId, token) ||
+                (!await db.PlayerNotes.AnyAsync(value => value.Id == correctedId && value.ClubId == clubId && value.TryoutId == tryoutId && value.PlayerId == input.PlayerId && value.AuthorId == actorId && value.RedactedAt == null, token) ||
                 await db.PlayerNotes.AnyAsync(value => value.CorrectsId == correctedId, token)))
             {
-                return new SportOutcome.Conflict("Only the author can correct the latest version of a note. Reload to see its current version.");
+                return new SportOutcome.Conflict("Only the person who wrote this note can correct its latest version. Notes with removed text cannot be corrected. Reload to see the latest note.");
             }
             db.PlayerNotes.Add(new()
             {
@@ -154,4 +148,14 @@ internal sealed partial class SportService
             tryout.Revision++;
             return new SportOutcome.Saved(input.CorrectsId is null ? "Shared note saved." : "Correction saved. The earlier note remains in history.", input.Id);
         }, ct);
+
+    private static SportOutcome ReplayedNote(PlayerNote saved, NoteInput input, string actorId)
+    {
+        if (saved.RedactedAt is not null) { return new SportOutcome.Conflict("This note's private text was removed. It cannot be restored."); }
+        if (!string.Equals(saved.AuthorId, actorId, StringComparison.Ordinal) || saved.CorrectsId != input.CorrectsId || !string.Equals(saved.Text, input.Text.Trim(), StringComparison.Ordinal))
+        {
+            return new SportOutcome.Conflict("The earlier note was saved with different content. Your edited draft has not been saved.");
+        }
+        return new SportOutcome.Saved("This note was already saved.", input.Id);
+    }
 }

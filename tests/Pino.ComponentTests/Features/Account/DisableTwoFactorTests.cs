@@ -18,7 +18,7 @@ public sealed class DisableTwoFactorTests
     [Theory]
     [InlineData(false, false, "Two-factor authentication is already disabled.")]
     [InlineData(true, false, "Two-factor authentication could not be disabled.")]
-    [InlineData(true, true, "2fa has been disabled.")]
+    [InlineData(true, true, "Two-factor authentication is off.")]
     public async Task DisableReportsOutcomeAndLogsOnlyActualSuccessfulMutationAsync(bool enabled, bool succeeds, string message)
     {
         await using var context = new BunitContext();

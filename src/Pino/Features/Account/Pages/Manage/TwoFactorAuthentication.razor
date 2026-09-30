@@ -39,7 +39,7 @@
             </div>
         }
 
-        <div class="actions">
+        <div class="workflow-actions">
             @if (_isMachineRemembered)
             {
                 <form @formname="forget-browser" @onsubmit="OnSubmitForgetBrowserAsync" method="post">
@@ -48,8 +48,8 @@
                 </form>
             }
 
-            <a href="Account/Manage/Disable2fa">Disable 2FA</a>
-            <a href="Account/Manage/GenerateRecoveryCodes">Reset recovery codes</a>
+            <a class="secondary-action" href="Account/Manage/Disable2fa">Disable 2FA</a>
+            <a class="secondary-action" href="Account/Manage/GenerateRecoveryCodes">Reset recovery codes</a>
         </div>
     }
 
@@ -66,7 +66,7 @@
 else
 {
     <div class="notice" data-kind="error">
-        <strong>Privacy and cookie policy have not been accepted.</strong>
-        <p>You must accept the policy before you can enable two factor authentication.</p>
+        <strong>These sign-in settings are not available right now.</strong>
+        <p>Try again later.</p>
     </div>
 }

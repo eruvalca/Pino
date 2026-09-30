@@ -19,6 +19,7 @@ internal static class SportRules
         DecisionKind.Placed => "Placed",
         DecisionKind.Withdrawn => "Withdrawn",
         DecisionKind.NotSelected => "Not selected",
+        DecisionKind.DidNotAttend => "Did not attend",
         _ => throw new ArgumentOutOfRangeException(nameof(kind)),
     };
 }

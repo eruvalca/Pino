@@ -131,7 +131,7 @@ public sealed class AuthenticatorGuardTests
 
         component.Find(".validation-message").TextContent.ShouldBe(string.IsNullOrEmpty(code)
             ? "The Verification Code field is required."
-            : "The Verification Code must be at least 6 and at max 7 characters long.");
+            : "Verification Code must be 6 to 7 characters long.");
         await account.Users.DidNotReceiveWithAnyArgs().VerifyTwoFactorTokenAsync(default!, default!, default!);
         await account.Users.DidNotReceiveWithAnyArgs().SetTwoFactorEnabledAsync(default!, default);
     }

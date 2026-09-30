@@ -20,7 +20,7 @@
         <StatusMessage Message="@_errorMessage" />
         <EditForm class="account-form" EditContext="_editContext" method="post" OnSubmit="LoginUserAsync" FormName="login">
             <DataAnnotationsValidator />
-            <h2>Use a local account to log in.</h2>
+            <h2>Sign in to your Pino staff account.</h2>
             <hr />
             <ValidationSummary class="error-text" role="alert" />
             <div class="form-field">
@@ -48,17 +48,17 @@
                 <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email">Log in with a passkey</PasskeySubmit>
             </div>
             <hr />
-            <div>
+            <nav class="account-help" aria-label="Account help">
                 <p>
                     <a href="Account/ForgotPassword">Forgot your password?</a>
                 </p>
                 <p>
-                    <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?>(StringComparer.Ordinal) { ["ReturnUrl"] = ReturnUrl }))">Register as a new user</a>
+                    <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?>(StringComparer.Ordinal) { ["ReturnUrl"] = ReturnUrl }))">Create a staff account</a>
                 </p>
                 <p>
-                    <a href="Account/ResendEmailConfirmation">Resend email confirmation</a>
+                    <a href="@AccountReturnPath.Link("/Account/ResendEmailConfirmation", ReturnUrl)">Resend email confirmation</a>
                 </p>
-            </div>
+            </nav>
         </EditForm>
     </section>
     <section>

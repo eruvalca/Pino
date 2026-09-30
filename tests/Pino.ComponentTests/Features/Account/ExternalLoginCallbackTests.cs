@@ -40,6 +40,7 @@ public sealed class ExternalLoginCallbackTests
         var component = account.Render<ExternalLogin>(context);
         account.StatusCookie.ShouldContain("Error loading external login information.");
         await component.Find("input[name='Input.Email']").ChangeAsync(new ChangeEventArgs { Value = "member@example.test" });
+        await component.Find("input[name='Input.AdultStaff']").ChangeAsync(true);
 
         await component.Find("form").SubmitAsync();
 
@@ -105,6 +106,7 @@ public sealed class ExternalLoginCallbackTests
         account.SignIn.ExternalLoginSignInAsync("Provider", "external-key", isPersistent: false, bypassTwoFactor: true).Returns(SignInResult.Failed);
         context.Services.GetRequiredService<NavigationManager>().NavigateTo("Account/ExternalLogin?Action=LoginCallback");
         var component = account.Render<ExternalLogin>(context);
+        await component.Find("input[name='Input.AdultStaff']").ChangeAsync(true);
 
         await component.Find("form").SubmitAsync();
 

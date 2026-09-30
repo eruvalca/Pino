@@ -63,6 +63,8 @@ public sealed class SportRulesTests
     [InlineData(DecisionKind.Awaiting, false, true)]
     [InlineData(DecisionKind.Withdrawn, false, true)]
     [InlineData(DecisionKind.NotSelected, false, true)]
+    [InlineData(DecisionKind.DidNotAttend, false, true)]
+    [InlineData(DecisionKind.DidNotAttend, true, false)]
     [InlineData(DecisionKind.Placed, true, true)]
     [InlineData(DecisionKind.Placed, false, false)]
     [InlineData(DecisionKind.Withdrawn, true, false)]
@@ -93,5 +95,28 @@ public sealed class SportRulesTests
     {
         SportRules.Reference(" ab-1 ").ShouldBe("AB-1");
         SportRules.EscapeLike(@"A%_\B").ShouldBe(@"A\%\_\\B");
+    }
+
+    [Fact]
+    public void MiddleNamesDistinguishCatalogAndClosedResultDisplay()
+    {
+        var player = new PlayerSummary(Guid.NewGuid(), "P1", "Avery", "Morgan", 2030, "", "", false, 1, null, "Jo");
+        player.FullName.ShouldBe("Avery Jo Morgan");
+        (player with { MiddleName = "" }).FullName.ShouldBe("Avery Morgan");
+        var result = new TryoutResult(player.Id, player.FirstName, player.LastName, 2030, "7", DecisionKind.DidNotAttend, null, null, player.MiddleName);
+        result.FullName.ShouldBe("Avery Jo Morgan");
+        SportRules.DecisionLabel(result.Decision).ShouldBe("Did not attend");
+    }
+
+    [Theory]
+    [InlineData(80, true)]
+    [InlineData(81, false)]
+    public void OptionalMiddleAndSecondaryFieldsHaveBoundedLengths(int length, bool expected)
+    {
+        var input = new PlayerInput { FirstName = "Avery", LastName = "Morgan", GraduationYear = 2030, MiddleName = new('a', length) };
+        SportRules.ValidPlayer(input).ShouldBe(expected);
+        input.MiddleName = "";
+        input.SecondaryPosition = new('b', length);
+        SportRules.ValidPlayer(input).ShouldBe(expected);
     }
 }

@@ -1,0 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
+
+namespace Pino.SharedKernel.Sporting;
+
+[SuppressMessage("Design", "CA1515:Consider making public types internal", Justification = "Sporting contracts are shared by server, browser and UI assemblies.")]
+public sealed record AttendanceSummary(Guid PlayerId, AttendanceKind Kind, long Revision, string RecordedBy, DateTimeOffset RecordedAt, Uri? RecordedByPhotoUrl = null);

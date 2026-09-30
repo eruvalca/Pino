@@ -12,6 +12,10 @@ internal static class ClubRules
         Validator.TryValidateObject(input, new ValidationContext(input), validationResults: null, validateAllProperties: true) &&
         UsStates.All.ContainsKey(input.State);
 
+    internal static bool ValidDetails(ClubDetailsInput input) => input.Revision > 0 &&
+        Validator.TryValidateObject(input, new ValidationContext(input), validationResults: null, validateAllProperties: true) &&
+        UsStates.All.ContainsKey(input.State);
+
     internal static string? MemberChangeError(ClubRole current, ClubRole expected, ClubRole? next, int administrators)
     {
         if (!Enum.IsDefined(expected) || (next.HasValue && !Enum.IsDefined(next.Value)))

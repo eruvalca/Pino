@@ -1,0 +1,4 @@
+.planning-intro { max-width: 70ch; }
+.target-position-intro p { margin-bottom: 0; }
+.target-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(5rem, 1fr) auto; align-items: end; gap: 1rem; padding-block: 0.5rem; border-bottom: 1px solid var(--line); }
+@media (max-width: 35rem) { .target-row { grid-template-columns: minmax(0, 1fr) minmax(5rem, 1fr); } .target-row .form-field:first-child { grid-column: 1 / -1; } }

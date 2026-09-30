@@ -13,9 +13,23 @@
     </header>
     @if (_overview is not null)
     {
+        @if (Membership?.Role == ClubRole.Administrator)
+        {
+            <details class="setup-checklist" open="@(!(_hasPlayers && HasSeasonTeams && HasTryout && HasRoster))"><summary>Prepare your club for tryouts</summary>
+                <p>See what's ready and what still needs doing.</p>
+                <ol class="record-list">
+                    <li><strong>@(_hasPlayers ? "Ready" : "To do") · Player list</strong><p>Review new and returning players, including their graduation years. <a href="@($"/clubs/{ClubId}/players")">Open players</a>.</p></li>
+                    <li><strong>@(HasSeasonTeams ? "Ready" : "To do") · Season and teams</strong><p>Create a season and review your club teams' graduation years. Teams carry across seasons. <a href="@($"/clubs/{ClubId}/seasons")">Open seasons &amp; teams</a>.</p></li>
+                    <li><strong>@(HasTryout ? "Ready" : "To do") · Tryout setup</strong><p>Set the tryout date and location. <a href="@($"/clubs/{ClubId}/seasons")">Review tryout setup</a>.</p></li>
+                    <li><strong>@(HasRoster ? "Ready" : "To do") · Tryout players</strong><p>Active club players are included automatically. Review players to excludes, assign bibs and place returning players. Use the tryout links below to continue.</p></li>
+                    <li><strong>@(_hasOtherStaff ? "Ready" : "Optional") · Other staff</strong><p>Invite coaches and administrators to share the work. <a href="@($"/clubs/{ClubId}/invitations")">Manage invitations</a>.</p></li>
+                </ol>
+            </details>
+        }
+        <p><a href="/guide#prepare">Staff guide: setup, tryouts and results</a></p>
         @if (_overview.Seasons.Count == 0)
         {
-            <section class="sport-empty"><h2>Start with your players and a season</h2><p>Add your club's player catalog, create a season and its teams, then open a tryout to record notes and decisions. Each season keeps its own placement history.</p><a class="secondary-action" href="@($"/clubs/{ClubId}/players")">Add your first players</a></section>
+            <section class="sport-empty"><h2>Start with your players and a season</h2><p>Prepare the player list and club teams, then create a season and tryout. Players are included automatically; each season keeps its own placement history.</p><a class="secondary-action" href="@($"/clubs/{ClubId}/players")">Add your first players</a></section>
         }
         else
         {
@@ -24,14 +38,14 @@
                 <ul class="record-list">
                 @foreach (var tryout in _overview.Tryouts.Where(value => _overview.Seasons.Any(season => season.Id == value.SeasonId && !season.Archived)))
                 {
-                    <li class="record-row" @key="tryout.Id"><div><h3><a href="@($"/clubs/{ClubId}/tryouts/{tryout.Id}")">@tryout.Name</a></h3><p class="muted">@_overview.Seasons.First(season => season.Id == tryout.SeasonId).Name · @tryout.Date.ToString("MMM d, yyyy")</p></div><span class="decision-badge" data-kind="@(tryout.Complete ? "placed" : "awaiting")">@Pino.UI.Features.Sporting.Services.SportLabels.Progress(tryout)</span></li>
+                    <li class="record-row" @key="tryout.Id"><div><h3><a href="@($"/clubs/{ClubId}/tryouts/{tryout.Id}")">@tryout.Name</a></h3><p class="muted">@_overview.Seasons.First(season => season.Id == tryout.SeasonId).Name · @tryout.Date.ToString("MMM d, yyyy")</p><p>@tryout.Decided of @tryout.Players decisions recorded</p></div><div class="record-actions"><span class="decision-badge" data-kind="@Pino.UI.Features.Sporting.Services.SportLabels.ProgressKind(tryout)">@Pino.UI.Features.Sporting.Services.SportLabels.Progress(tryout)</span><a class="secondary-action" href="@($"/clubs/{ClubId}/tryouts/{tryout.Id}")">@(tryout.Closed ? "Open closed tryout" : "Continue tryout")</a></div></li>
                 }
                 </ul>
                 <a href="@($"/clubs/{ClubId}/seasons")">View all seasons, teams and archived tryouts</a>
             </section>
         }
         <section class="sport-section"><h2>Club records</h2><ul class="record-list">
-            <li class="record-row"><div><h3><a href="@($"/clubs/{ClubId}/players")">Player catalog</a></h3><p class="muted">Player details, CSV import and placement history across seasons.</p></div></li>
+            <li class="record-row"><div><h3><a href="@($"/clubs/{ClubId}/players")">Player list</a></h3><p class="muted">Player details, CSV import and placement history across seasons.</p></div></li>
             @if (Membership?.Role == ClubRole.Administrator) { <li class="record-row"><div><h3><a href="@($"/clubs/{ClubId}/people")">People &amp; requests</a></h3><p class="muted">Review join requests and manage your club's coaches and administrators.</p></div></li> }
         </ul></section>
     }

@@ -7,6 +7,15 @@ namespace Pino.Client.Features.Clubs;
 
 internal sealed class HttpClubGateway(HttpClient http) : IClubGateway
 {
+    public Task<InvitationsPage> GetInvitationsAsync(Guid clubId, int page, CancellationToken cancellationToken = default) => GetAsync<InvitationsPage>(string.Create(CultureInfo.InvariantCulture, $"{clubId}/invitations?page={page}"), cancellationToken);
+    public Task<ClubReply> InviteAsync(Guid clubId, InvitationInput input, CancellationToken cancellationToken = default) => PostAsync($"{clubId}/invitations", input, cancellationToken);
+    public Task<ClubReply> ResendInvitationAsync(Guid clubId, InvitationChangeInput input, CancellationToken cancellationToken = default) => PostAsync($"{clubId}/invitations/resend", input, cancellationToken);
+    public Task<ClubReply> RevokeInvitationAsync(Guid clubId, InvitationChangeInput input, CancellationToken cancellationToken = default) => PostAsync($"{clubId}/invitations/revoke", input, cancellationToken);
+    public Task<InvitationPreview> PreviewInvitationAsync(Guid invitationId, string token, CancellationToken cancellationToken = default) => GetAsync<InvitationPreview>($"invitations/{invitationId}?token={Uri.EscapeDataString(token)}", cancellationToken);
+    public Task<ClubReply> AcceptInvitationAsync(Guid invitationId, InvitationAcceptInput input, CancellationToken cancellationToken = default) => PostAsync($"invitations/{invitationId}/accept", input, cancellationToken);
+    public Task<StaffEmailsPage> GetEmailsAsync(Guid clubId, int page, CancellationToken cancellationToken = default) => GetAsync<StaffEmailsPage>(string.Create(CultureInfo.InvariantCulture, $"{clubId}/emails?page={page}"), cancellationToken);
+    public Task<ClubReply> RetryEmailAsync(Guid clubId, InvitationChangeInput input, CancellationToken cancellationToken = default) => PostAsync($"{clubId}/emails/retry", input, cancellationToken);
+    public Task<ClubReply> SaveDetailsAsync(Guid clubId, ClubDetailsInput input, CancellationToken cancellationToken = default) => PostAsync($"{clubId}/details", input, cancellationToken);
     public Task<AccessSnapshot> GetAccessAsync(CancellationToken cancellationToken = default) => GetAsync<AccessSnapshot>("access", cancellationToken);
     public Task<ClubSearchPage> SearchAsync(string query, int page, CancellationToken cancellationToken = default) => GetAsync<ClubSearchPage>(string.Create(CultureInfo.InvariantCulture, $"search?query={Uri.EscapeDataString(query)}&page={page}"), cancellationToken);
     public Task<PeoplePage> GetPeopleAsync(Guid clubId, bool requests, int page, CancellationToken cancellationToken = default) => GetAsync<PeoplePage>(string.Create(CultureInfo.InvariantCulture, $"{clubId}/people?requests={requests}&page={page}"), cancellationToken);

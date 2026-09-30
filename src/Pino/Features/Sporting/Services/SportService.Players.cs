@@ -42,21 +42,14 @@ internal sealed partial class SportService
                        where placement.ClubId == clubId && placement.PlayerId == input.Id && input.GraduationYear < team.GraduationYear
                        select placement.PlayerId).AnyAsync(token))
             {
-                return new SportOutcome.Invalid("This graduation year is incompatible with an existing season placement. Revise that placement first.");
+                return new SportOutcome.Invalid("This graduation year is too early for one of the player's teams. Change that team placement first.");
             }
             if (player is null)
             {
                 player = new() { Id = input.Id, ClubId = clubId };
                 db.Players.Add(player);
             }
-            player.PlayerReference = reference;
-            player.FirstName = input.FirstName.Trim();
-            player.LastName = input.LastName.Trim();
-            player.GraduationYear = input.GraduationYear;
-            player.Position = input.Position?.Trim() ?? "";
-            player.ContactEmail = input.ContactEmail?.Trim() ?? "";
-            player.Archived = input.Archived;
-            player.Revision++;
+            UpdatePlayerFields(player, input, reference);
             if (photoKey is not null || input.RemovePhoto)
             {
                 if (player.PhotoKey is { } old) { db.PhotoDeletions.Add(new() { PhotoKey = old, NotBefore = time.GetUtcNow() }); }
@@ -69,5 +62,19 @@ internal sealed partial class SportService
             }
             return new SportOutcome.Saved("Player saved.", player.Id);
         }, ct);
+    }
+
+    private static void UpdatePlayerFields(Player player, PlayerInput input, string reference)
+    {
+        player.PlayerReference = reference;
+        player.FirstName = input.FirstName.Trim();
+        player.MiddleName = input.MiddleName?.Trim() ?? "";
+        player.LastName = input.LastName.Trim();
+        player.GraduationYear = input.GraduationYear;
+        player.Position = input.Position?.Trim() ?? "";
+        player.SecondaryPosition = input.SecondaryPosition?.Trim() ?? "";
+        player.ContactEmail = input.ContactEmail?.Trim() ?? "";
+        player.Archived = input.Archived;
+        player.Revision++;
     }
 }

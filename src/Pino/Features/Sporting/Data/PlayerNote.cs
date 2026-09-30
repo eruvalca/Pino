@@ -11,4 +11,9 @@ internal sealed class PlayerNote
     public string Author { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; }
     public Guid? CorrectsId { get; set; }
+    public Guid? RedactionOperationId { get; set; }
+    public DateTimeOffset? RedactedAt { get; set; }
+    public string? RedactedById { get; set; }
+    public string? RedactedBy { get; set; }
+    public string? RedactionReason { get; set; }
 }

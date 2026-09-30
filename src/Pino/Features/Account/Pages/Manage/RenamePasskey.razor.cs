@@ -33,8 +33,8 @@ public sealed partial class RenamePasskey
         var result = await AccountPasskeys.FindAsync(_user, Id);
         result.Switch(
             found => _passkey = found.Passkey,
-            _ => RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: The specified passkey ID had an invalid format.", HttpContext),
-            _ => RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: The specified passkey could not be found.", HttpContext));
+            _ => RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: We couldn't open that passkey. Choose it again from your passkey list.", HttpContext),
+            _ => RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: We couldn't find that passkey. Choose it again from your passkey list.", HttpContext));
     }
 
     private async Task RenameAsync()

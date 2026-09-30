@@ -1,0 +1,11 @@
+<section class="sport-section" aria-label="Attendance">
+    <h3>Attendance</h3>
+    <p><strong>@Label(Attendance?.Kind ?? AttendanceKind.NotRecorded)</strong>@if (Attendance is { } saved) { <span class="muted"> · <span class="staff-attribution"><StaffAvatar Name="@saved.RecordedBy" PhotoUrl="saved.RecordedByPhotoUrl" Compact="true" /><span>@saved.RecordedBy</span></span> · @saved.RecordedAt.ToLocalTime().ToString("MMM d, h:mm tt")</span> }</p>
+    <div class="attendance-actions">
+        @foreach (var kind in Enum.GetValues<AttendanceKind>())
+        {
+            <button type="button" class="secondary-action" disabled="@(Disabled || kind == (Attendance?.Kind ?? AttendanceKind.NotRecorded))" @onclick="() => Save.InvokeAsync(new(PlayerId, kind, Attendance?.Revision ?? 0))">@Action(kind)</button>
+        }
+    </div>
+    <p class="muted">Attendance does not choose a team or result.</p>
+</section>

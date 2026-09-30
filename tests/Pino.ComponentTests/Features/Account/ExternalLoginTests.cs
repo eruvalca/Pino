@@ -26,7 +26,7 @@ public sealed class ExternalLoginTests
         var component = account.Render<ExternalLogin>(context);
 
         await component.WaitForAssertionAsync(() => navigation.Uri.ShouldBe("http://localhost/Account/Login"));
-        Uri.UnescapeDataString(account.Http.Response.Headers.SetCookie.ToString()).ShouldContain("Error: Invalid login attempt.");
+        Uri.UnescapeDataString(account.Http.Response.Headers.SetCookie.ToString()).ShouldContain("Error: We could not sign you in. Check your email and password, then try again.");
         component.Find("input[name='Input.Email']").GetAttribute("value").ShouldBeNullOrEmpty();
         await account.Users.DidNotReceiveWithAnyArgs().CreateAsync(default!);
     }

@@ -1,0 +1,51 @@
+@page "/clubs/{ClubId:guid}/invitations"
+@attribute [Authorize]
+@rendermode InteractiveAuto
+@layout ClubLayout
+@inherits Pino.UI.Features.Sporting.Services.SportPageBase
+@using Pino.UI.Features.Sporting.Components
+
+<PageTitle>Staff invitations · Pino</PageTitle>
+<SportFrame Membership="Membership" Busy="Busy" Failed="Failed" Message="@Message" MessageKind="@MessageKind" Reload="ReloadAsync">
+    <a href="@($"/clubs/{ClubId}/people")">Back to people</a>
+    <header class="sport-heading"><div><h1>Staff invitations</h1><p>Invite an adult staff member to join with a specific role. Each link works once and expires after seven days.</p></div><a class="secondary-action" href="@($"/clubs/{ClubId}/emails")">Email delivery</a></header>
+    <EditForm Model="_input" OnValidSubmit="InviteAsync" FormName="staff-invitation" class="sport-form">
+        <DataAnnotationsValidator />
+        <fieldset class="sport-fields" disabled="@Disabled">
+            <legend>Invite a staff member</legend>
+            <div class="form-field"><label for="invite-email">Staff email</label><InputText id="invite-email" type="email" maxlength="254" autocomplete="email" @bind-Value="_input.Email" /><ValidationMessage For="() => _input.Email" /></div>
+            <div class="form-field"><label for="invite-role">Role when they join</label><InputSelect id="invite-role" @bind-Value="_input.Role"><option value="@ClubRole.Coach">Coach</option><option value="@ClubRole.Administrator">Administrator</option></InputSelect></div>
+            @if (_input.Role == ClubRole.Administrator)
+            {
+                <p class="notice" data-kind="warning">Administrators can manage staff access, club setup, imports and personal-data removal.</p>
+                <label class="checkbox-field"><input type="checkbox" @bind="_confirmAdministrator" /> I intend to grant administrator access.</label>
+            }
+            else { <p class="muted">Coaches share club-wide sporting access, attendance and ordinary roster exports.</p> }
+            <div class="actions"><button class="primary-action" type="submit" disabled="@(_input.Role == ClubRole.Administrator && !_confirmAdministrator)">Send invitation</button></div>
+        </fieldset>
+    </EditForm>
+    <section class="sport-section">
+        <div class="sport-heading"><h2>Invitation history</h2><button type="button" class="secondary-action" disabled="@Disabled" @onclick="ReloadAsync">Refresh invitations</button></div>
+        <p class="muted">Resending makes a new link and stops old links from working. Revoking cancels an unused invitation. Staff get access only after accepting a valid invitation.</p>
+        @if (_pendingRevoke is { } pending)
+        {
+            <section class="notice" data-kind="warning" aria-labelledby="revoke-heading"><h3 id="revoke-heading" tabindex="-1" @ref="_confirmHeading">Revoke invitation for @pending.Email?</h3><p>Their link will stop working. Existing club membership is unaffected.</p><div class="actions"><button class="primary-action" disabled="@Disabled" @onclick="RevokeAsync">Revoke invitation</button><button class="secondary-action" disabled="@Disabled" @onclick="CancelRevoke">Keep invitation</button></div></section>
+        }
+        @if (_data?.Items.Count == 0) { <p>No invitations on this page.</p> }
+        <ul class="record-list">
+            @foreach (var invitation in _data?.Items ?? [])
+            {
+                <li class="record-row" @key="invitation.Id"><div class="invitation-identity"><h3>@invitation.Email</h3><p>@invitation.Role · @State(invitation)</p><p class="muted">Expires @invitation.ExpiresAt.ToLocalTime().ToString("g") · Email: @(invitation.DeliveryStatus?.ToString() ?? "See delivery history")</p></div>
+                    @if (invitation.UsedAt is null && invitation.RevokedAt is null)
+                    {
+                        <div class="actions"><button class="secondary-action" disabled="@Disabled" @onclick="() => ResendAsync(invitation)">Resend</button><button class="text-action" disabled="@Disabled" @onclick="() => ConfirmRevoke(invitation)">Revoke</button></div>
+                    }
+                </li>
+            }
+        </ul>
+        @if (_page > 0 || _data?.HasMore == true)
+        {
+            <nav class="actions" aria-label="Invitation pages"><button class="secondary-action" disabled="@(Disabled || _page == 0)" @onclick="PreviousAsync">Previous</button><span>Page @(_page + 1)</span><button class="secondary-action" disabled="@(Disabled || _data?.HasMore != true)" @onclick="NextAsync">Next</button></nav>
+        }
+    </section>
+</SportFrame>

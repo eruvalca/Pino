@@ -1,0 +1,17 @@
+.comparison-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-block: 1.5rem 2rem; }
+.comparison-workspace { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(20rem, 1fr); gap: 2rem; align-items: start; }
+.comparison-lists { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; min-width: 0; }
+.comparison-team, .comparison-available, .comparison-notebook { min-width: 0; overflow-wrap: anywhere; }
+.comparison-available { grid-column: 1 / -1; }
+.comparison-notebook { border-top: 1px solid var(--line-strong); padding-top: 1rem; }
+.preview-label { font-weight: 600; color: var(--blue); }
+.comparison-mobile { display: none; }
+@media (max-width: 65rem) {
+    .comparison-workspace { grid-template-columns: minmax(0, 1fr); }
+    .comparison-mobile { display: block; }
+    .comparison-roster-heading { grid-column: 1 / -1; }
+    .comparison-back { margin-bottom: 1rem; }
+    .comparison-surface[data-view="notebook"] .comparison-controls, .comparison-surface[data-view="notebook"] .comparison-lists { display: none; }
+    .comparison-surface[data-view="rosters"] .comparison-notebook { display: none; }
+}
+@media (max-width: 40rem) { .comparison-controls, .comparison-lists { grid-template-columns: minmax(0, 1fr); } }

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Playwright;
@@ -35,32 +36,96 @@ internal sealed partial class BrowserSession(IPlaywright playwright, IBrowser br
         return session;
     }
 
-    internal async Task<string> RegisterAsync()
+    internal string CreateEmail()
     {
         var email = $"pino-browser-{Guid.NewGuid():N}@example.test";
         _emails.Add(email);
-        await Page.GotoAsync("/Account/Register");
-        await Page.GetByLabel("Email", new() { Exact = true }).FillAsync(email);
-        await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(Password);
-        await Page.GetByLabel("Confirm Password", new() { Exact = true }).FillAsync(Password);
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Register", Exact = true }).ClickAsync();
+        return email;
+    }
+
+    internal async Task<string> RegisterAsync(string? email = null, string? returnUrl = null)
+    {
+        email ??= CreateEmail();
+        if (!_emails.Contains(email, StringComparer.Ordinal)) { _emails.Add(email); }
+        await Page.GotoAsync(returnUrl is null ? "/Account/Register" : "/Account/Register?returnUrl=" + Uri.EscapeDataString(returnUrl));
+        await SubmitRegistrationAsync(email, adultStaff: true);
         await Page.WaitForURLAsync("**/Account/RegisterConfirmation?**", new() { WaitUntil = WaitUntilState.Commit });
         await Page.GotoAsync(await EmailLinkAsync(email, "Confirm your Pino account"));
         await Page.GetByText("Thank you for confirming your email.").WaitForAsync();
-        await LoginAsync(email, Password);
+        if (returnUrl is null) { await LoginAsync(email, Password); }
+        else
+        {
+            var continuation = Page.GetByRole(AriaRole.Link, new() { Name = "Continue to sign in", Exact = true });
+            (await continuation.GetAttributeAsync("href")).ShouldBe("/Account/Login?returnUrl=" + Uri.EscapeDataString(returnUrl));
+            await continuation.ClickAsync();
+            await SubmitLoginAsync(email, Password);
+            new Uri(Page.Url).PathAndQuery.ShouldBe(returnUrl);
+        }
         return email;
     }
 
     internal async Task LoginAsync(string email, string password)
     {
         await Page.GotoAsync("/Account/Login");
-        await Page.GetByLabel("Email", new() { Exact = true }).FillAsync(email);
-        await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(password);
-        await Page.GetByRole(AriaRole.Button, new() { Name = "Log in", Exact = true }).ClickAsync();
+        await SubmitLoginAsync(email, password);
+    }
+
+    private async Task SubmitLoginAsync(string email, string password)
+    {
+        await SubmitPasswordAsync(email, password);
         await Page.WaitForURLAsync(url => !url.Contains("/Account/Login", StringComparison.Ordinal), new() { WaitUntil = WaitUntilState.Commit });
     }
 
+    internal Task SubmitRegistrationAsync(string email, bool adultStaff) => SubmitAccountFormAsync("/Account/Register", "Register", async () =>
+    {
+        await Page.GetByLabel("Email", new() { Exact = true }).FillAsync(email);
+        await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(Password);
+        await Page.GetByLabel("Confirm Password", new() { Exact = true }).FillAsync(Password);
+        await Page.GetByLabel("I am an adult acting as club staff.", new() { Exact = true }).SetCheckedAsync(adultStaff);
+    });
+
+    internal Task SubmitPasswordAsync(string email, string password) => SubmitAccountFormAsync("/Account/Login", "Log in", async () =>
+    {
+        await Page.GetByLabel("Email", new() { Exact = true }).FillAsync(email);
+        await Page.GetByLabel("Password", new() { Exact = true }).FillAsync(password);
+    });
+
+    internal Task LogoutAsync() => SubmitAccountFormAsync("/Account/Logout", "Logout", () => Task.CompletedTask);
+
+    internal async Task SubmitAccountFormAsync(string path, string button, Func<Task> prepare)
+    {
+        var formUrl = Page.Url;
+        for (var attempt = 0; attempt < 2; attempt++)
+        {
+            await prepare();
+            // Password hashing and synchronous account mail need a separate bound
+            // from ordinary UI actions when local fixtures run concurrently.
+            var response = await Page.RunAndWaitForResponseAsync(
+                () => Page.GetByRole(AriaRole.Button, new() { Name = button, Exact = true }).ClickAsync(new() { Timeout = 60000 }),
+                value => string.Equals(value.Request.Method, "POST", StringComparison.Ordinal) && string.Equals(new Uri(value.Url).AbsolutePath, path, StringComparison.Ordinal),
+                new() { Timeout = 60000 });
+            if (response.Status != 429 || attempt == 1)
+            {
+                response.Status.ShouldBeInRange(200, 399, $"Account submission rejected; Retry-After: {response.Headers.GetValueOrDefault("retry-after", "none")}.");
+                return;
+            }
+            // Concurrent disposable accounts share one connection address. Honor the
+            // real server limit once, without disabling it or trusting a forged IP.
+            var seconds = int.Parse(response.Headers["retry-after"], CultureInfo.InvariantCulture);
+            seconds.ShouldBeInRange(1, 60);
+            TestContext.Current.TestOutputHelper?.WriteLine("Account request limit reached; honoring Retry-After before one fresh-form retry.");
+            await Task.Delay(TimeSpan.FromSeconds(seconds + 1), Token);
+            await Page.GotoAsync(formUrl);
+        }
+    }
+
     internal async Task<string> EmailLinkAsync(string email, string subject)
+    {
+        var body = await EmailTextAsync(email, subject);
+        return body.Split('\n').Select(line => line.Trim()).Single(line => line.StartsWith("http", StringComparison.Ordinal));
+    }
+
+    internal async Task<string> EmailTextAsync(string email, string subject, string? contains = null)
     {
         using var http = new HttpClient { BaseAddress = new(Environment.GetEnvironmentVariable("PINO_MAILPIT_URL")!) };
         for (var attempt = 0; attempt < 40; attempt++)
@@ -73,7 +138,8 @@ internal sealed partial class BrowserSession(IPlaywright playwright, IBrowser br
                 var id = item.GetProperty("ID").GetString()!;
                 _messages.Add(id);
                 using var message = JsonDocument.Parse(await http.GetStringAsync(new Uri($"api/v1/message/{id}", UriKind.Relative), Token));
-                return message.RootElement.GetProperty("Text").GetString()!.Split('\n').Select(line => line.Trim()).Single(line => line.StartsWith("http", StringComparison.Ordinal));
+                var body = message.RootElement.GetProperty("Text").GetString()!;
+                if (contains is null || body.Contains(contains, StringComparison.Ordinal)) { return body; }
             }
             await Task.Delay(250, Token);
         }
@@ -124,8 +190,11 @@ internal sealed partial class BrowserSession(IPlaywright playwright, IBrowser br
         return JsonSerializer.Deserialize<T>(await response.TextAsync(), _json)!;
     }
 
+    internal bool CaptureDiagnostics { get; set; } = true;
+
     internal async Task CaptureAsync(string name)
     {
+        if (!CaptureDiagnostics) { return; }
         var output = Environment.GetEnvironmentVariable("PINO_BROWSER_ARTIFACTS");
         if (string.IsNullOrWhiteSpace(output)) { return; }
         Directory.CreateDirectory(output);
@@ -139,7 +208,7 @@ internal sealed partial class BrowserSession(IPlaywright playwright, IBrowser br
 
     private async Task CaptureFinalAsync()
     {
-        if (Environment.GetEnvironmentVariable("PINO_BROWSER_ARTIFACTS") is { Length: > 0 } output && !Page.IsClosed)
+        if (CaptureDiagnostics && Environment.GetEnvironmentVariable("PINO_BROWSER_ARTIFACTS") is { Length: > 0 } output && !Page.IsClosed)
         {
             Directory.CreateDirectory(output);
             var prefix = Path.Combine(output, _emails.Count > 0 ? _emails[0] : "browser");
@@ -151,9 +220,29 @@ internal sealed partial class BrowserSession(IPlaywright playwright, IBrowser br
     private async Task CleanMessagesAsync()
     {
         using var http = new HttpClient { BaseAddress = new(Environment.GetEnvironmentVariable("PINO_MAILPIT_URL")!) };
-        if (_messages.Count > 0)
+        var ownedMessages = new HashSet<string>(_messages, StringComparer.Ordinal);
+        // Membership notifications are delivered in the background and may not have
+        // been opened by the test. Remove only mail addressed to this session's accounts.
+        var total = int.MaxValue;
+        for (var start = 0; start < total; start += 100)
         {
-            using var request = new HttpRequestMessage(HttpMethod.Delete, new Uri("api/v1/messages", UriKind.Relative)) { Content = JsonContent.Create(new { IDs = _messages }) };
+            using var page = JsonDocument.Parse(await http.GetStringAsync(new Uri(string.Create(CultureInfo.InvariantCulture,
+                $"api/v1/messages?start={start}&limit=100"), UriKind.Relative), CancellationToken.None));
+            var messages = page.RootElement.GetProperty("messages");
+            total = page.RootElement.GetProperty("total").GetInt32();
+            foreach (var message in messages.EnumerateArray())
+            {
+                if (message.GetProperty("To").EnumerateArray().Any(to => to.GetProperty("Address").GetString() is { } address &&
+                    _emails.Contains(address, StringComparer.OrdinalIgnoreCase)))
+                {
+                    ownedMessages.Add(message.GetProperty("ID").GetString()!);
+                }
+            }
+            if (messages.GetArrayLength() == 0) { break; }
+        }
+        if (ownedMessages.Count > 0)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Delete, new Uri("api/v1/messages", UriKind.Relative)) { Content = JsonContent.Create(new { IDs = ownedMessages }) };
             using var response = await http.SendAsync(request, CancellationToken.None);
             response.EnsureSuccessStatusCode();
         }

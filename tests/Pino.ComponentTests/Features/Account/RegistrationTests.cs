@@ -17,6 +17,34 @@ namespace Pino.ComponentTests.Features.Account;
     Justification = "xUnit requires public test classes for discovery.")]
 public sealed class RegistrationTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RegistrationRequiresAdultStaffAcknowledgementAsync(bool external)
+    {
+        await using var context = new BunitContext();
+        var account = context.ConfigureAccount();
+        account.SignIn.GetExternalLoginInfoAsync().Returns(new ExternalLoginInfo(new ClaimsPrincipal(new ClaimsIdentity()), "Provider", "key", "Provider"));
+        if (external)
+        {
+            var component = account.Render<ExternalLogin>(context);
+            await component.Find("input[name='Input.Email']").ChangeAsync("member@example.test");
+            await component.Find("form").SubmitAsync();
+            component.Markup.ShouldContain("Confirm that you are an adult acting as club staff.");
+        }
+        else
+        {
+            var component = account.Render<Register>(context);
+            await component.Find("input[name='Input.Email']").ChangeAsync("member@example.test");
+            await component.Find("input[name='Input.Password']").ChangeAsync("password");
+            await component.Find("input[name='Input.ConfirmPassword']").ChangeAsync("password");
+            await component.Find("form").SubmitAsync();
+            component.Markup.ShouldContain("Confirm that you are an adult acting as club staff.");
+        }
+        await account.Users.DidNotReceiveWithAnyArgs().CreateAsync(default!);
+        await account.Users.DidNotReceiveWithAnyArgs().CreateAsync(default!, default!);
+    }
+
     [Fact]
     public async Task RejectedPasswordRegistrationDisplaysIdentityErrorAndSkipsContinuationAsync()
     {
@@ -29,6 +57,7 @@ public sealed class RegistrationTests
         await component.Find("input[name='Input.Password']").ChangeAsync(new ChangeEventArgs { Value = "password" });
         await component.Find("input[name='Input.ConfirmPassword']").ChangeAsync(new ChangeEventArgs { Value = "password" });
 
+        await component.Find("input[name='Input.AdultStaff']").ChangeAsync(true);
         await component.Find("form").SubmitAsync();
 
         await component.WaitForAssertionAsync(() => component.Find(".notice[data-kind='error']").TextContent.ShouldContain("Email already registered"));
@@ -56,6 +85,7 @@ public sealed class RegistrationTests
         await component.Find("input[name='Input.Password']").ChangeAsync(new ChangeEventArgs { Value = "password" });
         await component.Find("input[name='Input.ConfirmPassword']").ChangeAsync(new ChangeEventArgs { Value = "password" });
 
+        await component.Find("input[name='Input.AdultStaff']").ChangeAsync(true);
         await component.Find("form").SubmitAsync();
 
         await account.Emails.Received(1).SendConfirmationLinkAsync(Arg.Any<ApplicationUser>(), "member@example.test",
@@ -90,6 +120,7 @@ public sealed class RegistrationTests
         var component = account.Render<ExternalLogin>(context);
         await component.Find("input[name='Input.Email']").ChangeAsync(new ChangeEventArgs { Value = "member@example.test" });
 
+        await component.Find("input[name='Input.AdultStaff']").ChangeAsync(true);
         await component.Find("form").SubmitAsync();
 
         await component.WaitForAssertionAsync(() => component.Find(".notice[data-kind='error']").TextContent.ShouldContain("Operation rejected"));
@@ -134,6 +165,7 @@ public sealed class RegistrationTests
         var component = account.Render<ExternalLogin>(context);
         await component.Find("input[name='Input.Email']").ChangeAsync(new ChangeEventArgs { Value = "member@example.test" });
 
+        await component.Find("input[name='Input.AdultStaff']").ChangeAsync(true);
         await component.Find("form").SubmitAsync();
 
         await account.Users.Received(1).AddLoginAsync(Arg.Any<ApplicationUser>(), login);
@@ -165,6 +197,7 @@ public sealed class RegistrationTests
         var component = account.Render<ExternalLogin>(context);
         await component.Find("input[name='Input.Email']").ChangeAsync(new ChangeEventArgs { Value = "member@example.test" });
 
+        await component.Find("input[name='Input.AdultStaff']").ChangeAsync(true);
         await component.Find("form").SubmitAsync();
 
         component.Find("a[href='Account/ResendEmailConfirmation']").TextContent.ShouldBe("Request a confirmation email");

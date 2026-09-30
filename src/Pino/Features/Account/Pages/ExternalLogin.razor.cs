@@ -84,11 +84,11 @@ public sealed partial class ExternalLogin
             _ =>
             {
                 LogUserLoggedInWithExternalProvider(Logger, _externalLoginInfo.Principal.Identity?.Name, _externalLoginInfo.LoginProvider);
-                RedirectManager.RedirectTo(ReturnUrl);
+                RedirectManager.RedirectTo(Pino.Features.Account.Services.AccountReturnPath.Local(ReturnUrl));
             },
             _ => RedirectManager.RedirectTo("Account/LoginWith2fa", new(StringComparer.Ordinal) { ["returnUrl"] = ReturnUrl, ["rememberMe"] = false }),
             _ => RedirectManager.RedirectTo("Account/Lockout"),
-            _ => RedirectManager.RedirectToWithStatus("Account/Login", "Error: Invalid login attempt.", HttpContext),
+            _ => RedirectManager.RedirectToWithStatus("Account/Login", "Error: We could not sign you in. Check your email and password, then try again.", HttpContext),
             _ => Input.Email = _externalLoginInfo.Principal.FindFirstValue(ClaimTypes.Email) ?? "");
     }
 
@@ -135,7 +135,7 @@ public sealed partial class ExternalLogin
         else
         {
             await SignInManager.SignInAsync(user, isPersistent: false, provider);
-            RedirectManager.RedirectTo(ReturnUrl);
+            RedirectManager.RedirectTo(Pino.Features.Account.Services.AccountReturnPath.Local(ReturnUrl));
         }
     }
 
@@ -147,6 +147,9 @@ public sealed partial class ExternalLogin
 
     private sealed class InputModel
     {
+        [Range(typeof(bool), "true", "true", ErrorMessage = "Confirm that you are an adult acting as club staff.")]
+        public bool AdultStaff { get; set; }
+
         [Required]
         [EmailAddress]
         public string Email { get; set; } = "";

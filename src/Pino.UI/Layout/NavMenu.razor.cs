@@ -11,7 +11,7 @@ public sealed partial class NavMenu
         get
         {
             var path = _currentUrl?.Split('?')[0].Split('#')[0].TrimEnd('/') ?? "";
-            return path.Length == 0 || path.Equals("club/access", StringComparison.OrdinalIgnoreCase) ||
+            return path.Equals("club", StringComparison.OrdinalIgnoreCase) || path.Equals("club/access", StringComparison.OrdinalIgnoreCase) ||
                 path.StartsWith("clubs/", StringComparison.OrdinalIgnoreCase);
         }
     }

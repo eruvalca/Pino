@@ -35,7 +35,7 @@ public sealed partial class LoginWithRecoveryCode
             _ =>
             {
                 LogUserLoggedInWithRecoveryCode(Logger, userId);
-                RedirectManager.RedirectTo(ReturnUrl);
+                RedirectManager.RedirectTo(Pino.Features.Account.Services.AccountReturnPath.Local(ReturnUrl));
             },
             _ => ShowInvalidCode(userId),
             _ =>
@@ -50,7 +50,7 @@ public sealed partial class LoginWithRecoveryCode
     private void ShowInvalidCode(string userId)
     {
         LogInvalidRecoveryCode(Logger, userId);
-        _message = "Error: Invalid recovery code entered.";
+        _message = "Error: That recovery code did not work. Check the code or use another unused code.";
     }
 
     [LoggerMessage(EventId = 1006, Level = LogLevel.Information, Message = "User with ID '{UserId}' logged in with a recovery code.")]
